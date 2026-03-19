@@ -56,69 +56,7 @@
                       (format t "ERROR: ~a~%" c)))))
             (usage argv))))))
 
-
-;;;
-;;; Commands
-;;;
-(define-command (("scan34") (csv directory))
-    "parse scan34 access.log file, outputs a CSV file."
-  (let ((directory (uiop:ensure-directory-pathname directory)))
-    (access-to-csv csv directory)))
 
-(define-command (("tweet") (play))
-    "Parse the XML file PLAY and tweet its lines."
-  (let* ((shakes:*connspec* (get-connspec *dbname*)))
-    (handler-case
-        (shakes:parse-document play)
-      (condition (c)
-        (error 'cli-error
-               :mesg (format nil "Failed to tweet Shakespeare play ~s" play)
-               :detail (format nil "~a" c)
-               :hint "Tweet users should be created first.")))))
-
-(define-command (("retweet") (messageid workers times))
-    "retweet MessageID given TIMES in concurrent WORKERS threads."
-  (let ((concurrency:*connspec* (get-connspec *dbname*))
-        (messageid (parse-integer messageid))
-        (workers   (parse-integer workers))
-        (times     (parse-integer times)))
-    (handler-case
-        (concurrency:concurrency-test workers times messageid)
-      (condition (c)
-        (error 'cli-error
-               :mesg "Failed to test tweeting concurrently"
-               :detail (format nil "~a" c)
-               :hint "The tweet schema should be created first.")))))
-
-(define-command (("rates") (csv directory))
-    "parse rates TSV files in DIRECTORY, outputs a CSV file."
-  (let ((directory (uiop:ensure-directory-pathname directory)))
-    (load-currency-files csv directory)))
-
-(define-command (("gitlog") (csv project-directory))
-    "parse a git project's log and output a csv file."
-  (let* ((project-directory (uiop:ensure-directory-pathname project-directory))
-         (project-directory (uiop:native-namestring project-directory)))
-    (multiple-value-bind (abs-rel directories last flag)
-        (uiop:split-unix-namestring-directory-components project-directory)
-      (declare (ignore abs-rel last flag))
-      (let ((project-name (first (reverse directories))))
-        (git-logs-to-csv csv project-name project-directory)))))
-
-(define-command (("lastfm") (zipfilename))
-    "load the lastfm subset zip of JSON files."
-  (let ((lastfm::*db* (get-connspec *dbname*)))
-    (lastfm::process-zipfile zipfilename)))
-
-(define-command (("pubnames") ())
-    "load the pubnames from OSM export"
-  (let ((pubnames::*pgconn* (get-connspec *dbname*)))
-    (pubnames::import-pub-names-and-cities :drop t)))
-
-
-;;;
-;;; Some other things...
-;;;
 (define-condition cli-error ()
   ((mesg   :initarg :mesg   :initform nil :reader cli-error-message)
    (detail :initarg :detail :initform nil :reader cli-error-detail)

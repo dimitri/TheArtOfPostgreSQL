@@ -47,3 +47,22 @@
 (defun read-log-from-stream (stream)
   (let ((bytes (alexandria:read-stream-content-into-byte-vector stream)))
     (babel:octets-to-string bytes :errorp nil :encoding :utf-8)))
+
+;;;
+;;; Command definition
+;;;
+(define-command (("gitlog") (csv project-directory))
+    "Parse git log from PROJECT-DIRECTORY and output CSV.
+
+     Requires two arguments:
+       - CSV              output CSV file path
+       - PROJECT-DIRECTORY  path to git project directory
+
+     Extracts commit information and outputs to CSV file."
+  (let* ((project-directory (uiop:ensure-directory-pathname project-directory))
+         (project-directory (uiop:native-namestring project-directory)))
+    (multiple-value-bind (abs-rel directories last flag)
+        (uiop:split-unix-namestring-directory-components project-directory)
+      (declare (ignore abs-rel last flag))
+      (let ((project-name (first (reverse directories))))
+        (git-logs-to-csv csv project-name project-directory)))))

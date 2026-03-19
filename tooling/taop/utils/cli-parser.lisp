@@ -124,7 +124,7 @@
     (unless help
       (format t "~a: command line parse error.~%" progname)
       (format t "~@[Error parsing args: ~{~s~^ ~}~%~]~%" (rest args)))
-    (format t "~%Available commands:~%")
+    (format t "~%Available commands:~%~%")
     (loop :for command :across *commands*
           :do (with-slots (verbs bindings help) command
-                (format t " ~{~a~^ ~}~10t~{~a~^ ~}~42T~a~%" verbs bindings help)))))
+                (format t " ~{~a~^ ~}~10t~{~a~^ ~}~42T~a~%~%" verbs bindings help)))))

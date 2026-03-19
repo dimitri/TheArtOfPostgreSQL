@@ -1,8 +1,8 @@
 TAOP      = ./bin/taop
 TAOP_SRC  = taop.asd
 TAOP_SRC += $(wildcard taop/*lisp)
-TAOP_SRC +=  $(wildcard taop/utils/*lisp)
-TAOP_SRC +=  $(wildcard taop/shakes/*lisp)
+TAOP_SRC += $(wildcard taop/utils/*lisp)
+TAOP_SRC += $(wildcard taop/shakes/*lisp)
 
 ifndef CL
 ifeq ($(shell which sbcl),)
@@ -15,6 +15,8 @@ endif
 QLDIR      = ./build/quicklisp
 QUICKLISP  = $(QLDIR)/quicklisp.lisp
 QLSETUP    = $(QLDIR)/setup.lisp
+
+PUBNAMES   = $(QLDIR)/local-projects/pubnames
 
 taop: $(TAOP) ;
 
@@ -33,10 +35,16 @@ $(QLSETUP): $(QUICKLISP)
              --eval '(quicklisp-quickstart:install :path "$(QLDIR)")' \
              --eval '(quit)'
 
-quicklisp: $(QLDIR)/setup.lisp ;
-
 $(QLDIR)/local-projects/pubnames: $(QLSETUP)
 	git clone --depth 1 https://github.com/dimitri/pubnames.git $@
+
+quicklisp: $(QLSETUP) ;
+pubnames: $(PUBNAMES) ;
+
+qload: quicklisp pubnames
+	$(CL) --load $(QLSETUP)                                        \
+              --eval '(push "$(PWD)/" ql:*local-project-directories*)' \
+	      --eval '(ql:quickload "taop")'
 
 $(TAOP): $(TAOP_SRC) $(QLSETUP) | $(QLDIR)/local-projects/pubnames
 	TAOP=$(TAOP) $(CL)                                            \
@@ -44,4 +52,7 @@ $(TAOP): $(TAOP_SRC) $(QLSETUP) | $(QLDIR)/local-projects/pubnames
              --eval '(push "$(PWD)/" ql:*local-project-directories*)' \
              --load ./build/build.lisp
 
-.PHONY: clear taop
+.PHONY: taop
+.PHONY: clean
+.PHONY: quicklisp
+.PHONY: pubnames

@@ -1,3 +1,20 @@
+;;;
+;;; Last.fm Data Loader
+;;;
+;;; Loads Last.fm subset data from a ZIP file of JSON data into PostgreSQL.
+;;;
+;;; Usage:
+;;;   taop lastfm <zipfilename>
+;;;
+;;; Arguments:
+;;;   zipfilename  - Path to Last.fm subset ZIP file
+;;;
+;;; Note:
+;;;   The Last.fm dataset is too large (~1GB compressed) to include in the
+;;;   git repository. Download it separately from:
+;;;   https://www.bicicletorama.com/work/data/lastfm_subset.zip
+;;;
+
 (defpackage #:lastfm
   (:use #:cl #:zip)
   (:import-from #:cl-postgres
@@ -39,3 +56,26 @@
     (list (cdr (assoc "track_id" json :test #'string=))
           (cdr (assoc "artist"   json :test #'string=))
           (cdr (assoc "title"    json :test #'string=)))))
+
+;;;
+;;; Command definition
+;;;
+;;; Note: The Last.fm dataset is too large to include in the repository.
+;;; See data/lastfm/README.md for download instructions.
+;;;
+
+(in-package #:taop)
+
+(define-command (("lastfm") (zipfilename))
+    "Load Last.fm subset ZIP file of JSON data into the database.
+
+     Requires one argument:
+       - ZIPFILENAME  path to Last.fm subset zip file
+
+     The ZIP file should contain JSON files with track data.
+
+     Note: The Last.fm dataset is too large (~1GB) to include in the
+     repository. Download from:
+     https://www.bicicletorama.com/work/data/lastfm_subset.zip"
+  (let ((lastfm::*db* (get-connspec *dbname*)))
+    (lastfm::process-zipfile zipfilename)))

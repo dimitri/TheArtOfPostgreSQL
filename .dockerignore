@@ -1,0 +1,4 @@
+.git
+.gitignore
+tooling/build/quicklisp
+tooling/system-index.txt

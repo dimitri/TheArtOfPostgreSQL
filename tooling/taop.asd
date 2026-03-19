@@ -41,7 +41,8 @@
              (:module "shakes"
               :components ((:file "shakes")
                            (:file "concurrency")
-                           (:file "visits")))
+                           (:file "visits")
+                           (:file "commands")))
 
              ;; rates
              (:file "rates")
@@ -49,8 +50,17 @@
              ;; commitlog
              (:file "gitlog")
 
+             ;; pubnames, depends on another git project, see Makefile
+             ;; git clone https://github.com/dimitri/pubnames.git
+             (:file "pubnames")
+
              ;; lastfm
-             (:file "lastfm_load_json")
+             ;; The Last.fm dataset is too large (~1GB) to include in the repository.
+             ;; Uncomment when you have the data available.
+             ;; (:file "lastfm_load_json")
+
+             ;; magic
+             (:file "magic")
 
              ;; taop main command
              (:file "main")))))
