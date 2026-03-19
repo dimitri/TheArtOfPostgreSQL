@@ -37,7 +37,7 @@
       ;; don't do anything when --help or --version were given
       (let ((match (find-command-function args)))
         (if match
-            (destructuring-bind (fun args) match
+            (destructuring-bind (command fun args) match
               (handler-case
                   (handler-bind ((warning
                                    #'(lambda (c)
@@ -45,6 +45,8 @@
                                        (muffle-warning))))
                     (apply fun args))
                 (cli-error (e)
+                  (format t "ERROR running command: ~{a~~^ ~}%"
+                          (command-verbs command))
                   (format t
                           "ERROR: ~a~%~@[DETAIL: ~a~%~]~@[HINT: ~a~%~]"
                           (cli-error-message e)

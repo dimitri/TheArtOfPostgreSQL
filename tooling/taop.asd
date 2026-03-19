@@ -62,6 +62,9 @@
              ;; magic
              (:file "magic")
 
+             ;; load all datasets
+             (:file "load-data")
+
              ;; taop main command
              (:file "main")))))
 

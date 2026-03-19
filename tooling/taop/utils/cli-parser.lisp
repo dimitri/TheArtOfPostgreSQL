@@ -37,7 +37,7 @@
       (when matches-p
         (let ((fun-args (nthcdr (length (command-verbs command)) args)))
           (when (destructuring-match (command-bindings command) fun-args)
-            (list (command-lambda command) fun-args)))))))
+            (list command (command-lambda command) fun-args)))))))
 
 (defmacro define-command ((verbs bindings) help-string &body body)
   "Define a command that is to be fired when VERBS are found at the
@@ -118,13 +118,19 @@
 
 (defun usage (args &key help)
   "Loop over all the commands and output the usage of the main program"
-  (let ((progname (or (first args)
-                      (first (uiop:raw-command-line-arguments)))))
+  (let ((progname (first (uiop:raw-command-line-arguments))))
     (format t "~a [ --help ] [ --version ] command ...~%" progname)
     (unless help
       (format t "~a: command line parse error.~%" progname)
       (format t "~@[Error parsing args: ~{~s~^ ~}~%~]~%" (rest args)))
-    (format t "~%Available commands:~%~%")
-    (loop :for command :across *commands*
-          :do (with-slots (verbs bindings help) command
-                (format t " ~{~a~^ ~}~10t~{~a~^ ~}~42T~a~%~%" verbs bindings help)))))
+    (if args
+        (let ((match (find-command-function args)))
+          (destructuring-bind (command fun args) match
+            (declare (ignore fun args))
+            (with-slots (verbs bindings help) command
+              (format t "~%~{~a~^ ~}~12t~{~a~^ ~}~%~a~%" verbs bindings help))))
+        (progn
+          (format t "~%Available commands:~%~%")
+          (loop :for command :across *commands*
+                :do (with-slots (verbs bindings) command
+                      (format t " ~{~a~^ ~}~12t~{~a~^ ~}~%" verbs bindings)))))))

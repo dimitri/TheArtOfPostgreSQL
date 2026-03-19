@@ -38,32 +38,24 @@ docker compose up -d postgres
 
 ### Load Data
 
-Use the taop service to load datasets. The main datasets are:
+Use the taop service to load datasets. The main datasets are loaded with a
+single command:
 
 ```bash
-# Load Shakespeare tweet data (default play: dream.xml)
-docker compose run --rm taop tweet
-
-# Load Magic: The Gathering card data
-docker compose run --rm taop magic
-
-# Load currency exchange rates
-docker compose run --rm taop rates
-
-# Load scan34 access logs (default: SCAN34_DIR/access.csv)
-docker compose run --rm taop scan34
-
-# Load pubnames data (public houses from OpenStreetMap)
-docker compose run --rm taop pubnames
+docker compose run --rm taop load-data
 ```
 
 ### Query Data
 
-Use the psql service for interactive querying with all SQL queries from the book:
+Use the psql service for interactive querying with all SQL queries from the
+book:
 
 ```bash
-docker compose run --rm psql
+docker compose run --rm -it psql
 ```
+
+It is possible to discover the queries available by using psql commands `\!
+ls` or `\! find .`.
 
 The psql service includes:
 - The `queries/` directory mounted at `/usr/src/taop/queries`
