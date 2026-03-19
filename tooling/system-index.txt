@@ -1,0 +1,3 @@
+taop.asd
+build/quicklisp/quicklisp/quicklisp.asd
+build/quicklisp/local-projects/pubnames/pubnames.asd

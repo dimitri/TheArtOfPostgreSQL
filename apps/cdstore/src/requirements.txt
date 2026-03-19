@@ -1,0 +1,2 @@
+anosql==0.2.0
+psycopg2-binary==2.8.2

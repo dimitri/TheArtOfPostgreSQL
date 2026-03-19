@@ -1,0 +1,616 @@
+  1 Preface
+    1 About…
+      1.1 About the Book
+      1.2 About the Author
+      1.3 Acknowledgements
+      1.4 About the organisation of the book
+        1.4.1 Part 1, Preface
+        1.4.2 Part 2, Introduction
+        1.4.3 Part 3, Writing SQL Queries
+        1.4.4 Part 4, SQL Toolbox
+        1.4.5 Part 5, Data Types
+        1.4.6 Part 6, Data Modeling
+        1.4.7 Part 7, Data Manipulation and Concurrency Control
+        1.4.8 Part 8, PostgreSQL Extensions
+  2 Introduction
+    2 Structured Query Language
+      2.1 Some of the Code is Written in SQL
+      2.2 A First Use Case
+      2.3 Loading the Data Set
+          02-intro/02-usecase/03_01_factbook.sql
+      2.4 Application Code and SQL
+          02-intro/02-usecase/04_01.sql
+          02-intro/02-usecase/04_02_factbook-month.py
+      2.5 A Word about SQL Injection
+      2.6 PostgreSQL protocol: server-side prepared statements
+          02-intro/02-usecase/06_01.sql
+          02-intro/02-usecase/06_02.sql
+      2.7 Back to Discovering SQL
+          02-intro/02-usecase/07_01.sql
+      2.8 Computing Weekly Changes
+          02-intro/02-usecase/08_01.sql
+    3 Software Architecture
+      3.1 Why PostgreSQL?
+          02-intro/03-postgresql/01_01.sql
+      3.2 The PostgreSQL Documentation
+    4 Getting Ready to read this Book
+        02-intro/04-postgresql/01.sql
+  3 Writing Sql Queries 
+    5 Business Logic
+      5.1 Every SQL query embeds some business logic
+          03-writing-sql-queries/05-business-logic/01_01.sql
+          03-writing-sql-queries/05-business-logic/01_02.sql
+          03-writing-sql-queries/05-business-logic/01_03.sql
+      5.2 Business Logic Applies to Use Cases
+          03-writing-sql-queries/05-business-logic/02_01.sql
+          03-writing-sql-queries/05-business-logic/02_02_albums.py
+      5.3 Correctness
+      5.4 Efficiency
+      5.5 Stored Procedures — a Data Access API
+          03-writing-sql-queries/05-business-logic/05_01_album.pl.name.sql
+          03-writing-sql-queries/05-business-logic/05_02_album.pl.id.sql
+          03-writing-sql-queries/05-business-logic/05_03.sql
+          03-writing-sql-queries/05-business-logic/05_04.sql
+          03-writing-sql-queries/05-business-logic/05_05.sql
+          03-writing-sql-queries/05-business-logic/05_06.sql
+      5.6 Procedural Code and Stored Procedures
+          03-writing-sql-queries/05-business-logic/06_01_album.pl.proc.sql
+      5.7 Where to Implement Business Logic?
+    6 A Small Application
+      6.1 Readme First Driven Development
+      6.2 Loading the Dataset
+      6.3 Chinook Database
+          03-writing-sql-queries/06-application-use-case/03_01.sql
+      6.4 Music Catalog
+          03-writing-sql-queries/06-application-use-case/04_01_artist.sql
+      6.5 Albums by Artist
+          03-writing-sql-queries/06-application-use-case/05_01_album-by-artist.sql
+      6.6 Top-N Artists by Genre
+    7 The SQL REPL — An Interactive Setup 
+      7.1 Intro to psql
+      7.2 The psqlrc Setup
+      7.3 Transactions and psql Behavior
+      7.4 A Reporting Tool
+          03-writing-sql-queries/07-psql/04_01_alesi.sql
+      7.5 Discovering a Schema
+          03-writing-sql-queries/07-psql/05_01.sql
+      7.6 Interactive Query Editor
+    8 SQL is Code
+      8.1 SQL style guidelines
+          03-writing-sql-queries/08-sql-is-code/01_01.sql
+          03-writing-sql-queries/08-sql-is-code/01_02.sql
+          03-writing-sql-queries/08-sql-is-code/01_03.sql
+          03-writing-sql-queries/08-sql-is-code/01_04.diff
+          03-writing-sql-queries/08-sql-is-code/01_05.sql
+          03-writing-sql-queries/08-sql-is-code/01_06.sql
+          03-writing-sql-queries/08-sql-is-code/01_07.sql
+          03-writing-sql-queries/08-sql-is-code/01_08.sql
+          03-writing-sql-queries/08-sql-is-code/01_09.sql
+          03-writing-sql-queries/08-sql-is-code/01_10.sql
+          03-writing-sql-queries/08-sql-is-code/01_11.sql
+          03-writing-sql-queries/08-sql-is-code/01_12.sql
+      8.2 Comments
+          03-writing-sql-queries/08-sql-is-code/02_01.sql
+      8.3 Unit Tests
+          03-writing-sql-queries/08-sql-is-code/03_01.sql
+          03-writing-sql-queries/08-sql-is-code/03_02.sql
+          03-writing-sql-queries/08-sql-is-code/03_03.sql
+          03-writing-sql-queries/08-sql-is-code/03_04.sql
+      8.4 Regression Tests
+      8.5 A Closer Look
+    9 Indexing Strategy 
+      9.1 Indexing for Constraints
+          03-writing-sql-queries/09-indexing-strategy/01_01.sql
+          03-writing-sql-queries/09-indexing-strategy/01_02.sql
+      9.2 Indexing for Queries
+      9.3 Cost of Index Maintenance
+      9.4 Choosing Queries to Optimize
+      9.5 PostgreSQL Index Access Methods
+      9.6 Advanced Indexing
+      9.7 Adding Indexes
+    10 An Interview with Yohann Gabory
+  4 SQL Toolbox
+    11 Get Some Data
+        04-sql-select/11-data/01.sql
+    12 Structured Query Language
+    13 Queries, DML, DDL, TCL, DCL
+    14 Select, From, Where
+      14.1 Anatomy of a Select Statement
+          04-sql-select/14-sql-101/01_01.sql
+      14.2 Projection (output): Select
+          04-sql-select/14-sql-101/02_01.sql
+          04-sql-select/14-sql-101/02_02.sql
+          04-sql-select/14-sql-101/02_03.sql
+        14.2.1 Select Star
+            04-sql-select/14-sql-101/02_01_01.java
+            04-sql-select/14-sql-101/02_01_02.java
+            04-sql-select/14-sql-101/02_01_03.java
+            04-sql-select/14-sql-101/02_01_04.java
+            04-sql-select/14-sql-101/02_01_05.diff
+        14.2.2 Select Computed Values and Aliases
+            04-sql-select/14-sql-101/02_02_01.sql
+            04-sql-select/14-sql-101/02_02_02.sql
+        14.2.3 PostgreSQL Processing Functions
+            04-sql-select/14-sql-101/02_03_01.sql
+      14.3 Data sources: From
+          04-sql-select/14-sql-101/03_01.sql
+          04-sql-select/14-sql-101/03_02.sql
+      14.4 Understanding Joins
+          04-sql-select/14-sql-101/04_01.sql
+          04-sql-select/14-sql-101/04_02.sql
+      14.5 Restrictions: Where
+          04-sql-select/14-sql-101/05_01_f1db.notfinishers.sql
+    15 Order By, Limit, No Offset
+      15.1 Ordering with Order By
+          04-sql-select/15-sql-102/01_01.sql
+          04-sql-select/15-sql-102/01_02.sql
+          04-sql-select/15-sql-102/01_03.sql
+      15.2 kNN Ordering and GiST indexes 
+          04-sql-select/15-sql-102/02_01.sql
+          04-sql-select/15-sql-102/02_02.sql
+          04-sql-select/15-sql-102/02_03.sql
+      15.3 Top-N sorts: Limit
+          04-sql-select/15-sql-102/03_01_f1db.decade.top3.sql
+      15.4 No Offset, and how to implement pagination
+          04-sql-select/15-sql-102/04_01.sql
+          04-sql-select/15-sql-102/04_02.sql
+    16 Group By, Having, With, Union All
+      16.1 Aggregates (aka Map/Reduce): Group By
+          04-sql-select/16-sql-103/01_01.sql
+          04-sql-select/16-sql-103/01_02_f1db.decade.races.sql
+          04-sql-select/16-sql-103/01_03.sql
+          04-sql-select/16-sql-103/01_04.sql
+      16.2 Aggregates Without a Group By
+          04-sql-select/16-sql-103/02_01.sql
+      16.3 Restrict Selected Groups: Having
+          04-sql-select/16-sql-103/03_01.sql
+      16.4 Grouping Sets
+          04-sql-select/16-sql-103/04_01.sql
+          04-sql-select/16-sql-103/04_02.sql
+          04-sql-select/16-sql-103/04_03.sql
+      16.5 Common Table Expressions: With
+          04-sql-select/16-sql-103/05_01.sql
+          04-sql-select/16-sql-103/05_02_f1db.accidents.sql
+          04-sql-select/16-sql-103/05_03_f1db.seasons.winners.sql
+      16.6 Distinct On
+          04-sql-select/16-sql-103/06_01.sql
+          04-sql-select/16-sql-103/06_02.sql
+          04-sql-select/16-sql-103/06_03.sql
+      16.7 Result Sets Operations
+          04-sql-select/16-sql-103/07_01_f1db.standinds.union.sql
+          04-sql-select/16-sql-103/07_02_f1db.standinds.except.sql
+          04-sql-select/16-sql-103/07_03.sql
+    17 Understanding Nulls
+      17.1 Three-Valued Logic 
+          04-sql-select/17-nulls/01_01.sql
+          04-sql-select/17-nulls/01_02.sql
+      17.2 Not Null Constraints
+          04-sql-select/17-nulls/02_01.sql
+          04-sql-select/17-nulls/02_02.sql
+      17.3 Outer Joins Introducing Nulls
+          04-sql-select/17-nulls/03_01.sql
+      17.4 Using Null in Applications
+          04-sql-select/17-nulls/04_01.sql
+          04-sql-select/17-nulls/04_02.sql
+    18 Understanding Window Functions
+      18.1 Windows and Frames
+          04-sql-select/18-window-functions/01_01.sql
+          04-sql-select/18-window-functions/01_02.sql
+          04-sql-select/18-window-functions/01_03.sql
+          04-sql-select/18-window-functions/01_04.sql
+      18.2 Partitioning into Different Frames
+          04-sql-select/18-window-functions/02_01.sql
+      18.3 Available Window Functions
+          04-sql-select/18-window-functions/03_01.sql
+      18.4 When to Use Window Functions
+    19 Understanding Relations and Joins
+      19.1 Relations
+          04-sql-select/19-relations/01_01.sql
+      19.2 SQL Join Types
+          04-sql-select/19-relations/02_01.sql
+    20 An Interview with Markus Winand
+  5 Data Types 
+    21 Serialization and Deserialization
+    22 Some Relational Theory
+      22.1 Attribute Values, Data Domains and Data Types
+          05-data-types/22-relational/01_01.sql
+          05-data-types/22-relational/01_02.sql
+          05-data-types/22-relational/01_03.sql
+          05-data-types/22-relational/01_04.sql
+      22.2 Consistency and Data Type Behavior
+          05-data-types/22-relational/02_01.sql
+          05-data-types/22-relational/02_02.sql
+          05-data-types/22-relational/02_03.sql
+          05-data-types/22-relational/02_04.sql
+    23 PostgreSQL Data Types
+        05-data-types/23-pg-data-types-101/01.sql
+        05-data-types/23-pg-data-types-101/02.sql
+      23.1 Boolean
+          05-data-types/23-pg-data-types-101/01_01.sql
+      23.2 Character and Text
+          05-data-types/23-pg-data-types-101/02_01.sql
+          05-data-types/23-pg-data-types-101/02_02.sql
+          05-data-types/23-pg-data-types-101/02_03.sql
+          05-data-types/23-pg-data-types-101/02_04.sql
+          05-data-types/23-pg-data-types-101/02_05.sql
+      23.3 Server Encoding and Client Encoding
+          05-data-types/23-pg-data-types-101/03_01.sql
+      23.4 Numbers
+          05-data-types/23-pg-data-types-101/04_01.sql
+          05-data-types/23-pg-data-types-101/04_02.sql
+          05-data-types/23-pg-data-types-101/04_03.sql
+      23.5 Floating Point Numbers
+      23.6 Sequences and the Serial Pseudo Data Type
+          05-data-types/23-pg-data-types-101/06_01.sql
+          05-data-types/23-pg-data-types-101/06_02.sql
+          05-data-types/23-pg-data-types-101/06_03.sql
+      23.7 Universally Unique Identifier: UUID
+          05-data-types/23-pg-data-types-101/07_01.sql
+          05-data-types/23-pg-data-types-101/07_02.sql
+          05-data-types/23-pg-data-types-101/07_03.sql
+      23.8 Bytea and Bitstring
+      23.9 Date/Time and Time Zones
+          05-data-types/23-pg-data-types-101/09_01.sql
+          05-data-types/23-pg-data-types-101/09_02_tz.sql
+          05-data-types/23-pg-data-types-101/09_03.sql
+      23.10 Time Intervals
+          05-data-types/23-pg-data-types-101/10_01.sql
+          05-data-types/23-pg-data-types-101/10_02.sql
+          05-data-types/23-pg-data-types-101/10_03.sql
+      23.11 Date/Time Processing and Querying
+          05-data-types/23-pg-data-types-101/11_01.sql
+          05-data-types/23-pg-data-types-101/11_02.sql
+          05-data-types/23-pg-data-types-101/11_03.sql
+          05-data-types/23-pg-data-types-101/11_04.sql
+          05-data-types/23-pg-data-types-101/11_05.sql
+          05-data-types/23-pg-data-types-101/11_06.sql
+      23.12 Network Address Types
+          05-data-types/23-pg-data-types-101/12_01_access.sql
+          05-data-types/23-pg-data-types-101/12_02.sql
+          05-data-types/23-pg-data-types-101/12_03.sql
+          05-data-types/23-pg-data-types-101/12_04.sql
+      23.13 Ranges 
+          05-data-types/23-pg-data-types-101/13_01_rates.sql
+          05-data-types/23-pg-data-types-101/13_02.sql
+          05-data-types/23-pg-data-types-101/13_03.sql
+          05-data-types/23-pg-data-types-101/13_04.sql
+    24 Denormalized Data Types 
+      24.1 Arrays 
+          05-data-types/24-non-relational-types/01_01_tweets.sql
+          05-data-types/24-non-relational-types/01_02.sql
+          05-data-types/24-non-relational-types/01_03_hashtag.sql
+          05-data-types/24-non-relational-types/01_04.sql
+          05-data-types/24-non-relational-types/01_05.sql
+          05-data-types/24-non-relational-types/01_06.sql
+          05-data-types/24-non-relational-types/01_07.sql
+          05-data-types/24-non-relational-types/01_08.sql
+      24.2 Composite Types
+          05-data-types/24-non-relational-types/02_01_rate_t.sql
+          05-data-types/24-non-relational-types/02_02.sql
+      24.3 XML
+          05-data-types/24-non-relational-types/03_01.sql
+          05-data-types/24-non-relational-types/03_02.sql
+      24.4 JSON
+          05-data-types/24-non-relational-types/04_01.sql
+          05-data-types/24-non-relational-types/04_02.sql
+          05-data-types/24-non-relational-types/04_03.sql
+          05-data-types/24-non-relational-types/04_04.sql
+          05-data-types/24-non-relational-types/04_05.sql
+          05-data-types/24-non-relational-types/04_06.sql
+      24.5 Enum
+          05-data-types/24-non-relational-types/05_01.sql
+          05-data-types/24-non-relational-types/05_02.sql
+    25 PostgreSQL Extensions
+    26 An interview with Grégoire Hubert
+  6 Data Modeling 
+    27 Object Relational Mapping
+    28 Tooling for Database Modeling
+      28.1 How to Write a Database Model
+          06-data-modeling/28-repl/01_01.sql
+          06-data-modeling/28-repl/01_02.sql
+          06-data-modeling/28-repl/01_03_schema.sql
+      28.2 Generating Random Data
+          06-data-modeling/28-repl/02_01_lorem.sql
+      28.3 Modeling Example
+          06-data-modeling/28-repl/03_01_schema.tz.sql
+          06-data-modeling/28-repl/03_02_random.tz.sql
+          06-data-modeling/28-repl/03_03_topn-with-comments.sql
+          06-data-modeling/28-repl/03_04_sandbox.indexes.sql
+    29 Normalization
+      29.1 Data Structures and Algorithms
+      29.2 Normal Forms
+      29.3 Database Anomalies 
+      29.4 Modeling an Address Field
+          06-data-modeling/29-normalisation/04_01.sql
+      29.5 Primary Keys 
+      29.6 Surrogate Keys
+          06-data-modeling/29-normalisation/06_01.sql
+          06-data-modeling/29-normalisation/06_02.sql
+          06-data-modeling/29-normalisation/06_03.sql
+          06-data-modeling/29-normalisation/06_04.sql
+          06-data-modeling/29-normalisation/06_05.sql
+          06-data-modeling/29-normalisation/06_06.sql
+      29.7 Foreign Keys Constraints
+      29.8 Not Null Constraints
+      29.9 Check Constraints and Domains
+          06-data-modeling/29-normalisation/09_01.sql
+          06-data-modeling/29-normalisation/09_02.sql
+          06-data-modeling/29-normalisation/09_03.sql
+          06-data-modeling/29-normalisation/09_04.sql
+      29.10 Exclusion Constraints
+          06-data-modeling/29-normalisation/10_01.sql
+    30 Practical Use Case: Geonames 
+        06-data-modeling/30-practical-geonames/01_geonames.raw.sql
+      30.1 Features
+          06-data-modeling/30-practical-geonames/01_01_geonames.feature.sql
+          06-data-modeling/30-practical-geonames/01_02.sql
+      30.2 Countries
+          06-data-modeling/30-practical-geonames/02_01.sql
+          06-data-modeling/30-practical-geonames/02_02_geonames.country.sql
+          06-data-modeling/30-practical-geonames/02_03.sql
+      30.3 Administrative Zoning
+          06-data-modeling/30-practical-geonames/03_01.sql
+          06-data-modeling/30-practical-geonames/03_02_geonames.admin.sql
+          06-data-modeling/30-practical-geonames/03_03.sql
+      30.4 Geolocation Data
+          06-data-modeling/30-practical-geonames/04_01.sql
+          06-data-modeling/30-practical-geonames/04_02_geonames.sql
+          06-data-modeling/30-practical-geonames/04_03.sql
+      30.5 Geolocation GiST Indexing
+          06-data-modeling/30-practical-geonames/05_01.sql
+          06-data-modeling/30-practical-geonames/05_02.sql
+      30.6 A Sampling of Countries
+          06-data-modeling/30-practical-geonames/06_01_geonames.sample.sql
+    31 Modelization Anti-Patterns
+      31.1 Entity Attribute Values
+          06-data-modeling/31-anti-patterns/01_01_eav.create.params.sql
+          06-data-modeling/31-anti-patterns/01_02_eav.insert.params.sql
+          06-data-modeling/31-anti-patterns/01_03_eav.support.sql
+          06-data-modeling/31-anti-patterns/01_04.sql
+      31.2 Multiple Values per Column
+          06-data-modeling/31-anti-patterns/02_01.sql
+      31.3 UUIDs
+      31.4 Internal and External keys
+    32 Denormalization
+      32.1 Premature Optimization
+      32.2 Functional Dependency Trade-Offs
+      32.3 Denormalization with PostgreSQL
+      32.4 Materialized Views
+          06-data-modeling/32-denormalisation/04_01.sql
+          06-data-modeling/32-denormalisation/04_02_f1db.points.mv.sql
+          06-data-modeling/32-denormalisation/04_03.sql
+          06-data-modeling/32-denormalisation/04_04.sql
+      32.5 History Tables and Audit Trails
+          06-data-modeling/32-denormalisation/05_01.sql
+          06-data-modeling/32-denormalisation/05_02.sql
+      32.6 Validity Period as a Range
+          06-data-modeling/32-denormalisation/06_01.sql
+          06-data-modeling/32-denormalisation/06_02.sql
+          06-data-modeling/32-denormalisation/06_03.sql
+      32.7 Pre-Computed Values
+      32.8 Enumerated Types
+      32.9 Multiple Values per Attribute
+      32.10 The Spare Matrix Model
+      32.11 Partitioning
+      32.12 Other Denormalization Tools
+      32.13 Denormalize with Care
+    33 Not Only SQL
+      33.1 Schemaless Design in PostgreSQL 
+          06-data-modeling/33-not-only-sql/01_01_magic.sql
+          06-data-modeling/33-not-only-sql/01_02_magic.py
+          06-data-modeling/33-not-only-sql/01_03_magic.cards.sql
+          06-data-modeling/33-not-only-sql/01_04.sql
+      33.2 Durability Trade-Offs
+          06-data-modeling/33-not-only-sql/02_01.sql
+          06-data-modeling/33-not-only-sql/02_02.sql
+      33.3 Scaling Out
+    34 An interview with Álvaro Hernández Tortosa
+  7 Data Manipulation and Concurrency Control 
+    35 Another Small Application
+        07-concurrency/35-practical-intro/01_tweets.sql
+        07-concurrency/35-practical-intro/02_tweets.norm.1.sql
+        07-concurrency/35-practical-intro/03_tweets.norm.2.sql
+    36 Insert, Update, Delete
+      36.1 Insert Into
+          07-concurrency/36-dml/01_01_dream-theseus.sql
+          07-concurrency/36-dml/01_02_dream-users.sql
+      36.2 Insert Into ... Select
+          07-concurrency/36-dml/02_01.sql
+          07-concurrency/36-dml/02_02_dream-followers-love.sql
+          07-concurrency/36-dml/02_03_dream-followers-fairies.sql
+          07-concurrency/36-dml/02_04.sql
+      36.3 Update
+          07-concurrency/36-dml/03_01_dream-nickname-puck.sql
+          07-concurrency/36-dml/03_02.sql
+          07-concurrency/36-dml/03_03_dream-nicknames.sql
+          07-concurrency/36-dml/03_04.sql
+      36.4 Inserting Some Tweets
+          07-concurrency/36-dml/04_01.sql
+          07-concurrency/36-dml/04_02.sql
+      36.5 Delete
+          07-concurrency/36-dml/05_01.sql
+          07-concurrency/36-dml/05_02.sql
+          07-concurrency/36-dml/05_03.sql
+      36.6 Transactions, explaining and testing DML
+          07-concurrency/36-dml/06_01.sql
+      36.7 Tuples and Rows
+      36.8 Deleting All the Rows: Truncate
+          07-concurrency/36-dml/08_01.sql
+      36.9 Delete but Keep a Few Rows
+          07-concurrency/36-dml/09_01.sql
+    37 Isolation and Locking 
+      37.1 Transactions and Isolation
+      37.2 About SSI
+      37.3 Concurrent Updates and Isolation
+          07-concurrency/37-isolation-locking/03_01.sql
+          07-concurrency/37-isolation-locking/03_02.sql
+          07-concurrency/37-isolation-locking/03_03.sql
+          07-concurrency/37-isolation-locking/03_04.sql
+      37.4 PostgreSQL Locking
+      37.5 The Locking Clause
+      37.6 insert into ... on conflict ...
+      37.7 Modeling for Concurrency
+          07-concurrency/37-isolation-locking/07_01_tweets.activity.sql
+          07-concurrency/37-isolation-locking/07_02.sql
+          07-concurrency/37-isolation-locking/07_03.sql
+          07-concurrency/37-isolation-locking/07_04.sql
+      37.8 Putting Concurrency to the Test
+          07-concurrency/37-isolation-locking/08_01_tweets.activity.nokey.sql
+    38 Computing and Caching in SQL 
+        07-concurrency/38-computing-and-caching/01.sql
+      38.1 Table Functions
+      38.2 Views
+          07-concurrency/38-computing-and-caching/02_01_dream-view-counters.sql
+          07-concurrency/38-computing-and-caching/02_02.sql
+      38.3 Materialized Views
+          07-concurrency/38-computing-and-caching/03_01_dream-mat-view.sql
+          07-concurrency/38-computing-and-caching/03_02.sql
+          07-concurrency/38-computing-and-caching/03_03.sql
+    39 Triggers 
+      39.1 Transactional Event Driven Processing
+          07-concurrency/39-triggers/01_01_dream-trigger-daily.sql
+      39.2 Trigger and Counters Anti-Pattern
+      39.3 Fixing the Behavior
+          07-concurrency/39-triggers/03_01_dream-trigger-counter.sql
+      39.4 Per Row or Per Statement
+      39.5 Before, After, Instead Of
+      39.6 Event Triggers
+    40 Listen and Notify 
+      40.1 PostgreSQL Notifications
+          07-concurrency/40-listen-notify/01_01.sql
+      40.2 PostgreSQL Event Publication System
+          07-concurrency/40-listen-notify/02_01_dream-notify-counter.sql
+          07-concurrency/40-listen-notify/02_02.sql
+      40.3 Notifications and Cache Maintenance
+          07-concurrency/40-listen-notify/03_01_counters.sql
+          07-concurrency/40-listen-notify/03_02.sql
+          07-concurrency/40-listen-notify/03_03.sql
+          07-concurrency/40-listen-notify/03_04.sql
+      40.4 Limitations of Listen and Notify
+      40.5 Listen and Notify Support in Drivers
+    41 Batch Update, MoMA Collection 
+        07-concurrency/41-moma/01_artists.sql
+        07-concurrency/41-moma/02.sql
+      41.1 Updating the Data
+          07-concurrency/41-moma/01_01_artists.update.sql
+      41.2 Concurrency Patterns
+          07-concurrency/41-moma/02_01.sql
+      41.3 On Conflict Do Nothing
+          07-concurrency/41-moma/03_01.diff
+    42 An Interview with Kris Jenkins
+  8 PostgreSQL Extensions 
+    43 What's a PostgreSQL Extension?
+      43.1 Inside PostgreSQL Extensions
+          08-extensions/43-extensions-101/01_01.sql
+      43.2 Installing and Using PostgreSQL Extensions
+          08-extensions/43-extensions-101/02_01.sql
+          08-extensions/43-extensions-101/02_02.sql
+      43.3 Finding PostgreSQL Extensions
+      43.4 A Primer on Authoring PostgreSQL Extensions
+      43.5 A Short List of Noteworthy Extensions
+    44 Auditing Changes with hstore
+      44.1 Introduction to _hstore_
+          08-extensions/44-hstore/01_01.sql
+          08-extensions/44-hstore/01_02.sql
+      44.2 Comparing hstores
+          08-extensions/44-hstore/02_01.sql
+      44.3 Auditing Changes with a Trigger
+          08-extensions/44-hstore/03_01_hstore-audit-table.sql
+          08-extensions/44-hstore/03_02_hstore-audit-trigger.sql
+          08-extensions/44-hstore/03_03_hstore-audit-table-relname.sql
+      44.4 Testing the Audit Trigger
+          08-extensions/44-hstore/04_01_artists.update.hstore.sql
+          08-extensions/44-hstore/04_02.sql
+      44.5 From `hstore` Back to a Regular Record
+          08-extensions/44-hstore/05_01.sql
+    45 Last.fm Million Song Dataset
+        08-extensions/45-lastfm/01_lastfm_serial.sql
+        08-extensions/45-lastfm/02.sql
+        08-extensions/45-lastfm/03_lastfm_tracks.sql
+        08-extensions/45-lastfm/04.sql
+        08-extensions/45-lastfm/05.sql
+        08-extensions/45-lastfm/06.sql
+    46 Using Trigrams For Typos
+      46.1 The `pg_trgm` PostgreSQL Extension
+          08-extensions/46-trigrams/01_01.sql
+      46.2 Trigrams, Similarity and Searches
+          08-extensions/46-trigrams/02_01.sql
+          08-extensions/46-trigrams/02_02.sql
+          08-extensions/46-trigrams/02_03.sql
+          08-extensions/46-trigrams/02_04.sql
+          08-extensions/46-trigrams/02_05.sql
+          08-extensions/46-trigrams/02_06.sql
+          08-extensions/46-trigrams/02_07.sql
+          08-extensions/46-trigrams/02_08.sql
+      46.3 Complete and Suggest Song Titles
+          08-extensions/46-trigrams/03_01.sql
+          08-extensions/46-trigrams/03_02.sql
+          08-extensions/46-trigrams/03_03.sql
+      46.4 Trigram Indexing
+          08-extensions/46-trigrams/04_01.sql
+          08-extensions/46-trigrams/04_02.sql
+          08-extensions/46-trigrams/04_03.sql
+    47 Denormalizing Tags with `intarray`
+      47.1 Advanced Tag Indexing
+          08-extensions/47-intarray-tags/01_01.sql
+          08-extensions/47-intarray-tags/01_02.sql
+          08-extensions/47-intarray-tags/01_03_lastfm_tags_mv.sql
+      47.2 Searches
+          08-extensions/47-intarray-tags/02_01.sql
+          08-extensions/47-intarray-tags/02_02.sql
+          08-extensions/47-intarray-tags/02_03.sql
+          08-extensions/47-intarray-tags/02_04.sql
+      47.3 User-Defined Tags Made Easy
+    48 The Most Popular Pub Names
+      48.1 A Pub Names Database
+          08-extensions/48-pub-names-knn/01_01.sql
+      48.2 Normalizing the Data
+      48.3 Geolocating the Nearest Pub (k-NN search)
+          08-extensions/48-pub-names-knn/03_01.sql
+      48.4 Indexing kNN Search
+          08-extensions/48-pub-names-knn/04_01.sql
+          08-extensions/48-pub-names-knn/04_02.sql
+    49 How far is the nearest pub?
+      49.1 The `earthdistance` PostgreSQL contrib
+          08-extensions/49-earthdistance/01_01.sql
+          08-extensions/49-earthdistance/01_02.sql
+      49.2 Pubs and Cities
+          08-extensions/49-earthdistance/02_01.sql
+          08-extensions/49-earthdistance/02_02.sql
+          08-extensions/49-earthdistance/02_03.sql
+          08-extensions/49-earthdistance/02_04.sql
+          08-extensions/49-earthdistance/02_05.sql
+      49.3 The Most Popular Pub Names by City
+          08-extensions/49-earthdistance/03_01.sql
+          08-extensions/49-earthdistance/03_02.sql
+    50 Geolocation with PostgreSQL
+      50.1 Geolocation Data Loading
+          08-extensions/50-geolocation-ip4r/01_01_geolite.sql
+      50.2 Finding an IP Address in the Ranges
+          08-extensions/50-geolocation-ip4r/02_01.sql
+          08-extensions/50-geolocation-ip4r/02_02.sql
+          08-extensions/50-geolocation-ip4r/02_03.sql
+      50.3 Geolocation Metadata
+          08-extensions/50-geolocation-ip4r/03_01.sql
+      50.4 Emergency Pub
+          08-extensions/50-geolocation-ip4r/04_01.sql
+          08-extensions/50-geolocation-ip4r/04_02.sql
+    51 Counting Distinct Users with HyperLogLog
+      51.1 HyperLogLog
+          08-extensions/51-hyperloglog/01_01.sql
+      51.2 Installing postgresql-hll
+      51.3 Counting Unique Tweet Visitors
+          08-extensions/51-hyperloglog/03_01_tweets.visitor.sql
+          08-extensions/51-hyperloglog/03_02.sql
+      51.4 Lossy Unique Count with HLL
+          08-extensions/51-hyperloglog/04_01.sql
+      51.5 Getting the Visits into Unique Counts
+          08-extensions/51-hyperloglog/05_01_tweets.hll.sql
+      51.6 Scheduling Estimates Computations
+          08-extensions/51-hyperloglog/06_01_tweets.update.proc.sql
+          08-extensions/51-hyperloglog/06_02.sql
+      51.7 Combining Unique Visitors
+          08-extensions/51-hyperloglog/07_01.sql
+    52 An Interview with Craig Kerstiens
+  9 Closing Thoughts
+  10 Index

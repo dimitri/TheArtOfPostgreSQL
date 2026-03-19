@@ -1,0 +1,27 @@
+--- artists.update.sql	2017-09-07 23:54:07.000000000 +0200
++++ artists.update.conflict.sql	2017-09-08 12:49:44.000000000 +0200
+@@ -5,11 +5,11 @@
+         like moma.artist
+    including all
+  )
+  on commit drop;
+ 
+-\copy batch from 'artists/artists.2017-06-01.csv' with csv header delimiter ','
++\copy batch from 'artists/artists.2017-07-01.csv' with csv header delimiter ','
+ 
+ with upd as
+ (
+      update moma.artist
+         set (name, bio, nationality, gender, begin, "end", wiki_qid, ulan)
+@@ -41,10 +41,11 @@
+                 (
+                      select 1
+                        from moma.artist
+                       where artist.constituentid = batch.constituentid
+                 )
++    on conflict (constituentid) do nothing
+       returning artist.constituentid
+ )
+ select (select count(*) from upd) as updates,
+        (select count(*) from ins) as inserts;
+ 

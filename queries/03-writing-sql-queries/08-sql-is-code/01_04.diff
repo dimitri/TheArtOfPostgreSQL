@@ -1,0 +1,7 @@
+@@ -1,4 +1,4 @@
+-  select title, name
++  select name, milliseconds
+     from album left join track using(albumid)
+    where albumid = 1
+-order by 2;
++order by 1;

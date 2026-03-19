@@ -1,0 +1,2 @@
+pguri: postgres://cdstore@/appdev?sslmode=disable
+root: .

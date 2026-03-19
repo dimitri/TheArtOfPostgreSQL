@@ -1,0 +1,6 @@
+set intervalstyle to postgres;
+
+select interval '1 month',
+       interval '2 weeks',
+       2 * interval '1 week',
+       78389 * interval '1 ms';

@@ -1,0 +1,1 @@
+table pg_available_extensions;
