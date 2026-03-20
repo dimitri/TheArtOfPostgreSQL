@@ -206,10 +206,13 @@
     (format t ";;; Initializing schema...~%")
     (init-commitlog connspec)
 
-    (format t "~%;;; Importing PostgreSQL commits...~%")
-    (let* ((project-dir (merge-pathnames "postgresql" commitlog-dir)))
-      (pomo:with-connection connspec
-        (let ((count (copy-git-log connspec "postgres" project-dir)))
-          (format t ";;; Loaded ~d commits~%" count))))
+    (loop :for project :in '("postgresql" "pgloader")
+          :do
+             (progn
+               (format t "~%;;; Importing ~a commits...~%" project)
+               (let* ((project-dir (merge-pathnames project commitlog-dir)))
+                 (pomo:with-connection connspec
+                   (let ((count (copy-git-log connspec "postgres" project-dir)))
+                     (format t ";;; Loaded ~d commits~%" count))))))
 
     (format t "~%;;; All commitlog data loaded successfully!~%")))

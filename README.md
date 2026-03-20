@@ -15,6 +15,90 @@ A dockerfile is provided that automates most of the data build and import
 and allows to quickly have an interactive terminal available from where to
 play with the book SQL files.
 
+## Docker Setup
+
+This repository includes a Docker Compose setup for running PostgreSQL and
+the taop tool.
+
+### Build
+
+First, build the Docker images:
+
+```bash
+docker compose build
+```
+
+### Start PostgreSQL
+
+Run the PostgreSQL database in the background:
+
+```bash
+docker compose up -d postgres
+```
+
+### Load Data
+
+Use the taop service to load datasets. The main datasets are loaded with a
+single command:
+
+```bash
+docker compose run --rm taop load-data
+```
+
+The commitlog data is managed in a separate docker container, to load the
+Postgres and pgloader commit logs use the following command:
+
+```bash
+docker compose run --rm commitlog
+```
+
+### Query Data
+
+Use the psql service for interactive querying with all SQL queries from the
+book:
+
+```bash
+docker compose run --rm -it psql
+```
+
+It is possible to discover the queries available by using psql commands `\!
+ls` or `\! find .`.
+
+The psql service includes:
+- The `queries/` directory mounted at `/usr/src/taop/queries`
+- The `apps/cdstore/` application at `/usr/src/taop/cdstore`
+- The `data/` directory at `/data`
+
+### Run taop Commands
+
+The taop tool provides various commands for loading and processing data:
+
+```bash
+# Get help
+docker compose run --rm taop
+
+# Run a specific command
+docker compose run --rm taop <command>
+```
+
+Environment variables for default directories:
+- `SCAN34_DIR` - scan34 access log files
+- `MAGIC_DIR` - Magic: The Gathering data
+- `RATES_DIR` - currency exchange rates
+- `SHAKESPEARE_DIR` - Shakespeare data
+- `SHAKESPEARE_PLAY_XML` - default play XML file
+- `F1DB_DIR` - Ergast F1 database dump
+- `COMMITLOG_DIR` - commitlog git repository data
+- `MOMA_DIR` - MoMA artist data
+- `OPENDATA_DIR` - Open data files
+- `EAV_DIR` - EAV pattern examples
+
+### Stop Services
+
+```bash
+docker compose down
+```
+
 ## Datasets
 
 This repository includes several datasets for learning SQL with PostgreSQL:
@@ -82,85 +166,8 @@ MaxMind GeoLite2 geographic IP location data for geolocation queries.
 ### EAV (Entity-Attribute-Value)
 
 Sample data demonstrating the Entity-Attribute-Value database design pattern with
-various attributes.
+various attributes. Load with `taop eav`.
 
 ### Sandbox
 
 Various test data and utilities for experimenting with PostgreSQL features.
-
-## Docker Setup
-
-This repository includes a Docker Compose setup for running PostgreSQL and
-the taop tool.
-
-### Build
-
-First, build the Docker images:
-
-```bash
-docker compose build
-```
-
-### Start PostgreSQL
-
-Run the PostgreSQL database in the background:
-
-```bash
-docker compose up -d postgres
-```
-
-### Load Data
-
-Use the taop service to load datasets. The main datasets are loaded with a
-single command:
-
-```bash
-docker compose run --rm taop load-data
-```
-
-### Query Data
-
-Use the psql service for interactive querying with all SQL queries from the
-book:
-
-```bash
-docker compose run --rm -it psql
-```
-
-It is possible to discover the queries available by using psql commands `\!
-ls` or `\! find .`.
-
-The psql service includes:
-- The `queries/` directory mounted at `/usr/src/taop/queries`
-- The `apps/cdstore/` application at `/usr/src/taop/cdstore`
-- The `data/` directory at `/data`
-
-### Run taop Commands
-
-The taop tool provides various commands for loading and processing data:
-
-```bash
-# Get help
-docker compose run --rm taop
-
-# Run a specific command
-docker compose run --rm taop <command>
-```
-
-Environment variables for default directories:
-- `SCAN34_DIR` - scan34 access log files
-- `MAGIC_DIR` - Magic: The Gathering data
-- `RATES_DIR` - currency exchange rates
-- `SHAKESPEARE_DIR` - Shakespeare data
-- `SHAKESPEARE_PLAY_XML` - default play XML file
-- `F1DB_DIR` - Ergast F1 database dump
-- `COMMITLOG_DIR` - commitlog git repository data
-- `MOMA_DIR` - MoMA artist data
-- `OPENDATA_DIR` - Open data files
-
-### Stop Services
-
-```bash
-docker compose down
-```
-

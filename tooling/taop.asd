@@ -71,6 +71,9 @@
              ;; opendata
              (:file "opendata")
 
+             ;; eav
+             (:file "eav")
+
              ;; load all datasets
              (:file "load-data")
 

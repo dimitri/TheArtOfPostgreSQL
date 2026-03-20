@@ -1,4 +1,4 @@
-# Final stage: taop container with data, queries, and apps
+# commitlog container: fetches git repos at build time
 ARG BUILD_IMAGE=taop-build
 FROM ${BUILD_IMAGE}
 
@@ -18,7 +18,13 @@ COPY --chown=taop:taop apps/cdstore/ /usr/src/taop/cdstore/
 COPY --chown=taop:taop data/ /data/
 
 USER taop
+
+# Fetch git repositories at build time
+WORKDIR /data/commitlog
+RUN make postgres
+RUN make pgloader
+
 WORKDIR /usr/src/taop/queries
 
 ENTRYPOINT ["taop"]
-CMD ["--help"]
+CMD ["commitlog"]

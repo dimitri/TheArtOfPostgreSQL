@@ -30,6 +30,8 @@
                     "-Fc"
                     "--no-owner"
                     "--no-acl"
+                    "--clean"
+                    "--if-exists"
                     ;; use environment for connection details
                     "-d" "postgres://taop@postgres/taop"
                     (namestring dump-file))))

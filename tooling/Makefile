@@ -41,10 +41,10 @@ $(QLDIR)/local-projects/pubnames: $(QLSETUP)
 quicklisp: $(QLSETUP) ;
 pubnames: $(PUBNAMES) ;
 
-qload: quicklisp pubnames
+qload: quicklisp pubnames ./build/qload.lisp
 	$(CL) --load $(QLSETUP)                                        \
               --eval '(push "$(PWD)/" ql:*local-project-directories*)' \
-	      --eval '(ql:quickload "taop")'
+	      --load ./build/qload.lisp
 
 $(TAOP): $(TAOP_SRC) $(QLSETUP) | $(QLDIR)/local-projects/pubnames
 	TAOP=$(TAOP) $(CL)                                            \
