@@ -6,6 +6,8 @@
 
 (in-package #:taop)
 
+(defvar *list-of-commands-to-skip* '("load-data" "retweet" "gitlog"))
+
 (define-command (("load-data") ())
                 "Load all datasets into PostgreSQL.
 Note: Commands are run with default values using environment variables."
@@ -13,7 +15,7 @@ Note: Commands are run with default values using environment variables."
   (let ((step 0))
     (loop :for command :across *commands*
           :for cname := (first (command-verbs command))
-          :unless (member cname '("load-data" "retweet") :test #'string=)
+          :unless (member cname *list-of-commands-to-skip* :test #'string=)
             :do
                (progn
                  (incf step)

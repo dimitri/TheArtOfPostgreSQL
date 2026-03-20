@@ -23,8 +23,9 @@
   "Run the magic.py Python script to load JSON data."
   (let ((script (merge-pathnames "magic.py" magic-dir)))
     (format t "~%;;; Running ~a~%" script)
-    (uiop:run-program (list "python3" (namestring script))
-                       :output t :error-output t)))
+    (uiop:with-current-directory (magic-dir)
+      (uiop:run-program (list "python3" (namestring script))
+                        :output t :error-output t))))
 
 (defun magic-default-directory ()
   "Return the default directory for Magic files from MAGIC_DIR env variable,
@@ -32,7 +33,7 @@
   (or (uiop:getenv "MAGIC_DIR")
       (uiop:getcwd)))
 
-(define-command (("magic") (directory))
+(define-command (("magic") (&optional directory))
     "load the Magic: The Gathering card data from DIRECTORY.
 
      This command expects DIRECTORY to contain:

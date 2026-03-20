@@ -62,6 +62,15 @@
              ;; magic
              (:file "magic")
 
+             ;; f1db
+             (:file "f1db")
+
+             ;; moma
+             (:file "moma")
+
+             ;; opendata
+             (:file "opendata")
+
              ;; load all datasets
              (:file "load-data")
 

@@ -30,10 +30,15 @@ services:
       RATES_DIR: /data/rates
       SHAKESPEARE_DIR: /data/shakespeare
       SHAKESPEARE_PLAY_XML: /data/shakespeare/shakes/dream.xml
+      F1DB_DIR: /data/f1db
+      COMMITLOG_DIR: /data/commitlog
+      MOMA_DIR: /data/MoMA
+      OPENDATA_DIR: /data/opendata
     volumes:
       - ./queries:/usr/src/taop/queries:ro
       - ./apps/cdstore:/usr/src/taop/cdstore:ro
       - ./tooling:/usr/src/taop/tooling:ro
+      - commitlog_data:/data/commitlog
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,3 +67,4 @@ services:
 
 volumes:
   postgres_data:
+  commitlog_data:
