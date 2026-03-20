@@ -74,6 +74,9 @@
              ;; eav
              (:file "eav")
 
+             ;; sandbox
+             (:file "sandbox")
+
              ;; load all datasets
              (:file "load-data")
 

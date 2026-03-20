@@ -92,6 +92,7 @@ Environment variables for default directories:
 - `MOMA_DIR` - MoMA artist data
 - `OPENDATA_DIR` - Open data files
 - `EAV_DIR` - EAV pattern examples
+- `SANDBOX_DIR` - Sandbox test data
 
 ### Stop Services
 
@@ -171,3 +172,4 @@ various attributes. Load with `taop eav`.
 ### Sandbox
 
 Various test data and utilities for experimenting with PostgreSQL features.
+Load with `taop sandbox`.

@@ -42,6 +42,7 @@ services:
       MOMA_DIR: /data/MoMA
       OPENDATA_DIR: /data/opendata
       EAV_DIR: /data/eav
+      SANDBOX_DIR: /data/sandbox
     volumes:
       - ./queries:/usr/src/taop/queries:ro
       - ./apps/cdstore:/usr/src/taop/cdstore:ro
