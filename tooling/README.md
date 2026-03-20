@@ -9,20 +9,26 @@ The pre-processing has been developed in a small tool written in Common
 Lisp, that compiles into a single binary with the following sub-commands:
 
 ~~~
-$ ./bin/taop 
-./bin/taop [ --help ] [ --version ] command ...
-./bin/taop: command line parse error.
-
+$ ./bin/taop [ --help ] [ --version ] command ...
 
 Available commands:
- scan34   CSV DIRECTORY                   parse scan34 access.log file, outputs a CSV file.
- tweet    PLAY                            Parse the XML file PLAY and tweet its lines.
- retweet  MESSAGEID WORKERS TIMES         retweet MessageID given TIMES in concurrent WORKERS threads.
- rates    CSV DIRECTORY                   parse rates TSV files in DIRECTORY, outputs a CSV file.
- gitlog   CSV PROJECT-DIRECTORY           parse a git project's log and output a csv file.
- lastfm   ZIPFILENAME                     load the lastfm subset zip of JSON files.
- pubnames                                 load the pubnames from OSM export
 
+ scan34     &OPTIONAL DIRECTORY
+ tweet      &OPTIONAL PLAY
+ retweet    MESSAGEID WORKERS TIMES
+ rates      &OPTIONAL CSV DIRECTORY
+ gitlog init
+ gitlog import PROJECT
+ gitlog fetch REPOSITORY
+ commitlog
+ pubnames
+ magic      &OPTIONAL DIRECTORY
+ f1db       &OPTIONAL DIRECTORY
+ moma
+ opendata
+ eav
+ sandbox
+ load-data
 ~~~
 
 To build the tool:
