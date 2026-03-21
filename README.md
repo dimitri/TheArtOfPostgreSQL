@@ -1,9 +1,15 @@
 # The Art of PostgreSQL
 
-This repository is an Open Source companion for the book [The Art of
-PostgreSQL](https://theartofpostgresql.com). It is not intended as an
-autonomous repository that could be used on its own, it is meant to use
-while reading the book.
+This repository contain The PostgreSQL practice lab used with the book [The
+Art of PostgreSQL](https://theartofpostgresql.com). 
+
+Here, you can run real queries, explore realistic datasets, and observe how
+PostgreSQL behaves in practice. Each example is designed to help you move
+beyond theory: execute the queries, compare results, experiment with
+variations, and understand performance trade-offs firsthand.
+
+Use this lab alongside the book to turn concepts into working knowledge—and
+to build an intuition for writing efficient, production-grade SQL.
 
 The repository contains all of the SQL queries from the book, organized by
 chapters, in a way that you can re-use them directly. The repository also
