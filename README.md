@@ -87,18 +87,3 @@ See [docker/README.md](docker/README.md) for detailed instructions.
 
 See [datasets.md](datasets.md) for a complete list of available datasets and how to load them.
 
-## Environment Variables
-
-The following environment variables configure dataset locations in the Docker container:
-
-- `SCAN34_DIR` - scan34 access log files
-- `MAGIC_DIR` - Magic: The Gathering data
-- `RATES_DIR` - currency exchange rates
-- `SHAKESPEARE_DIR` - Shakespeare data
-- `SHAKESPEARE_PLAY_XML` - default play XML file
-- `F1DB_DIR` - Ergast F1 database dump
-- `COMMITLOG_DIR` - commitlog git repository data
-- `MOMA_DIR` - MoMA artist data
-- `OPENDATA_DIR` - Open data files
-- `EAV_DIR` - EAV pattern examples
-- `SANDBOX_DIR` - Sandbox test data

@@ -50,3 +50,20 @@ docker compose run --rm geolite
 
 - **taop** - General purpose tool, smaller image (no git repos)
 - **commitlog** - Includes PostgreSQL and pgloader git repositories (~2GB)
+
+## Environment Variables
+
+The following environment variables configure dataset locations in the
+Docker container. See ../docker-compose.yml for setup:
+
+- `SCAN34_DIR` - scan34 access log files
+- `MAGIC_DIR` - Magic: The Gathering data
+- `RATES_DIR` - currency exchange rates
+- `SHAKESPEARE_DIR` - Shakespeare data
+- `SHAKESPEARE_PLAY_XML` - default play XML file
+- `F1DB_DIR` - Ergast F1 database dump
+- `COMMITLOG_DIR` - commitlog git repository data
+- `MOMA_DIR` - MoMA artist data
+- `OPENDATA_DIR` - Open data files
+- `EAV_DIR` - EAV pattern examples
+- `SANDBOX_DIR` - Sandbox test data
