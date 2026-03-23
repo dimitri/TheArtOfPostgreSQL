@@ -30,6 +30,12 @@ docker compose up -d postgres
 docker compose run --rm taop load-data
 ```
 
+## Starter Kit
+
+See also the [starter-kit](starter-kit/) directory for a hands-on approach
+to using this practice lab along with the book. Go play with advanced SQL
+concepts now!
+
 ## Using the Queries
 
 The `queries/` directory contains SQL examples organized by chapter. You can
@@ -132,5 +138,6 @@ See [docker/README.md](docker/README.md) for detailed instructions.
 
 ## Datasets
 
-See [datasets.md](datasets.md) for a complete list of available datasets and how to load them.
+See [datasets.md](datasets.md) for a complete list of available datasets and
+how to load them.
 

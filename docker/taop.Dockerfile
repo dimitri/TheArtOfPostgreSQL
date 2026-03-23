@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --chown=taop:taop queries/ /usr/src/taop/queries/
 COPY --chown=taop:taop apps/cdstore/ /usr/src/taop/cdstore/
 COPY --chown=taop:taop data/ /data/
+COPY --chown=taop:taop starter-kit/ /starter-kit/
 
 USER taop
 WORKDIR /usr/src/taop/queries

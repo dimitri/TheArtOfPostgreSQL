@@ -19,11 +19,11 @@
 (defparameter *git-log-format* "--format=%H¦%an¦%aI¦%cn¦%cI¦%s"
   "Format argument to `git log`, with a dynamic project name.")
 
-(defparameter *commitlog-table* "commitlog.commits"
+(defparameter *commitlog-table* "commitlog.commitlog"
   "Table name for commit log data.")
 
-(defparameter *commitlog-colnames* '("project" "sha" "author" "author_date"
-                                     "committer" "commit_date" "subject")
+(defparameter *commitlog-colnames* '("project" "hash" "author" "ats"
+                                     "committer" "cts" "subject")
   "Column names for commit log data.")
 
 (defun commitlog-default-directory ()
@@ -145,7 +145,7 @@
        1. Parse git log and COPY directly to PostgreSQL
        2. Commit transaction
 
-     After running, query the commitlog.commits table in PostgreSQL."
+     After running, query the commitlog.commitlog table in PostgreSQL."
   (let* ((connspec (get-connspec *dbname*))
          (commitlog-dir (uiop:ensure-directory-pathname (commitlog-default-directory)))
          (project-dir (merge-pathnames (string-downcase project) commitlog-dir))
@@ -197,7 +197,7 @@
      Environment Variables:
        COMMITLOG_DIR  directory containing Makefile and commitlog.sql (default: .)
 
-     After running, query the commitlog.commits table in PostgreSQL."
+     After running, query the commitlog.commitlog table in PostgreSQL."
   (let ((connspec (get-connspec *dbname*))
         (commitlog-dir
           (uiop:ensure-directory-pathname (commitlog-default-directory))))
