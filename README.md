@@ -1,7 +1,7 @@
 # The Art of PostgreSQL
 
 This repository contain The PostgreSQL practice lab used with the book [The
-Art of PostgreSQL](https://theartofpostgresql.com). 
+Art of PostgreSQL](https://theartofpostgresql.com).
 
 Here, you can run real queries, explore realistic datasets, and observe how
 PostgreSQL behaves in practice. Each example is designed to help you move
@@ -19,6 +19,8 @@ into a Postgres database.
 
 ## Quick Start
 
+### Load the data
+
 ```bash
 # Build Docker images
 docker compose build
@@ -30,7 +32,42 @@ docker compose up -d postgres
 docker compose run --rm taop load-data
 ```
 
-## Starter Kit — Start Here
+## Run this. See why PostgreSQL matters.
+
+Start a psql session:
+
+```bash
+docker compose run --rm -it psql
+```
+
+Then run:
+
+```sql
+\i queries/04-sql-select/15-sql-102/03_01_f1db.decade.top3.sql
+```
+
+You’ll get:
+
+* the **top 3 drivers per decade**
+* computed from raw race results
+* using a single SQL query
+
+This query combines:
+
+* window functions (`rank()`)
+* aggregation (`count(*)`)
+* a `LATERAL` join
+
+If this query looks unfamiliar, that’s  the point — the starter kit explains
+how it works.
+
+### Postgres Practice Lab
+
+This repository is a **hands-on PostgreSQL lab** where you can run queries
+like this, explore real datasets, and understand how advanced SQL replaces
+complex application logic.
+
+## Starter Kit
 
 If you’re new to this lab, begin with the **starter kit**.
 
@@ -71,9 +108,14 @@ full explanations and additional material.
 ## Using the Queries
 
 The `queries/` directory contains SQL examples organized by chapter. You can
-view and execute them using psql. Here we see an example that uses the query
-`03_01_f1db.decade.top3.sql` from Chapter 14 Order By, Limit, No Offset of
-the book [The Art of PostgreSQL](https://theartofpostgresql.com).
+view and execute them using psql.
+
+See the file [QUERIES.md](QUERIES.md) for a list of queries per theme and
+SQL feature.
+
+Here we see an example that uses the query `03_01_f1db.decade.top3.sql` from
+Chapter 14 Order By, Limit, No Offset of the book [The Art of
+PostgreSQL](https://theartofpostgresql.com).
 
 > The following query is a classic top-N implementation. It reports for each
 > decade the top three drivers in terms of race wins. It is both a classic
@@ -138,7 +180,7 @@ path to the file on-disk available in the container):
 
 ```
 taop@taop=# \i 04-sql-select/15-sql-102/03_01_f1db.decade.top3.sql
- decade │ rank │ forename  │  surname   │ wins 
+ decade │ rank │ forename  │  surname   │ wins
 ════════╪══════╪═══════════╪════════════╪══════
    1950 │    1 │ Juan      │ Fangio     │   24
    1950 │    2 │ Alberto   │ Ascari     │   13
@@ -172,4 +214,3 @@ See [docker/README.md](docker/README.md) for detailed instructions.
 
 See [datasets.md](datasets.md) for a complete list of available datasets and
 how to load them.
-
