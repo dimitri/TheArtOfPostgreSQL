@@ -30,11 +30,43 @@ docker compose up -d postgres
 docker compose run --rm taop load-data
 ```
 
-## Starter Kit
+## Starter Kit — Start Here
 
-See also the [starter-kit](starter-kit/) directory for a hands-on approach
-to using this practice lab along with the book. Go play with advanced SQL
-concepts now!
+If you’re new to this lab, begin with the **starter kit**.
+
+→ [`starter-kit/`](starter-kit/)
+
+This is a **guided, hands-on learning path** built from a small set of
+carefully selected queries. Instead of exploring hundreds of files, you will
+focus on a few high-impact examples that demonstrate what PostgreSQL can
+really do.
+
+### What you’ll learn
+
+The starter kit walks you through three advanced—but highly practical—SQL
+patterns:
+
+* **Nested LATERAL joins** — solve top-N per group problems cleanly
+* **GROUPING SETS + FILTER** — compute multiple aggregations in a single query
+* **percentile_cont()** — calculate multiple percentiles efficiently
+
+### How to approach it
+
+Each query is designed as a mini lab:
+
+1. Read the problem
+2. Follow the step-by-step build-up
+3. Run the final query
+4. Experiment with variations
+
+Expect to spend **15–30 minutes** to complete the full starter kit.
+
+Once you’ve completed the starter kit, you’ll have a solid foundation to
+explore the rest of the repository and its full collection of queries.
+
+If you want to go deeper into the concepts and patterns behind these
+examples, see [The Art of PostgreSQL](https://theartofpostgresql.com) for
+full explanations and additional material.
 
 ## Using the Queries
 
