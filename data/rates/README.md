@@ -13,43 +13,25 @@ Currency	May 01, 2017	May 02, 2017	May 03, 2017	...
 Chinese Yuan	NA	9.445190	9.439220	...
 ~~~
 
-  - split in two files each with a series of dates, because each month is
-    split into two “regions” in the file, for 15 days each or abouts,
-    
-  - then use the `rates` command in the `appdev` program to turn those TSV
-    files into a single CSV file that look like the following:
-    
-~~~ csv
-Chinese Yuan;2017-05-02;9.445190
-Chinese Yuan;2017-05-03;9.439220
-Chinese Yuan;2017-05-04;9.440640
-Chinese Yuan;2017-05-05;9.455820
-...
+Each month is split into two files (part 1 and part 2), for 15 days each or thereabouts.
+
+## Loading the Data
+
+Use the `taop rates` command to load the data directly into PostgreSQL:
+
+~~~bash
+docker compose run --rm taop rates
 ~~~
 
-Here's what running the command looks like:
+This will:
 
-~~~
-$ appdev rates ./rates/rates.csv ./rates
-Loading rates currency files from "./rates/"
-Parsing rates from "./rates/201705-1.tsv"
-Parsing rates from "./rates/201705-2.tsv"
-Parsing rates from "./rates/201706-1.tsv"
-Parsing rates from "./rates/201706-2.tsv"
-Parsing rates from "./rates/201707-1.tsv"
-Parsing rates from "./rates/201707-2.tsv"
-Wrote 3057 currency rate values for 51 currencies to "./rates/rates.csv"
-~~~
+1. Create the `raw.rates` table
+2. Parse TSV files and COPY data directly to PostgreSQL (no intermediate CSV)
+3. Create `public.rates` with `daterange` type and exclusion constraint
+4. Create the typed `public.rate` table
 
-Then to load the dataset use the `rates/rates.sql` file:
+## Schema
 
-~~~
-$ cd rates && psql -f rates.sql -d appdev
-...
-DROP TABLE
-CREATE TABLE
-COPY 3050
-CREATE TABLE
-INSERT 0 3050
-COMMIT
-~~~
+- `raw.rates`: Staging table with raw currency, date, rate data
+- `public.rates`: Main table with `daterange` validity periods and exclusion constraint
+- `public.rate`: Typed table of type `rate_t` with exclusion constraint
