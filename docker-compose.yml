@@ -15,18 +15,11 @@ services:
       timeout: 5s
       retries: 5
 
-  taop-build:
-    build:
-      context: .
-      dockerfile: docker/taop-build.Dockerfile
-    image: taop-build
-
   taop:
     build:
       context: .
       dockerfile: docker/taop.Dockerfile
-      args:
-        BUILD_IMAGE: taop-build
+      target: taop
     environment:
       PGPASSWORD: taop
       PGUSER: taop
@@ -56,9 +49,8 @@ services:
   commitlog:
     build:
       context: .
-      dockerfile: docker/commitlog.Dockerfile
-      args:
-        BUILD_IMAGE: taop-build
+      dockerfile: docker/taop.Dockerfile
+      target: taop
     environment:
       PGPASSWORD: taop
       PGUSER: taop
