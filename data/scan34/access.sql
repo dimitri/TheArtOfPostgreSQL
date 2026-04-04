@@ -1,8 +1,10 @@
 begin;
 
-drop table if exists access_log;
+create schema if not exists scan34;
 
-create table access_log
+drop table if exists scan34.access_log;
+
+create table scan34.access_log
  (
    ip      inet,
    ts      timestamptz,

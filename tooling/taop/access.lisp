@@ -59,7 +59,7 @@
 (defun copy-access-logs (connspec directory)
   "Parse access.log files from DIRECTORY and COPY them to PostgreSQL.
    Returns the total number of entries loaded."
-  (let ((table-name "access_log")
+  (let ((table-name "scan34.access_log")
         (colnames '("ip" "ts" "request" "status"))
         (total-count 0))
     (pomo:with-connection connspec
