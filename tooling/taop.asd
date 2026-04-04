@@ -9,6 +9,7 @@
                #:cl-log                 ; logging
                #:postmodern		; PostgreSQL protocol implementation
                #:cl-postgres		; low level bits for COPY streaming
+               #:simple-date		; date:{decode|encode}-inderval
                #:local-time             ; generate "now" with some precision
                #:split-sequence         ; some parsing is made easy
                #:lparallel		; threads, workers, queues

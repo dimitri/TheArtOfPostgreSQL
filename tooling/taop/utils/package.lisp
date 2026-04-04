@@ -2,7 +2,11 @@
   (:use #:cl #:split-sequence)
   (:export #:with-timing
            #:elapsed-time-since
-           #:reverse-list-of-string-to-string))
+           #:reverse-list-of-string-to-string
+           #:with-command-timing
+           #:reset-command-timings
+           #:print-timing-summary
+           #:*command-timings*))
 
 (defpackage #:pgpass
   (:use #:cl #:esrap)

@@ -12,6 +12,7 @@
     "Load all datasets into PostgreSQL.
 
      Note: Commands are run with default values using environment variables."
+  (reset-command-timings)
   (format t ";;; Loading all datasets~%~%")
   (let ((step 0))
     (loop :for command :across *commands*
@@ -22,11 +23,10 @@
                (progn
                  (incf step)
                  (format t ";;; Step ~d: Loading ~{~a~^ ~}~%~%" step verbs)
-                 (handler-case
-                     ;;
-                     ;; Rely on default values for arguments, that is,
-                     ;; environment variables.
-                     ;;
-                     (apply (command-lambda command) nil)
-                   (condition (c)
-                     (format t ";;; WARNING: ~a failed: ~a~%" cname c)))))))
+                 (with-command-timing cname
+                   ;;
+                   ;; Rely on default values for arguments, that is,
+                   ;; environment variables.
+                   ;;
+                   (apply (command-lambda command) nil))))
+    (print-timing-summary)))
