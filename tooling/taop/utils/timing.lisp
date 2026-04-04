@@ -83,7 +83,7 @@
                              :sum seconds)))
       (format t "~%;;; SUMMARY~%")
       (format t "~&~20@a  ~9@a  ~9@a~%" "dataset" "timing" "status")
-      (format t "--------------------  ---------  ---------~%")
+      (format t " -------------------  ---------  ---------~%")
 
       (loop :for (name seconds success) :in timings
             :for status := (if success "ok" "FAIL")
@@ -92,5 +92,5 @@
                         (format-interval seconds nil)
                         status))
 
-      (format t "--------------------  ---------~%")
-      (format t "~&~20@a  ~9@a~%~%" "TOTAL" (round total-time)))))
+      (format t " -------------------  ---------~%")
+      (format t "~&~20@a  ~9@a~%~%" "TOTAL" (format-interval total-time nil)))))
