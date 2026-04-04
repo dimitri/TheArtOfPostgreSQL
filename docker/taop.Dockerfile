@@ -16,15 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /usr/src/taop
 
-RUN useradd -m taop && \
-    usermod -aG sudo taop && \
-    echo 'taop ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
-    chown -R taop:taop /usr/src/taop
-
-USER taop
-WORKDIR /usr/src/taop
-
-COPY --chown=taop:taop tooling ./
+COPY tooling ./
 
 RUN make quicklisp
 RUN make pubnames
@@ -32,12 +24,10 @@ RUN make qload
 RUN make taop
 RUN sudo install -D -m 755 ./bin/taop /usr/local/bin/taop
 
-WORKDIR /usr/src/taop
-
 #
 # Final stage: taop container with data, queries, and apps
 #
-FROM taop-build AS taop
+FROM debian:bookworm-slim AS taop
 
 USER root
 
@@ -50,10 +40,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-psycopg2 \
     && rm -rf /var/lib/apt/lists/*
 
+WORKDIR /usr/src/taop
+
+RUN useradd -m taop && \
+    usermod -aG sudo taop && \
+    echo 'taop ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
+    chown -R taop:taop /usr/src/taop
+
+USER taop
+
 COPY --chown=taop:taop queries/ /usr/src/taop/queries/
 COPY --chown=taop:taop apps/cdstore/ /usr/src/taop/cdstore/
 COPY --chown=taop:taop data/ /data/
 COPY --chown=taop:taop starter-kit/ /starter-kit/
+
+COPY --from=taop-build /usr/local/bin/taop /usr/local/bin/taop
 
 USER taop
 WORKDIR /usr/src/taop/queries
