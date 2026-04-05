@@ -16,11 +16,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /usr/src/taop
 
-COPY tooling ./
+COPY tooling/build/ ./build/
+COPY tooling/Makefile ./Makefile
 
 RUN make quicklisp
 RUN make pubnames
 RUN make qload
+
+COPY tooling/taop.asd .
+COPY tooling/taop/ ./taop/
+COPY tooling/bin/ ./bin/
+
 RUN make taop
 RUN sudo install -D -m 755 ./bin/taop /usr/local/bin/taop
 
@@ -55,6 +61,9 @@ COPY --chown=taop:taop data/ /data/
 COPY --chown=taop:taop starter-kit/ /starter-kit/
 
 COPY --from=taop-build /usr/local/bin/taop /usr/local/bin/taop
+
+# also install the runtime files needed for the pubnames dataset
+COPY --from=taop-build /usr/src/taop/build/quicklisp/local-projects/pubnames/ /usr/src/taop/build/quicklisp/local-projects/pubnames/
 
 USER taop
 WORKDIR /usr/src/taop/queries
