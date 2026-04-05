@@ -50,7 +50,7 @@ services:
     build:
       context: .
       dockerfile: docker/taop.Dockerfile
-      target: taop
+      target: commitlog
     environment:
       PGPASSWORD: taop
       PGUSER: taop
