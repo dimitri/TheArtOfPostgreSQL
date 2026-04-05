@@ -25,13 +25,6 @@ RUN useradd -m taop && \
     echo 'taop ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
     chown -R taop:taop /usr/src/taop
 
-COPY --chown=taop:taop queries/ /usr/src/taop/queries/
-COPY --chown=taop:taop apps/cdstore/ /usr/src/taop/cdstore/
-COPY --chown=taop:taop data/ /data/
-COPY --chown=taop:taop starter-kit/ /starter-kit/
-
-USER taop
-WORKDIR /usr/src/taop/queries
 
 #
 # Build stage: compiles the taop binary
@@ -64,6 +57,15 @@ FROM base AS taop
 
 COPY --from=taop-build /usr/local/bin/taop /usr/local/bin/taop
 
+# install the data and queries in that image
+COPY --chown=taop:taop queries/ /usr/src/taop/queries/
+COPY --chown=taop:taop apps/cdstore/ /usr/src/taop/cdstore/
+COPY --chown=taop:taop data/ /data/
+COPY --chown=taop:taop starter-kit/ /starter-kit/
+
+USER taop
+WORKDIR /usr/src/taop/queries
+
 # also install the runtime files needed for the pubnames dataset
 COPY --from=taop-build /usr/src/taop/build/quicklisp/local-projects/pubnames/ /usr/src/taop/build/quicklisp/local-projects/pubnames/
 
@@ -76,6 +78,8 @@ CMD ["--help"]
 # Avoid dependency with taop builds.
 #
 FROM base AS commitlog-data
+
+COPY --chown=taop:taop data/ /data/
 
 # Fetch git repositories at build time
 USER taop
