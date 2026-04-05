@@ -75,8 +75,6 @@
             (seconds (elapsed-time-since ,start ,end)))
        (record-command-timing ,command-name seconds ,success)
        (format t "~%")
-       (format t ";;; ~a [~a]: ~a~%"
-               ,command-name (format-interval seconds nil) ,success)
        seconds)))
 
 (defun print-timing-summary ()
