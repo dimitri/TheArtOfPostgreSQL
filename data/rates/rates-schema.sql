@@ -1,9 +1,7 @@
 begin;
 
 create schema if not exists raw;
-
--- Must be run as a Super User in your database instance
--- create extension if not exists btree_gist;
+create extension if not exists btree_gist;
 
 drop table if exists raw.rates, public.rates;
 
