@@ -21,6 +21,10 @@ into a Postgres database.
 
 ### Load the data
 
+The docker-compose setup provided in this repository makes it easy and
+efficient to load a series of dataset that are used throughout [The Art of
+PostgreSQL](https://theartofpostgresql.com) book, courses, and workshops.
+
 ```bash
 # Build Docker images
 docker compose build
@@ -30,6 +34,23 @@ docker compose up -d postgres
 
 # Load all datasets
 docker compose run --rm taop load-data
+...
+
+;;; SUMMARY
+             dataset     timing     status
+ -------------------  ---------  ---------
+              scan34     0.065s         ok
+               tweet     4.801s         ok
+               rates     0.175s         ok
+            pubnames     0.557s         ok
+               magic     0.650s         ok
+                f1db     0.392s         ok
+                moma     0.034s         ok
+            opendata     0.328s         ok
+                 eav     0.030s         ok
+             sandbox     2.278s         ok
+ -------------------  ---------
+               TOTAL     9.310s
 ```
 
 ## Run this. See why PostgreSQL matters.
