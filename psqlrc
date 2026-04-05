@@ -17,4 +17,4 @@ set intervalstyle to 'postgres_verbose';
 
 \unset QUIET
 
-set search_path to '$user', public, f1db, rates, tweet, twcache, eav, magic, archive, opendata, commitlog, scan34;
+set search_path to '$user', public, f1db, rates, tweet, twcache, eav, magic, archive, opendata, commitlog, scan34, counter;

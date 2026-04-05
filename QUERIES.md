@@ -8,6 +8,15 @@ tooling.
 
 ## Concepts
 
+### Counter / Running Totals
+
+Synthetic counter data for learning window functions with resets.
+
+- `queries/04-sql-select/18-window-functions/04_01_counter.sql`
+  Delta between consecutive counter values, handling resets.
+- `queries/04-sql-select/18-window-functions/04_02_counter.sql`
+  Running total that resets at counter resets.
+
 ### Window Functions
 
 Window functions perform calculations across rows related to the current
@@ -348,6 +357,17 @@ UK pub locations with coordinates for k-NN and distance queries.
 
 - kNN Search: `queries/08-extensions/48-pub-names-knn/03_01.sql`, `04_01.sql`, `04_02.sql`
 - Point Geometry: `queries/08-extensions/48-pub-names-knn/01_01.sql`
+
+### Counter (Monotonic Counter Metrics)
+
+**Load:** `docker compose run --rm taop counter`
+
+Synthetic counter data simulating resource consumption with resets. Useful for
+learning window functions, running totals, and delta calculations.
+
+- Window Functions: `queries/04-sql-select/18-window-functions/`
+- Delta Computation: Detecting and handling counter resets
+- Invoice Calculation: Computing usage between reset events
 
 ### GeoLite (IP Geolocation)
 

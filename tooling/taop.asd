@@ -78,6 +78,9 @@
              ;; sandbox
              (:file "sandbox")
 
+             ;; counter
+             (:file "counter")
+
              ;; load all datasets
              (:file "load-data")
 

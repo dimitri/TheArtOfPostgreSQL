@@ -71,3 +71,20 @@ various attributes. Load with `taop eav`.
 
 Various test data and utilities for experimenting with PostgreSQL features.
 Load with `taop sandbox`.
+
+## Counter
+
+Synthetic dataset simulating a monotonic counter with reset events. Represents
+typical resource consumption metrics used for invoicing (e.g., API calls, 
+bandwidth usage, storage consumption).
+
+**Schema:** `counter.measures(tick int, nb int)`
+- `tick`: Time step identifier
+- `nb`: Counter value at that step
+
+**Use cases:**
+- Window functions with running totals
+- Computing deltas between steps
+- Detecting and handling resets in metrics
+
+**Load:** `docker compose run --rm taop counter`
