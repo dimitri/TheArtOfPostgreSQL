@@ -61,7 +61,12 @@
     `(let* ((,start (get-internal-real-time))
             (,success t)
             (,end (let ((ok t))
-                    (handler-case (progn ,@body)
+                    (handler-case
+                        (handler-bind
+                            ((warning (lambda (c)
+                                        (format *error-output* ";;; WARNING: ~a~%" c)
+                                        (muffle-warning))))
+                          ,@body)
                       (condition (c)
                         (format *error-output* ";;; ERROR: ~a~%" c)
                         (setf ok nil)))
@@ -70,6 +75,8 @@
             (seconds (elapsed-time-since ,start ,end)))
        (record-command-timing ,command-name seconds ,success)
        (format t "~%")
+       (format t ";;; ~a [~a]: ~a~%"
+               ,command-name (format-interval seconds nil) ,success)
        seconds)))
 
 (defun print-timing-summary ()
