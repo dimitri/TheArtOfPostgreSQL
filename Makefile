@@ -3,7 +3,7 @@
 build:
 	docker compose build
 
-up:
+up: build
 	docker compose run -d postgres
 
 load-data: up
