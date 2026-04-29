@@ -1,0 +1,21 @@
+{
+  "name": "The Art of PostgreSQL",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "taop",
+  "workspaceFolder": "/usr/src/taop",
+  "postStartCommand": "load-data",
+  "forwardPorts": [5432],
+  "portsAttributes": {
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    }
+  },
+  "remoteEnv": {
+    "PGPASSWORD": "taop",
+    "PGUSER": "taop",
+    "PGDATABASE": "taop",
+    "PGHOST": "postgres",
+    "PGPORT": "5432"
+  }
+}

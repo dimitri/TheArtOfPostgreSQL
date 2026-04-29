@@ -1,5 +1,7 @@
 # The Art of PostgreSQL
 
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/dimitri/TheArtOfPostgreSQL)
+
 This repository contain The PostgreSQL practice lab used with the book [The
 Art of PostgreSQL](https://theartofpostgresql.com).
 
