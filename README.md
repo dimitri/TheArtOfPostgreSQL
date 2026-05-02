@@ -19,6 +19,19 @@ contains the Open Source data sets used through the book, and when needed
 the scripts around the data sets that allow importing and processing them
 into a Postgres database.
 
+## Get the Full Course
+
+This repository is the free public lab — the queries, the data, the
+playground. The complete course goes deeper: 6 courses across 3 tiers
+(Core, Advanced, Architect), with hands-on labs, quizzes, and
+structured modules covering Window Functions, Aggregation, Schema
+Design, Advanced JOINs, Query Optimization, and Read Query Plans.
+
+**Now in early access — first 100 subscribers get 50% off.**
+The Art of PostgreSQL book is included in every tier.
+
+[Get early access at theartofpostgresql.com/course](https://theartofpostgresql.com/course/?utm_source=github&utm_medium=readme&utm_campaign=lab)
+
 ## Quick Start
 
 ### Load the data
