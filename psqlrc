@@ -15,6 +15,6 @@ set intervalstyle to 'postgres_verbose';
 
 \setenv LESS '-iMFXSx4R'
 
-\unset QUIET
-
 set search_path to '$user', public, f1db, rates, tweet, twcache, eav, magic, archive, opendata, commitlog, scan34, counter;
+
+\unset QUIET
