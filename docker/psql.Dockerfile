@@ -1,4 +1,5 @@
-FROM postgres:16-alpine
+ARG POSTGRES_VERSION=16
+FROM postgres:${POSTGRES_VERSION}-alpine
 
 USER postgres
 
