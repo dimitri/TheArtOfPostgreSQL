@@ -15,14 +15,14 @@ select genre.name as genre,
         *
         * here we choose to weight the tracks by how many
         * times they appear in a playlist, so we join against
-        * the playlisttrack table and count appearances.
+        * the playlist_track table and count appearances.
         */
        (
-          select track.name, track.albumid, count(playlistid)
+          select track.name, track.album_id, count(playlist_id)
             from           track
-                 left join playlisttrack using (trackid)
-           where track.genreid = genre.genreid
-        group by track.trackid
+                 left join playlist_track using (track_id)
+           where track.genre_id = genre.genre_id
+        group by track.track_id
         order by count desc
            limit :n
        )
@@ -31,7 +31,7 @@ select genre.name as genre,
         * we don't need to add another one at the outer join
         * level, hence the "on true" spelling.
         */
-            ss(name, albumid, count) on true
-       join album using(albumid)
-       join artist using(artistid)
-order by genre.name, ss.count desc;
+            ss(name, album_id, count) on true
+       join album using(album_id)
+       join artist using(artist_id)
+order by genre.name, ss.count desc, ss.name;

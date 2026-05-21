@@ -1,2 +1,2 @@
-pguri: postgres://cdstore@/appdev?sslmode=disable
-root: .
+pguri: postgres://cdstore:cdstore@localhost:5433/taop?sslmode=disable
+root: src/sql
