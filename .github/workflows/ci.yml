@@ -64,10 +64,8 @@ jobs:
 
       - name: Install regresql
         run: |
-          curl -sSfL \
-            https://github.com/dimitri/regresql/releases/latest/download/regresql-linux-amd64 \
-            -o /usr/local/bin/regresql
-          chmod +x /usr/local/bin/regresql
+          go install github.com/dimitri/regresql@latest
+          sudo install -m 755 "$(go env GOPATH)/bin/regresql" /usr/local/bin/regresql
 
       # postgres is exposed on localhost:5433 (see docker-compose.yml ports).
       - name: Run cdstore regression tests
