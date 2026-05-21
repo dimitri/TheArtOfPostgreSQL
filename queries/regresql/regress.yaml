@@ -1,0 +1,2 @@
+pguri: postgres://taop:taop@localhost:5433/taop?sslmode=disable
+root: .

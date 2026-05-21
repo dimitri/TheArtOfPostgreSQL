@@ -1,0 +1,12 @@
+                                QUERY PLAN                                 
+---------------------------------------------------------------------------
+Limit (actual time=0.022..0.023 rows=10 loops=1)
+  Buffers: shared hit=2
+  ->  Sort (actual time=0.022..0.022 rows=10 loops=1)
+        Sort Key: ((point(lng, lat) <-> '(2.349014,48.864716)'::point))
+        Sort Method: top-N heapsort  Memory: 26kB
+        Buffers: shared hit=2
+        ->  Seq Scan on circuits (actual time=0.002..0.009 rows=73 loops=1)
+              Buffers: shared hit=2
+Planning Time: 0.015 ms
+Execution Time: 0.029 ms

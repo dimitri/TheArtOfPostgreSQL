@@ -1,0 +1,90 @@
+raceid |    type     |       name       | points
+-------+-------------+------------------+-------
+972    | constructor | Mercedes         | 136
+972    | constructor | Mercedes         | 136
+972    | constructor | Mercedes         | 136
+972    | constructor | Mercedes         | 136
+972    | constructor | Ferrari          | 135
+972    | constructor | Ferrari          | 135
+972    | constructor | Ferrari          | 135
+972    | constructor | Ferrari          | 135
+972    | driver      | Sebastian Vettel | 86
+972    | driver      | Sebastian Vettel | 86
+972    | driver      | Sebastian Vettel | 86
+972    | driver      | Sebastian Vettel | 86
+972    | driver      | Lewis Hamilton   | 73
+972    | driver      | Lewis Hamilton   | 73
+972    | driver      | Lewis Hamilton   | 73
+972    | driver      | Lewis Hamilton   | 73
+972    | driver      | Valtteri Bottas  | 63
+972    | driver      | Valtteri Bottas  | 63
+972    | driver      | Valtteri Bottas  | 63
+972    | driver      | Valtteri Bottas  | 63
+972    | constructor | Red Bull         | 57
+972    | constructor | Red Bull         | 57
+972    | constructor | Red Bull         | 57
+972    | constructor | Red Bull         | 57
+972    | driver      | Kimi Räikkönen   | 49
+972    | driver      | Kimi Räikkönen   | 49
+972    | driver      | Kimi Räikkönen   | 49
+972    | driver      | Kimi Räikkönen   | 49
+972    | driver      | Max Verstappen   | 35
+972    | driver      | Max Verstappen   | 35
+972    | driver      | Max Verstappen   | 35
+972    | driver      | Max Verstappen   | 35
+972    | constructor | Force India      | 31
+972    | constructor | Force India      | 31
+972    | constructor | Force India      | 31
+972    | constructor | Force India      | 31
+972    | driver      | Sergio Pérez     | 22
+972    | driver      | Sergio Pérez     | 22
+972    | driver      | Sergio Pérez     | 22
+972    | driver      | Sergio Pérez     | 22
+972    | driver      | Daniel Ricciardo | 22
+972    | driver      | Daniel Ricciardo | 22
+972    | driver      | Daniel Ricciardo | 22
+972    | driver      | Daniel Ricciardo | 22
+972    | constructor | Williams         | 18
+972    | constructor | Williams         | 18
+972    | constructor | Williams         | 18
+972    | driver      | Felipe Massa     | 18
+972    | driver      | Felipe Massa     | 18
+972    | driver      | Felipe Massa     | 18
+972    | driver      | Felipe Massa     | 18
+972    | constructor | Williams         | 18
+972    | constructor | Toro Rosso       | 13
+972    | constructor | Toro Rosso       | 13
+972    | constructor | Toro Rosso       | 13
+972    | constructor | Toro Rosso       | 13
+972    | driver      | Carlos Sainz     | 11
+972    | driver      | Carlos Sainz     | 11
+972    | driver      | Carlos Sainz     | 11
+972    | driver      | Carlos Sainz     | 11
+972    | driver      | Esteban Ocon     | 9
+972    | driver      | Esteban Ocon     | 9
+972    | driver      | Esteban Ocon     | 9
+972    | driver      | Esteban Ocon     | 9
+972    | constructor | Haas F1 Team     | 8
+972    | constructor | Haas F1 Team     | 8
+972    | constructor | Haas F1 Team     | 8
+972    | constructor | Haas F1 Team     | 8
+972    | driver      | Nico Hülkenberg  | 6
+972    | constructor | Renault          | 6
+972    | constructor | Renault          | 6
+972    | constructor | Renault          | 6
+972    | constructor | Renault          | 6
+972    | driver      | Nico Hülkenberg  | 6
+972    | driver      | Nico Hülkenberg  | 6
+972    | driver      | Nico Hülkenberg  | 6
+972    | driver      | Romain Grosjean  | 4
+972    | driver      | Kevin Magnussen  | 4
+972    | driver      | Kevin Magnussen  | 4
+972    | driver      | Kevin Magnussen  | 4
+972    | driver      | Kevin Magnussen  | 4
+972    | driver      | Romain Grosjean  | 4
+972    | driver      | Romain Grosjean  | 4
+972    | driver      | Romain Grosjean  | 4
+972    | driver      | Daniil Kvyat     | 2
+972    | driver      | Daniil Kvyat     | 2
+972    | driver      | Daniil Kvyat     | 2
+972    | driver      | Daniil Kvyat     | 2

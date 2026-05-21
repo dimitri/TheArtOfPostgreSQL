@@ -1,0 +1,3 @@
+interval | interval | ?column? |   ?column?  
+---------+----------+----------+-------------
+1 mon    | 14 days  | 14 days  | 00:01:18.389

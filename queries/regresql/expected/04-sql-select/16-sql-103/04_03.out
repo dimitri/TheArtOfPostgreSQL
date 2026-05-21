@@ -1,0 +1,22 @@
+driver | constructor | points
+-------+-------------+-------
+<nil>  | <nil>       | 370048
+Prost  | Williams    | 25344
+Senna  | Team Lotus  | 38400
+Prost  | Renault     | 34304
+Senna  | HRT         | 0
+Senna  | Toleman     | 3328
+Prost  | McLaren     | 117376
+Prost  | Ferrari     | 27392
+Senna  | McLaren     | 115456
+Senna  | Williams    | 7936
+Senna  | Renault     | 512
+Prost  | <nil>       | 204416
+Senna  | <nil>       | 165632
+<nil>  | McLaren     | 232832
+<nil>  | Toleman     | 3328
+<nil>  | Team Lotus  | 38400
+<nil>  | Ferrari     | 27392
+<nil>  | Renault     | 34816
+<nil>  | HRT         | 0
+<nil>  | Williams    | 33280

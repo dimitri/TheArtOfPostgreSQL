@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: PG ${{ matrix.pg }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.pg == '18' }}
+    strategy:
+      matrix:
+        pg: ["14", "15", "16", "17", "18"]
+      fail-fast: false
+
+    env:
+      POSTGRES_VERSION: ${{ matrix.pg }}
+      # constant project name → docker compose looks for image taop-taop:latest
+      COMPOSE_PROJECT_NAME: taop
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      # The taop binary is PG-version-agnostic; all matrix legs share one cache.
+      # The first leg to run writes the cache; the others read it.
+      - name: Build taop image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/taop.Dockerfile
+          target: taop
+          load: true
+          tags: taop-taop:latest
+          cache-from: type=gha,scope=taop-build
+          cache-to: type=gha,scope=taop-build,mode=max
+
+      - name: Start PostgreSQL ${{ matrix.pg }}
+        run: docker compose up -d postgres
+
+      # load-data iterates *commands* and chinook is not in *commands-to-skip*,
+      # so it is included automatically — no separate chinook step needed.
+      - name: Load all datasets
+        run: docker compose run --rm taop load-data
+
+      # Set search_path for taop (book queries) and create cdstore user (cdstore app queries).
+      # taop needs f1db + chinook schemas resolvable without schema qualification.
+      - name: Set up database roles and search paths
+        run: |
+          docker compose run --rm taop \
+            psql -v ON_ERROR_STOP=1 \
+              -c "ALTER ROLE taop SET search_path TO f1db, chinook, public;" \
+              -c "CREATE USER cdstore WITH PASSWORD 'cdstore';" \
+              -c "GRANT USAGE ON SCHEMA chinook TO cdstore;" \
+              -c "ALTER ROLE cdstore SET search_path TO chinook;" \
+              -c "GRANT SELECT ON ALL TABLES IN SCHEMA chinook TO cdstore;"
+
+      - name: Install regresql
+        run: |
+          curl -sSfL \
+            https://github.com/dimitri/regresql/releases/latest/download/regresql-linux-amd64 \
+            -o /usr/local/bin/regresql
+          chmod +x /usr/local/bin/regresql
+
+      # postgres is exposed on localhost:5433 (see docker-compose.yml ports).
+      - name: Run cdstore regression tests
+        working-directory: apps/cdstore
+        run: regresql test
+
+      # regresql update runs every query in queries/ against the loaded database.
+      # On the first run (no committed expected/ files) this acts as a smoke test:
+      # any SQL error causes update to record the failure as output.
+      # Once expected/ files are committed (via `regresql update` run locally),
+      # `git diff --exit-code` catches any regression in query output.
+      - name: Run book query regression tests
+        working-directory: queries
+        run: |
+          regresql update
+          git diff --exit-code regresql/expected/
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

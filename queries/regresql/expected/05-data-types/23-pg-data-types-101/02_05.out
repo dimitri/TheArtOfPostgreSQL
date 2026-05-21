@@ -1,0 +1,268 @@
+        category          |                  subcategory                  | count 
+--------------------------+-----------------------------------------------+-------
+<nil>                     | <nil>                                         | 232159
+Société                   | Influence occidentale                         | 55
+Art                       | Littérature                                   | 71
+Divertissement            | Divertissement mondain                        | 83
+Sciences / Techniques     | Ethnologie / anthropologie                    | 31
+Sciences / Techniques     | Astronomie                                    | 23
+Transport                 | Portage                                       | 46
+Transport                 | Transport fluvial / lacustre                  | 1035
+Divertissement            | Jeu / jouet                                   | 78
+Personnalité              | Personnalité artistique                       | 89
+Activite économique       | Commerce extérieur                            | 97
+Habitat / Architecture    | Génie civil                                   | 3816
+Etres humains             | Homme                                         | 4107
+Inscription / information | Panneaux                                      | 623
+Première guerre mondiale  | Occupation                                    | 279
+Enseignement              | Enseignement supérieur                        | 80
+Première guerre mondiale  | Front                                         | 3586
+Etres humains             | Portrait                                      | 1863
+Histoire coloniale        | Indépendance                                  | 12
+Habillement               | Uniforme scolaire                             | 56
+Habitat / Architecture    | Architecture civile publique                  | 4105
+Première guerre mondiale  | Société des Nations                           | 44
+Religion                  | Bouddhisme                                    | 610
+Sciences / Techniques     | Géologie                                      | 659
+Enseignement              | Enseignement religieux                        | 227
+Religion                  | Confucianisme                                 | 73
+Art                       | Gravure                                       | 41
+Religion                  | Pratique religieuse                           | 296
+Vie politique             | Parti politique                               | 120
+Histoire coloniale        | Armée coloniale                               | 110
+Vie quotidienne           | Alimentation                                  | 302
+Inscription / information | Inscription statuaire                         | 89
+Religion                  | Taoïsme                                       | 79
+Sciences / Techniques     | Instrument de mesure                          | 27
+Vie politique             | Guerre étrangère                              | 482
+Personnalité              | Personnalité militaire                        | 383
+Art                       | Théâtre                                       | 298
+Société                   | Pauvreté                                      | 56
+Habillement               | Vêtement de travail                           | 267
+Art                       | Exposition                                    | 1339
+Habitat / Architecture    | Palais / Château                              | 3965
+Habillement               | Costume                                       | 1901
+Première guerre mondiale  | Réparations                                   | 198
+Activite économique       | Petit métier                                  | 108
+Etres humains             | Femme                                         | 2051
+Fête                      | Fête populaire                                | 142
+Art                       | Musique                                       | 136
+Religion                  | Culte des ancêtres                            | 28
+Habitat / Architecture    | Mobilier                                      | 497
+Religion                  | Sikhisme                                      | 16
+Habitat / Architecture    | Installation hydraulique                      | 929
+Religion                  | Objet de culte                                | 573
+Habitat / Architecture    | Panorama d'agglomération                      | 5804
+Société                   | Funérailles                                   | 192
+Vie politique             | Migrant / réfugié                             | 66
+Art                       | Calligraphie                                  | 95
+Sciences / Techniques     | Cinématographie                               | 18
+Société                   | Justice                                       | 261
+Sciences / Techniques     | Innovation / Progrès                          | 29
+Religion                  | Cultes vodoun                                 | 193
+Habitat / Architecture    | Habitation                                    | 9274
+Personnalité              | Personnalité littéraire                       | 35
+Personnalité              | Personnalité de la noblesse                   | 497
+Activite économique       | Banque / finances                             | 592
+Nature / Environnement    | Ressources minières                           | 275
+Art                       | Légende / mythe                               | 339
+Habitat / Architecture    | Architecture religieuse                       | 11857
+Divertissement            | Divertissement en temps de guerre             | 42
+Habitat / Architecture    | Architecture fortifiée                        | 3597
+Animal                    | Animal sacré                                  | 120
+Activite économique       | Commerce ambulant                             | 178
+Société                   | Armée                                         | 1774
+Activite économique       | Cueillette / chasse                           | 41
+Enseignement              | Etablissement scolaire                        | 595
+Sciences / Techniques     | Géographie                                    | 18
+Santé                     | Personnel médical                             | 84
+Première guerre mondiale  | Pénuries / rationnement                       | 28
+Société                   | Baptême                                       | 10
+Etres humains             | Enfant                                        | 1416
+Activite économique       | Artisanat                                     | 360
+Habitat / Architecture    | Architecture de jardin                        | 703
+Art                       | Moyen Age                                     | 5515
+Activite économique       | Pêche / métiers de la mer                     | 232
+Société                   | Travail des enfants                           | 28
+Inscription / information | Inscription funéraire                         | 275
+Divertissement            | Animation de rue                              | 46
+Art                       | Dessin                                        | 291
+Inscription / information | Inscription religieuse ou votive              | 273
+Transport                 | Transport ferroviaire                         | 907
+HD                        | existe en haute définition                    | 1265
+Habitat / Architecture    | Architecture commerciale                      | 843
+Sport                     | Terrain de sport                              | 21
+Religion                  | Judaïsme                                      | 183
+Histoire coloniale        | Présence coloniale                            | 730
+Habillement               | Uniforme militaire                            | 1086
+Vie politique             | Couronnement                                  | 5
+Vie quotidienne           | Scène de travail                              | 417
+Première guerre mondiale  | Paix                                          | 371
+Animal                    | Animal réel                                   | 920
+Santé                     | Centre de soins                               | 207
+Habitat / Architecture    | Rue / Quartier                                | 11234
+Vie politique             | Election / investiture                        | 225
+Sciences / Techniques     | Physique / Chimie                             | 9
+Première guerre mondiale  | Reconstructions                               | 6736
+Première guerre mondiale  | Effort de guerre / oeuvre de guerre           | 490
+Religion                  | Islam                                         | 2463
+Santé                     | Prophylaxie                                   | 16
+Société                   | Difficultés économiques                       | 37
+Habitat / Architecture    | Installation aéraulique / ventilation         | 83
+Première guerre mondiale  | Arrière                                       | 1032
+Sciences / Techniques     | Philosophie                                   | 1
+Sciences / Techniques     | Photographie                                  | 9
+Religion                  | Brahmanisme                                   | 1
+Société                   | Administration                                | 911
+Religion                  | Polythéisme égyptien                          | 302
+Première guerre mondiale  | Après-guerre                                  | 12987
+Vie politique             | Manifestation politique                       | 47
+Première guerre mondiale  | Traités                                       | 152
+Société                   | Statut juridique des femmes                   | 12
+Habillement               | Mode                                          | 106
+Première guerre mondiale  | Mobilisation / démobilisation                 | 50
+Activite économique       | Tourisme                                      | 87
+Habitat / Architecture    | Vue intérieure                                | 1953
+Transport                 | Transport automobile                          | 906
+Habillement               | Costume de spectacle                          | 54
+Transport                 | Transport animal                              | 1002
+Habillement               | Habillement de type occidental                | 43
+Habillement               | Habit religieux                               | 316
+Habitat / Architecture    | Délabrement  / insalubrité                    | 559
+Personnalité              | Personnalité scientifique                     | 42
+Inscription / information | Inscription commémorative                     | 496
+Transport                 | Transport à bras                              | 137
+Nature / Environnement    | Phénomène naturel                             | 759
+Vie quotidienne           | Vie rurale                                    | 406
+Habitat / Architecture    | Installation éphémère                         | 361
+Etres humains             | Etre surnaturel                               | 141
+Relations internationales | Voyage officiel                               | 18
+Première guerre mondiale  | Décoration                                    | 51
+Religion                  | Christianisme                                 | 6121
+Vie politique             | Assemblée / conseil                           | 84
+Habitat / Architecture    | Architecture funéraire                        | 2362
+Première guerre mondiale  | Ruines                                        | 5652
+Religion                  | Bouddhisme de rite tibétain                   | 51
+Inscription / information | Presse                                        | 52
+Nature / Environnement    | Végétation / botanique                        | 6562
+Enseignement              | Enseignement public                           | 249
+Habitat / Architecture    | Parc / Jardin                                 | 5579
+Fête                      | Fête religieuse                               | 195
+Société                   | Minorité ethnique                             | 373
+Sport                     | Manifestation sportive                        | 7
+Activite économique       | Industrie                                     | 383
+Santé                     | Maladie / handicap                            | 20
+Inscription / information | Inscription architecturale                    | 752
+Habitat / Architecture    | Usine / atelier                               | 538
+Art                       | Renaissance                                   | 1617
+Première guerre mondiale  | Arrière-front                                 | 1357
+Fête                      | Fête politique                                | 521
+Relations internationales | Alliés                                        | 273
+Art                       | Arts décoratifs                               | 2174
+Santé                     | Traitement médical                            | 10
+Religion                  | Animisme                                      | 15
+Vie quotidienne           | Scène de rue                                  | 866
+Religion                  | Hindouisme                                    | 138
+Vie quotidienne           | Objet domestique                              | 470
+Habitat / Architecture    | Architecture de type occidental               | 755
+Vie quotidienne           | Cuisine                                       | 69
+Première guerre mondiale  | Intervention américaine                       | 124
+Santé                     | Blessé / mutilé                               | 84
+Personnalité              | Personnalité religieuse                       | 637
+Art                       | Sculpture                                     | 4203
+Art                       | Peinture                                      | 779
+Transport                 | Transport aérien                              | 101
+Vie politique             | Organisation internationale                   | 43
+Sport                     | Entraînement sportif                          | 28
+Société                   | Mariage                                       | 31
+Personnalité              | Personnalité universitaire                    | 34
+Sciences / Techniques     | Aéronautique                                  | 59
+Inscription / information | Affiche                                       | 1253
+Religion                  | Shinto                                        | 454
+Activite économique       | Agriculture / élevage                         | 2555
+Vie politique             | Révolution russe                              | 8
+Personnalité              | Personnalité de la Justice                    | 2
+Habitat / Architecture    | Architecture rurale                           | 4520
+Personnalité              | Personnalité sportive                         | 7
+Activite économique       | Publicité                                     | 518
+Religion                  | Zoroastrisme                                  | 1
+Enseignement              | Enseignement technique                        | 15
+Vie politique             | Jubilé                                        | 86
+Histoire coloniale        | Mandat français                               | 83
+Histoire coloniale        | Guerre coloniale                              | 33
+Habitat / Architecture    | Travaux                                       | 3488
+Nature / Environnement    | Paysage                                       | 9370
+Inscription / information | Inscription commerciale                       | 2635
+Activite économique       | Marché / foire                                | 339
+Vie quotidienne           | Vie domestique                                | 263
+Santé                     | Recherche médicale                            | 1
+Vie politique             | Syndicat                                      | 56
+Santé                     | Protection materno-infantile                  | 5
+Activite économique       | Boutique / magasin                            | 2390
+Habillement               | Habillement traditionnel                      | 621
+Personnalité              | Personnalité politique                        | 2826
+Art                       | Antiquité                                     | 2176
+Art                       | Ferronnerie                                   | 331
+Habitat / Architecture    | Architecture éphémère                         | 2365
+Sciences / Techniques     | Histoire                                      | 8
+Habillement               | Costume de fête                               | 219
+Transport                 | Transport cycliste                            | 187
+Relations internationales | Diplomatie                                    | 327
+Sciences / Techniques     | Biologie                                      | 14
+Histoire coloniale        | Exposition coloniale                          | 524
+Vie politique             | Loi / législation                             | 10
+Transport                 | Transport maritime                            | 745
+Art                       | Danse                                         | 67
+Vie politique             | Guerre civile                                 | 194
+Divertissement            | Loisir ouvrier                                | 17
+Enseignement              | Enseignement artistique                       | 33
+Histoire coloniale        | Haut-commissariat                             | 113
+Première guerre mondiale  | Blessé / mutilé                               | 84
+Activite économique       | Restauration / hôtellerie                     | 1276
+Première guerre mondiale  | Commémoration                                 | 1184
+Vie politique             | Discours                                      | 9
+Personnalité              | Funérailles de personnalité                   | 135
+Enseignement              | Enseignement privé                            | 91
+Société                   | Prostitution                                  | 111
+Relations internationales | Présence étrangère                            | 379
+Animal                    | Animal représenté / animal fantastique        | 972
+Sciences / Techniques     | Communication                                 | 21
+Nature / Environnement    | Hydrographie                                  | 3883
+Religion                  | Polythéisme gréco-romain                      | 359
+Habillement               | Accessoire                                    | 351
+Personnalité              | Personnalité des affaires                     | 209
+Habitat / Architecture    | Vestige archéologique                         | 3449
+Société                   | Mutilation                                    | 6
+Etres humains             | Portrait de groupe                            | 1025
+Société                   | Orphelinat                                    | 14
+Vie politique             | Propagande                                    | 63
+Divertissement            | Spectacle                                     | 172
+Première guerre mondiale  | Bombardement                                  | 3145
+Société                   | Fait divers                                   | 24
+Société                   | Travail des femmes                            | 26
+Enseignement              | Etablissement universitaire / Grandes écoles  | 368
+Habitat / Architecture    | Consulat / ambassade                          | 53
+Sport                     | <nil>                                         | 56
+Divertissement            | <nil>                                         | 438
+Vie politique             | <nil>                                         | 1498
+Santé                     | <nil>                                         | 427
+Habillement               | <nil>                                         | 5020
+Transport                 | <nil>                                         | 5066
+HD                        | <nil>                                         | 1265
+Enseignement              | <nil>                                         | 1658
+Vie quotidienne           | <nil>                                         | 2793
+Nature / Environnement    | <nil>                                         | 20849
+Inscription / information | <nil>                                         | 6448
+Religion                  | <nil>                                         | 11956
+Relations internationales | <nil>                                         | 997
+Société                   | <nil>                                         | 3921
+Histoire coloniale        | <nil>                                         | 1605
+Activite économique       | <nil>                                         | 9156
+Habitat / Architecture    | <nil>                                         | 82689
+Animal                    | <nil>                                         | 2012
+Première guerre mondiale  | <nil>                                         | 37550
+Art                       | <nil>                                         | 19472
+Etres humains             | <nil>                                         | 10603
+Sciences / Techniques     | <nil>                                         | 926
+Personnalité              | <nil>                                         | 4896
+Fête                      | <nil>                                         | 858

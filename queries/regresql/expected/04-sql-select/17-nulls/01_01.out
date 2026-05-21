@@ -1,0 +1,11 @@
+  a   |   b   |  a=b  |      op       |  result 
+------+-------+-------+---------------+---------
+true  | true  | true  | true = true   | is true
+true  | false | false | true = false  | is false
+true  | <nil> | <nil> | true = null   | is null
+false | true  | false | false = true  | is false
+false | false | true  | false = false | is true
+false | <nil> | <nil> | false = null  | is null
+<nil> | true  | <nil> | null = true   | is null
+<nil> | false | <nil> | null = false  | is null
+<nil> | <nil> | <nil> | null = null   | is null

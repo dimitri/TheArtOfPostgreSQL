@@ -1,0 +1,4 @@
+                         QUERY PLAN                         
+------------------------------------------------------------
+Limit
+  ->  Index Scan Backward using idx_49586_primary on seasons
