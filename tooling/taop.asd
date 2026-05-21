@@ -81,6 +81,9 @@
              ;; counter
              (:file "counter")
 
+             ;; chinook
+             (:file "chinook")
+
              ;; load all datasets
              (:file "load-data")
 

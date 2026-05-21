@@ -37,6 +37,7 @@ services:
       EAV_DIR: /data/eav
       SANDBOX_DIR: /data/sandbox
       COUNTER_DIR: /data/counter
+      CHINOOK_SQL: /usr/src/taop/cdstore/Chinook_PostgreSql.sql
     volumes:
       - ./queries:/usr/src/taop/queries:ro
       - ./apps/cdstore:/usr/src/taop/cdstore:ro
