@@ -54,13 +54,13 @@ jobs:
       # taop needs f1db + chinook schemas resolvable without schema qualification.
       - name: Set up database roles and search paths
         run: |
-          docker compose run --rm taop \
-            psql -v ON_ERROR_STOP=1 \
-              -c "ALTER ROLE taop SET search_path TO f1db, chinook, public;" \
-              -c "CREATE USER cdstore WITH PASSWORD 'cdstore';" \
-              -c "GRANT USAGE ON SCHEMA chinook TO cdstore;" \
-              -c "ALTER ROLE cdstore SET search_path TO chinook;" \
-              -c "GRANT SELECT ON ALL TABLES IN SCHEMA chinook TO cdstore;"
+          docker compose run --rm --entrypoint psql taop \
+            -v ON_ERROR_STOP=1 \
+            -c "ALTER ROLE taop SET search_path TO f1db, chinook, public;" \
+            -c "CREATE USER cdstore WITH PASSWORD 'cdstore';" \
+            -c "GRANT USAGE ON SCHEMA chinook TO cdstore;" \
+            -c "ALTER ROLE cdstore SET search_path TO chinook;" \
+            -c "GRANT SELECT ON ALL TABLES IN SCHEMA chinook TO cdstore;"
 
       - name: Install regresql
         run: |
