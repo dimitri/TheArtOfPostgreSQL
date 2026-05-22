@@ -55,14 +55,6 @@ exclude:
   - 04-sql-select/16-sql-103/03_01.sql
   - 04-sql-select/16-sql-103/04_01.sql
 
-  # ── JSON string literals with ":key":"value" pattern ─────────────────────
-  # regresql's named-parameter regex matches `:identifier` anywhere, including
-  # inside single-quoted SQL string literals.  Queries whose string literals
-  # contain JSON-style `"key":"value"` pairs are misdetected as having query
-  # variables.  They have no actual parameters and should be tested as plain
-  # queries once regresql's scanner gains string-literal awareness.
-  - 02-intro/03-postgresql/01_01.sql
-  - 06-data-modeling/33-not-only-sql/01_04.sql
 
   # ── DDL / schema-mutation statements ─────────────────────────────────────
   # These files contain CREATE TABLE, INSERT or other schema-mutating commands
