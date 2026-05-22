@@ -80,9 +80,7 @@ jobs:
       # generic 01.out.  All other expected files are committed and stable.
       - name: Run book query regression tests
         working-directory: queries
-        run: |
-          regresql update 02-intro/04-postgresql/01.sql
-          regresql test
+        run: regresql test
 
       - name: Capture postgres logs on failure
         if: failure()

@@ -3,6 +3,11 @@ root: .
 exclude:
   # ── Non-deterministic output ──────────────────────────────────────────────
 
+  # `show server_version` returns the exact version string of the running
+  # PostgreSQL instance (e.g. "16.3", "17.0") which differs for every matrix
+  # leg and every new minor release.  There is no stable expected output.
+  - 02-intro/04-postgresql/01.sql
+
   # pg_database_size() returns different values depending on the PostgreSQL
   # major version (catalog storage layout differs) and the amount of data
   # loaded; there is no stable expected output across matrix legs.
