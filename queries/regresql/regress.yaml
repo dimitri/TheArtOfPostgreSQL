@@ -1,8 +1,41 @@
 pguri: postgres://taop:taop@localhost:5433/taop?sslmode=disable
 root: .
 exclude:
+  # ── Non-deterministic output ──────────────────────────────────────────────
+
+  # pg_database_size() returns different values depending on the PostgreSQL
+  # major version (catalog storage layout differs) and the amount of data
+  # loaded; there is no stable expected output across matrix legs.
   - 03-writing-sql-queries/07-psql/05_01.sql
+
+  # TABLESAMPLE bernoulli(20) draws a random sample of pg_type rows on every
+  # execution; the result set differs between runs and PostgreSQL versions.
   - 05-data-types/23-pg-data-types-101/02.sql
+
+  # GROUP BY ROLLUP without a final ORDER BY: PostgreSQL's hash aggregate
+  # produces rows in an undefined order that can vary between executions even
+  # with identical data and the same server version.
   - 05-data-types/23-pg-data-types-101/02_05.sql
+
+  # uuid_generate_v4() generates a fresh random UUID on every call.
   - 05-data-types/23-pg-data-types-101/07_02.sql
+
+  # Contains now() inside DML (INSERT INTO tstz) executed inside a
+  # BEGIN/COMMIT block; the stored timestamps change on every run.
   - 05-data-types/23-pg-data-types-101/09_02_tz.sql
+
+  # ── psql \copy metacommand ────────────────────────────────────────────────
+  # The files below use \copy, which is a psql client command and cannot be
+  # sent over the PostgreSQL wire protocol.  Attempting to execute them via
+  # database/sql produces a syntax error and no result set.
+
+  - 02-intro/02-usecase/03_01_factbook.sql
+  - 05-data-types/23-pg-data-types-101/12_01_access.sql
+  - 05-data-types/23-pg-data-types-101/13_01_rates.sql
+  - 05-data-types/24-non-relational-types/01_01_tweets.sql
+  - 06-data-modeling/30-practical-geonames/01_geonames.raw.sql
+  - 06-data-modeling/30-practical-geonames/06_01_geonames.sample.sql
+  - 07-concurrency/35-practical-intro/01_tweets.sql
+  - 07-concurrency/41-moma/01_artists.sql
+  - 07-concurrency/41-moma/01_01_artists.update.sql
+  - 08-extensions/44-hstore/04_01_artists.update.hstore.sql
