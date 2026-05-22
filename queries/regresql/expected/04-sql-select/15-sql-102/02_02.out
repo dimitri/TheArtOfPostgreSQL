@@ -1,11 +1,11 @@
                                             QUERY PLAN                                             
 ---------------------------------------------------------------------------------------------------
-Limit (actual time=0.020..0.023 rows=10 loops=1)
-  Buffers: shared hit=7
-  ->  Index Scan using circuits_position_idx on circuits (actual time=0.019..0.022 rows=10 loops=1)
+Limit (actual time=0.028..0.031 rows=10 loops=1)
+  Buffers: shared hit=6 read=1
+  ->  Index Scan using circuits_position_idx on circuits (actual time=0.027..0.030 rows=10 loops=1)
         Order By: ("position" <-> '(2.349014,48.864716)'::point)
-        Buffers: shared hit=7
+        Buffers: shared hit=6 read=1
 Planning:
   Buffers: shared hit=6
-Planning Time: 0.040 ms
-Execution Time: 0.032 ms
+Planning Time: 0.039 ms
+Execution Time: 0.042 ms

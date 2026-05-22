@@ -1,0 +1,12 @@
+year | code  |        name        | count
+-----+-------+--------------------+------
+1992 | <nil> | Nigel Mansell      | 9
+2011 | VET   | Sebastian Vettel   | 9
+2013 | VET   | Sebastian Vettel   | 8
+2004 | MSC   | Michael Schumacher | 8
+1988 | <nil> | Ayrton Senna       | 7
+2016 | HAM   | Lewis Hamilton     | 7
+2015 | HAM   | Lewis Hamilton     | 7
+1991 | <nil> | Ayrton Senna       | 7
+2001 | MSC   | Michael Schumacher | 6
+1989 | <nil> | Ayrton Senna       | 6

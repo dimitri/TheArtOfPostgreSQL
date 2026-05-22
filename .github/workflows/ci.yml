@@ -72,16 +72,23 @@ jobs:
         working-directory: apps/cdstore
         run: regresql test
 
-      # regresql update runs every query in queries/ against the loaded database.
-      # On the first run (no committed expected/ files) this acts as a smoke test:
-      # any SQL error causes update to record the failure as output.
-      # Once expected/ files are committed (via `regresql update` run locally),
-      # `git diff --exit-code` catches any regression in query output.
+      # regresql update re-runs every non-excluded query in queries/ and rewrites
+      # the expected/ files.  git diff then catches any output regression against
+      # the committed baselines.  Five queries are excluded from regress.yaml
+      # because their output is non-deterministic (random, time-dependent, or
+      # hash-aggregate ordered): see queries/regresql/regress.yaml for the list.
+      # The server_version query uses per-PG-version expected files (01.pg14.out
+      # … 01.pg17.out); plain `regresql update` writes a generic 01.out that is
+      # not tracked, so git diff ignores it and the versioned files are stable.
       - name: Run book query regression tests
         working-directory: queries
         run: |
           regresql update
           git diff --exit-code regresql/expected/
+
+      - name: Capture postgres logs on failure
+        if: failure()
+        run: docker logs taop-postgres-1 2>&1 || true
 
       - name: Tear down
         if: always()

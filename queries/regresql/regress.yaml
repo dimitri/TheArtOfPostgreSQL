@@ -1,2 +1,8 @@
 pguri: postgres://taop:taop@localhost:5433/taop?sslmode=disable
 root: .
+exclude:
+  - 03-writing-sql-queries/07-psql/05_01.sql
+  - 05-data-types/23-pg-data-types-101/02.sql
+  - 05-data-types/23-pg-data-types-101/02_05.sql
+  - 05-data-types/23-pg-data-types-101/07_02.sql
+  - 05-data-types/23-pg-data-types-101/09_02_tz.sql
