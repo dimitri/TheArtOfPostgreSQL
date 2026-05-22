@@ -1,0 +1,6 @@
+follower |   uname   | following |   uname  
+---------+-----------+-----------+----------
+13       | Hermia    | 3         | Lysander
+14       | Helena    | 4         | Demetrius
+4        | Demetrius | 13        | Hermia
+3        | Lysander  | 13        | Hermia

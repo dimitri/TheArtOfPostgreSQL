@@ -51,12 +51,13 @@ jobs:
         run: docker compose run --rm taop load-data
 
       # Set search_path for taop (book queries) and create cdstore user (cdstore app queries).
-      # taop needs f1db + chinook schemas resolvable without schema qualification.
+      # taop needs f1db + chinook + scan34 schemas resolvable without schema qualification.
+      # scan34 is the access_log schema used in chapter 23 (IP address type examples).
       - name: Set up database roles and search paths
         run: |
           docker compose run --rm --entrypoint psql taop \
             -v ON_ERROR_STOP=1 \
-            -c "ALTER ROLE taop SET search_path TO f1db, chinook, public;" \
+            -c "ALTER ROLE taop SET search_path TO f1db, chinook, public, scan34;" \
             -c "CREATE USER cdstore WITH PASSWORD 'cdstore';" \
             -c "GRANT USAGE ON SCHEMA chinook TO cdstore;" \
             -c "ALTER ROLE cdstore SET search_path TO chinook;" \
@@ -72,19 +73,16 @@ jobs:
         working-directory: apps/cdstore
         run: regresql test
 
-      # regresql update re-runs every non-excluded query in queries/ and rewrites
-      # the expected/ files.  git diff then catches any output regression against
-      # the committed baselines.  Five queries are excluded from regress.yaml
-      # because their output is non-deterministic (random, time-dependent, or
-      # hash-aggregate ordered): see queries/regresql/regress.yaml for the list.
-      # The server_version query uses per-PG-version expected files (01.pg14.out
-      # … 01.pg17.out); plain `regresql update` writes a generic 01.out that is
-      # not tracked, so git diff ignores it and the versioned files are stable.
+      # The server_version query (02-intro/04-postgresql/01.sql) outputs the
+      # exact PostgreSQL version string which differs per matrix leg.  We
+      # generate a version-specific expected file on the fly (01.pg14.out,
+      # 01.pg16.out …) so regresql test uses it instead of the committed
+      # generic 01.out.  All other expected files are committed and stable.
       - name: Run book query regression tests
         working-directory: queries
         run: |
-          regresql update
-          git diff --exit-code regresql/expected/
+          regresql update 02-intro/04-postgresql/01.sql
+          regresql test
 
       - name: Capture postgres logs on failure
         if: failure()
