@@ -12,9 +12,18 @@ exclude:
   # execution; the result set differs between runs and PostgreSQL versions.
   - 05-data-types/23-pg-data-types-101/02.sql
 
-  # GROUP BY ROLLUP without a final ORDER BY: PostgreSQL's hash aggregate
-  # produces rows in an undefined order that can vary between executions even
-  # with identical data and the same server version.
+  # EXPLAIN (ANALYZE) output contains actual timing values (actual time=,
+  # Planning Time, Execution Time) and buffer hit counts that are inherently
+  # machine- and load-dependent; they differ between every run and host.
+  - 04-sql-select/15-sql-102/02_02.sql
+  - 04-sql-select/15-sql-102/02_03.sql
+
+  # GROUP BY ROLLUP / CUBE / plain GROUP BY without a final ORDER BY:
+  # PostgreSQL's hash aggregate produces rows in an undefined order that can
+  # vary between executions and major versions even with identical data.
+  - 04-sql-select/16-sql-103/04_02.sql
+  - 04-sql-select/16-sql-103/04_03.sql
+  - 04-sql-select/16-sql-103/06_03.sql
   - 05-data-types/23-pg-data-types-101/02_05.sql
 
   # uuid_generate_v4() generates a fresh random UUID on every call.

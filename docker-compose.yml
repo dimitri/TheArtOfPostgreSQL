@@ -8,7 +8,11 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      # Mount one level above /data so that both PG≤17 (which use
+      # /var/lib/postgresql/data) and PG18+ (which use a versioned
+      # subdirectory like /var/lib/postgresql/18/main via pg_ctlcluster)
+      # can find their data directory inside the same named volume.
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U taop -d taop"]
       interval: 5s
