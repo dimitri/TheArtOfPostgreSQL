@@ -31,6 +31,12 @@ exclude:
   - 04-sql-select/16-sql-103/06_03.sql
   - 05-data-types/23-pg-data-types-101/02_05.sql
 
+  # Hash join / nested-loop order without ORDER BY: the self-join on
+  # tweet.users uses a regex bio match; the planner's chosen strategy
+  # (hash join vs. nested loop) varies across PG 14–18, producing rows
+  # in different orders.  The query intentionally has no ORDER BY clause.
+  - 07-concurrency/36-dml/02_01.sql
+
   # uuid_generate_v4() generates a fresh random UUID on every call.
   - 05-data-types/23-pg-data-types-101/07_02.sql
 
@@ -84,7 +90,8 @@ exclude:
   # ── 36-dml chapter: DML statements and transaction scripts ────────────────
   # Most files in this chapter contain INSERT / UPDATE / DELETE (no RETURNING)
   # or BEGIN blocks that leave open transactions or run non-idempotent DDL.
-  # The SELECT-only queries (02_01, 02_04, 03_04, 04_02) are kept.
+  # The SELECT-only queries (02_04, 03_04, 04_02) are kept; 02_01 is
+  # excluded above due to non-deterministic join order.
 
   # INSERT without RETURNING
   - 07-concurrency/36-dml/01_01_dream-theseus.sql
