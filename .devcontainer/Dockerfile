@@ -48,10 +48,8 @@ RUN make qload
 COPY tooling/taop.asd .
 COPY tooling/taop/ ./taop/
 COPY tooling/bin/ ./bin/
-# Remove any pre-compiled host binary (e.g. a macOS Mach-O from a developer's
-# machine) that snuck in via COPY.  Docker only honours the root-level
-# .dockerignore, not tooling/bin/.dockerignore, so the host binary can land
-# here.  Deleting it forces `make taop` to always compile a fresh Linux binary.
+# Belt-and-suspenders: tooling/bin/taop is excluded by the root .dockerignore,
+# but delete it here too so a stale host binary never silently skips make taop.
 RUN rm -f ./bin/taop
 
 RUN make taop
