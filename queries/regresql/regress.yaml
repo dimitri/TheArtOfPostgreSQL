@@ -80,7 +80,6 @@ exclude:
   # rows and modify database state on every invocation, making them
   # unsuitable for idempotent regression testing.
   - 07-concurrency/36-dml/04_01.sql
-  - 07-concurrency/40-listen-notify/03_02.sql
 
   # ── 36-dml chapter: DML statements and transaction scripts ────────────────
   # Most files in this chapter contain INSERT / UPDATE / DELETE (no RETURNING)
@@ -302,16 +301,12 @@ exclude:
   - 07-concurrency/39-triggers/03_01_dream-trigger-counter.sql
 
   # ── 40-listen-notify chapter ─────────────────────────────────────────────
-  # yesql transcript format (yesql# prompt — not valid SQL)
-  - 07-concurrency/40-listen-notify/01_01.sql
-  # DDL: CREATE OR REPLACE FUNCTION for notify trigger
-  - 07-concurrency/40-listen-notify/02_01_dream-notify-counter.sql
-  # INSERT without RETURNING
-  - 07-concurrency/40-listen-notify/02_02.sql
-  # DDL: CREATE TABLE twcache.counters (already exists — fails on re-run)
-  - 07-concurrency/40-listen-notify/03_01_counters.sql
-  # Depends on twcache.counters being set up from the DDL above
-  - 07-concurrency/40-listen-notify/03_04.sql
+  # The listen/notify pattern requires a live multi-session setup: one session
+  # LISTENs, another sends NOTIFYs, and a consumer processes the async payloads.
+  # This is exercised by the taop concurrency Common Lisp app (taop retweet),
+  # not by a single-connection regression test.  Exclude every SQL file here
+  # and test the chapter via the dedicated concurrency test suite instead.
+  - 07-concurrency/40-listen-notify/*.sql
 
   # MoMA: only the LOCK TABLE statement (02.sql SELECT is kept)
   - 07-concurrency/41-moma/02_01.sql
