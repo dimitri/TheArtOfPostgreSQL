@@ -1,21 +1,46 @@
 {
   "name": "The Art of PostgreSQL",
-  "dockerComposeFile": "../docker-compose.yml",
-  "service": "taop",
-  "workspaceFolder": "/usr/src/taop",
-  "postStartCommand": "load-data",
-  "forwardPorts": [5432],
+
+  // Use the devcontainer-specific compose file.  The root docker-compose.yml
+  // is used by CI and local `docker compose` workflows; it defines the taop
+  // CLI service (ENTRYPOINT ["taop"]) which cannot serve as a dev shell.
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+
+  // VS Code mounts the repository checkout here inside the container.
+  // ${localWorkspaceFolderBasename} resolves to the repository name at runtime.
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  // Populate the database on first start; skip immediately on resume (stamp file).
+  "postStartCommand": "bash .devcontainer/poststart.sh",
+
+  // Expose the PostgreSQL port that docker-compose maps to the host.
+  "forwardPorts": [5433],
   "portsAttributes": {
-    "5432": {
+    "5433": {
       "label": "PostgreSQL",
       "onAutoForward": "silent"
     }
   },
+
+  // Inject PG connection variables so `psql` works from the terminal with no flags.
   "remoteEnv": {
-    "PGPASSWORD": "taop",
-    "PGUSER": "taop",
-    "PGDATABASE": "taop",
     "PGHOST": "postgres",
-    "PGPORT": "5432"
+    "PGPORT": "5432",
+    "PGDATABASE": "taop",
+    "PGUSER": "taop",
+    "PGPASSWORD": "taop"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // SQL editor with PostgreSQL driver for running queries interactively
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-pg",
+        // Python support for the cdstore application in apps/cdstore/
+        "ms-python.python"
+      ]
+    }
   }
 }
