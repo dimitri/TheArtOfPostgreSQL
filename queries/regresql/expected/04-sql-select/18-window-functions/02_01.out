@@ -1,0 +1,24 @@
+   surname    |    name     | position | pos same constr
+--------------+-------------+----------+----------------
+Hamilton      | Mercedes    | 1        | 1 / 2
+Räikkönen     | Lotus F1    | 2        | 1 / 2
+Vettel        | Red Bull    | 3        | 1 / 2
+Webber        | Red Bull    | 4        | 2 / 2
+Alonso        | Ferrari     | 5        | 1 / 2
+Grosjean      | Lotus F1    | 6        | 2 / 2
+Button        | McLaren     | 7        | 1 / 2
+Massa         | Ferrari     | 8        | 2 / 2
+Pérez         | McLaren     | 9        | 2 / 2
+Maldonado     | Williams    | 10       | 1 / 2
+Hülkenberg    | Sauber      | 11       | 1 / 2
+Vergne        | Toro Rosso  | 12       | 1 / 2
+Ricciardo     | Toro Rosso  | 13       | 2 / 2
+van der Garde | Caterham    | 14       | 1 / 2
+Pic           | Caterham    | 15       | 2 / 2
+Bianchi       | Marussia    | 16       | 1 / 2
+Chilton       | Marussia    | 17       | 2 / 2
+di Resta      | Force India | 18       | 1 / 2
+Rosberg       | Mercedes    | 19       | 2 / 2
+Bottas        | Williams    | <nil>    | 2 / 2
+Sutil         | Force India | <nil>    | 2 / 2
+Gutiérrez     | Sauber      | <nil>    | 2 / 2

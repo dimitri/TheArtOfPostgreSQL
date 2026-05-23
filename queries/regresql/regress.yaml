@@ -1,0 +1,357 @@
+pguri: postgres://taop:taop@localhost:5433/taop?sslmode=disable
+root: .
+exclude:
+  # ── Non-deterministic output ──────────────────────────────────────────────
+
+  # `show server_version` returns the exact version string of the running
+  # PostgreSQL instance (e.g. "16.3", "17.0") which differs for every matrix
+  # leg and every new minor release.  There is no stable expected output.
+  - 02-intro/04-postgresql/01.sql
+
+  # pg_database_size() returns different values depending on the PostgreSQL
+  # major version (catalog storage layout differs) and the amount of data
+  # loaded; there is no stable expected output across matrix legs.
+  - 03-writing-sql-queries/07-psql/05_01.sql
+
+  # TABLESAMPLE bernoulli(20) draws a random sample of pg_type rows on every
+  # execution; the result set differs between runs and PostgreSQL versions.
+  - 05-data-types/23-pg-data-types-101/02.sql
+
+  # EXPLAIN (ANALYZE) output contains actual timing values (actual time=,
+  # Planning Time, Execution Time) and buffer hit counts that are inherently
+  # machine- and load-dependent; they differ between every run and host.
+  - 04-sql-select/15-sql-102/02_02.sql
+  - 04-sql-select/15-sql-102/02_03.sql
+
+  # GROUP BY ROLLUP / CUBE / plain GROUP BY without a final ORDER BY:
+  # PostgreSQL's hash aggregate produces rows in an undefined order that can
+  # vary between executions and major versions even with identical data.
+  - 04-sql-select/16-sql-103/04_02.sql
+  - 04-sql-select/16-sql-103/04_03.sql
+  - 04-sql-select/16-sql-103/06_03.sql
+  - 05-data-types/23-pg-data-types-101/02_05.sql
+
+  # Hash join / nested-loop order without ORDER BY: the self-join on
+  # tweet.users uses a regex bio match; the planner's chosen strategy
+  # (hash join vs. nested loop) varies across PG 14–18, producing rows
+  # in different orders.  The query intentionally has no ORDER BY clause.
+  - 07-concurrency/36-dml/02_01.sql
+
+  # uuid_generate_v4() generates a fresh random UUID on every call.
+  - 05-data-types/23-pg-data-types-101/07_02.sql
+
+  # Contains now() inside DML (INSERT INTO tstz) executed inside a
+  # BEGIN/COMMIT block; the stored timestamps change on every run.
+  - 05-data-types/23-pg-data-types-101/09_02_tz.sql
+
+  # ── psql date-cast variable interpolation ────────────────────────────────
+  # These files use the psql idiom `date :'varname'` or set a variable to a
+  # SQL expression such as `date '1978-01-01'`.  psql performs plain text
+  # substitution so the result is valid SQL; regresql uses parameterized
+  # queries ($N placeholders) where `date $1` is a syntax error and a SQL
+  # expression cannot be passed as a typed bind parameter.
+
+  # date :'start' / date :'beginning' / date :'day' pattern
+  - 02-intro/02-usecase/04_01.sql
+  - 02-intro/02-usecase/07_01.sql
+  - 02-intro/02-usecase/08_01.sql
+  - 04-sql-select/14-sql-101/04_01.sql
+  - 04-sql-select/14-sql-101/04_02.sql
+  - 05-data-types/23-pg-data-types-101/11_05.sql
+  - 05-data-types/23-pg-data-types-101/11_06.sql
+
+  # \set season 'date ''1978-01-01''' — the value is a SQL expression, not a
+  # plain scalar; it cannot be bound as a typed $N parameter.
+  - 04-sql-select/14-sql-101/05_01_f1db.notfinishers.sql
+  - 04-sql-select/16-sql-103/03_01.sql
+  - 04-sql-select/16-sql-103/04_01.sql
+
+
+  # ── DDL / schema-mutation statements ─────────────────────────────────────
+  # These files contain CREATE TABLE, INSERT or other schema-mutating commands
+  # that are not idempotent.  Running them as regression tests would fail on
+  # the second invocation ("relation already exists") or leave untracked data.
+  - 05-data-types/24-non-relational-types/04_01.sql
+
+  # ── PREPARE / EXECUTE statement pair ─────────────────────────────────────
+  # $1 inside a PREPARE body is the future prepared statement's own parameter,
+  # not an outer query parameter; it cannot be bound via the extended query
+  # protocol that regresql uses.  06_02.sql (EXECUTE foo) depends on 06_01.sql
+  # having run first, so both are excluded.
+  - 02-intro/02-usecase/06_01.sql
+  - 02-intro/02-usecase/06_02.sql
+
+  # ── DML without RETURNING ─────────────────────────────────────────────────
+  # INSERT / UPDATE / DELETE queries without a RETURNING clause return no
+  # rows and modify database state on every invocation, making them
+  # unsuitable for idempotent regression testing.
+  - 07-concurrency/36-dml/04_01.sql
+
+  # ── 36-dml chapter: DML statements and transaction scripts ────────────────
+  # Most files in this chapter contain INSERT / UPDATE / DELETE (no RETURNING)
+  # or BEGIN blocks that leave open transactions or run non-idempotent DDL.
+  # The SELECT-only queries (02_04, 03_04, 04_02) are kept; 02_01 is
+  # excluded above due to non-deterministic join order.
+
+  # INSERT without RETURNING
+  - 07-concurrency/36-dml/01_01_dream-theseus.sql
+  - 07-concurrency/36-dml/01_02_dream-users.sql
+  - 07-concurrency/36-dml/02_02_dream-followers-love.sql
+  - 07-concurrency/36-dml/02_03_dream-followers-fairies.sql
+  - 07-concurrency/36-dml/05_01.sql
+
+  # UPDATE without RETURNING / BEGIN+UPDATE transaction
+  - 07-concurrency/36-dml/03_01_dream-nickname-puck.sql
+  - 07-concurrency/36-dml/03_03_dream-nicknames.sql
+
+  # psql output transcript (│ box-drawing characters — not valid SQL)
+  - 07-concurrency/36-dml/03_02.sql
+
+  # DELETE in BEGIN/ROLLBACK blocks
+  - 07-concurrency/36-dml/05_02.sql
+  - 07-concurrency/36-dml/05_03.sql
+
+  # EXPLAIN (ANALYZE) inside BEGIN/ROLLBACK — non-deterministic timing output
+  # and references the non-existent public.foo table
+  - 07-concurrency/36-dml/06_01.sql
+
+  # Queries against non-existent table 'foo'; also contains BEGIN/TRUNCATE
+  # that leaves the connection in an aborted transaction state
+  - 07-concurrency/36-dml/08_01.sql
+
+  # BEGIN + CREATE TABLE (DDL in DML chapter)
+  - 07-concurrency/36-dml/09_01.sql
+
+  # ── psql \copy metacommand ────────────────────────────────────────────────
+  # The files below use \copy, which is a psql client command and cannot be
+  # sent over the PostgreSQL wire protocol.  Attempting to execute them via
+  # database/sql produces a syntax error and no result set.
+
+  - 02-intro/02-usecase/03_01_factbook.sql
+  - 05-data-types/23-pg-data-types-101/12_01_access.sql
+  - 05-data-types/23-pg-data-types-101/13_01_rates.sql
+  - 05-data-types/24-non-relational-types/01_01_tweets.sql
+  - 06-data-modeling/30-practical-geonames/01_geonames.raw.sql
+  - 06-data-modeling/30-practical-geonames/06_01_geonames.sample.sql
+  - 07-concurrency/35-practical-intro/01_tweets.sql
+  - 07-concurrency/41-moma/01_artists.sql
+  - 07-concurrency/41-moma/01_01_artists.update.sql
+  - 08-extensions/44-hstore/04_01_artists.update.hstore.sql
+
+  # ── psql multi-session transcript / prompt format ────────────────────────
+  # Files using "t1> ...", "~# ...", or similar psql-prompt notation are
+  # session transcripts, not valid SQL that can be sent over the wire.
+  - 03-writing-sql-queries/09-indexing-strategy/01_01.sql
+  - 03-writing-sql-queries/09-indexing-strategy/01_02.sql
+  - 04-sql-select/19-relations/01_01.sql
+
+  # ── psql \pset metacommands ───────────────────────────────────────────────
+  # \pset format / \pset columns are psql client commands that cannot be
+  # sent over the wire protocol.
+  - 05-data-types/24-non-relational-types/01_02.sql
+
+  # ── psql \set variable with integer scalar ────────────────────────────────
+  # \set season 2017 / \set comments 3 — psql metacommands that regresql
+  # cannot strip; they cause a syntax error when sent to the server.
+  - 06-data-modeling/32-denormalisation/04_01.sql
+
+  # ── ALTER DATABASE / admin-only DDL ──────────────────────────────────────
+  # Cannot run in a normal user session.
+  - 04-sql-select/11-data/01.sql
+
+  # ── DDL in 04-sql-select and 05-data-types chapters ──────────────────────
+  # Individual files that contain CREATE / DROP / ALTER / INSERT statements
+  # that are not idempotent or poison the shared connection.
+
+  # nulls chapter: CREATE TABLE test (already exists in the database)
+  - 04-sql-select/17-nulls/02_01.sql
+  - 04-sql-select/17-nulls/02_02.sql
+
+  # relational types: intentionally invalid date literals (error demos)
+  # and date 'today' (non-deterministic) and ip4r type (extension not installed)
+  - 05-data-types/22-relational/01_01.sql
+  - 05-data-types/22-relational/01_02.sql
+  - 05-data-types/22-relational/01_04.sql
+  - 05-data-types/22-relational/02_04.sql
+
+  # \pset metacommands (wrapped format): sent to server as raw SQL → syntax error
+  - 05-data-types/23-pg-data-types-101/02_01.sql
+
+  # Partial SQL fragment (only a WHERE clause, no SELECT/FROM)
+  - 05-data-types/23-pg-data-types-101/04_03.sql
+
+  # CONSTRAINT EXCLUSION syntax fragment (no complete SQL statement)
+  - 05-data-types/23-pg-data-types-101/13_02.sql
+
+  # commitlog table: does not exist in the test database
+  - 05-data-types/23-pg-data-types-101/11_01.sql
+  - 05-data-types/23-pg-data-types-101/11_02.sql
+  - 05-data-types/23-pg-data-types-101/11_03.sql
+  - 05-data-types/23-pg-data-types-101/11_04.sql
+
+  # serial chapter: CREATE TABLE / SEQUENCE for 'tablename' (already exists)
+  - 05-data-types/23-pg-data-types-101/06_01.sql
+  - 05-data-types/23-pg-data-types-101/06_02.sql
+  - 05-data-types/23-pg-data-types-101/06_03.sql
+
+  # uuid-ossp: CREATE EXTENSION (already installed; CREATE without IF NOT
+  # EXISTS fails on re-run)
+  - 05-data-types/23-pg-data-types-101/07_01.sql
+
+  # ── 24-non-relational-types: nearly all files are DDL or depend on tables
+  #    not present in the test database (hashtag, js, docs, cars …) ──────────
+  # DDL / BEGIN blocks
+  - 05-data-types/24-non-relational-types/01_03_hashtag.sql
+  - 05-data-types/24-non-relational-types/01_05.sql
+  - 05-data-types/24-non-relational-types/02_01_rate_t.sql
+  - 05-data-types/24-non-relational-types/03_01.sql
+  - 05-data-types/24-non-relational-types/03_02.sql
+  - 05-data-types/24-non-relational-types/04_03.sql
+  - 05-data-types/24-non-relational-types/04_06.sql
+  - 05-data-types/24-non-relational-types/05_01.sql
+  - 05-data-types/24-non-relational-types/05_02.sql
+  # EXPLAIN (ANALYZE) — non-deterministic timing output
+  - 05-data-types/24-non-relational-types/01_06.sql
+  # Queries against tables not loaded in test DB (hashtag, js)
+  - 05-data-types/24-non-relational-types/01_04.sql
+  - 05-data-types/24-non-relational-types/01_07.sql
+  - 05-data-types/24-non-relational-types/01_08.sql
+  - 05-data-types/24-non-relational-types/04_02.sql
+  - 05-data-types/24-non-relational-types/04_04.sql
+  - 05-data-types/24-non-relational-types/04_05.sql
+
+  # ── Old Chinook column naming convention ──────────────────────────────────
+  # These chapters were written against an older Chinook schema that used
+  # un-underscored identifiers (albumid, artistid, trackid, genreid).
+  # The Chinook_PostgreSql.sql in this repo uses snake_case column names
+  # (album_id, artist_id, track_id, genre_id).  Editing the book SQL is
+  # out of scope; they are excluded instead.
+  - 03-writing-sql-queries/05-business-logic/*.sql
+  - 03-writing-sql-queries/06-application-use-case/*.sql
+  - 03-writing-sql-queries/08-sql-is-code/*.sql
+
+  # ── DDL setup scripts and schema-fixture transactions ────────────────────
+  # The directories below contain BEGIN/CREATE TABLE/CREATE SCHEMA blocks
+  # that set up chapter fixtures.  They are not idempotent SELECT queries
+  # and cannot be run as regression tests.
+
+  # Replication / sandbox schema demos (CREATE DATABASE, CREATE SCHEMA …)
+  - 06-data-modeling/28-repl/*.sql
+
+  # Normalisation DDL (CREATE TABLE country, region, city …)
+  - 06-data-modeling/29-normalisation/*.sql
+
+  # Practical geonames — all files depend on the geonames dataset
+  # (raw.geonames, geoname.* schema) which is not loaded in the test DB;
+  # the \copy setup files are already listed above.
+  - 06-data-modeling/30-practical-geonames/01_01_geonames.feature.sql
+  - 06-data-modeling/30-practical-geonames/01_02.sql
+  - 06-data-modeling/30-practical-geonames/02_01.sql
+  - 06-data-modeling/30-practical-geonames/02_02_geonames.country.sql
+  - 06-data-modeling/30-practical-geonames/02_03.sql
+  - 06-data-modeling/30-practical-geonames/03_01.sql
+  - 06-data-modeling/30-practical-geonames/03_02_geonames.admin.sql
+  - 06-data-modeling/30-practical-geonames/03_03.sql
+  - 06-data-modeling/30-practical-geonames/04_01.sql
+  - 06-data-modeling/30-practical-geonames/04_02_geonames.sql
+  - 06-data-modeling/30-practical-geonames/04_03.sql
+  - 06-data-modeling/30-practical-geonames/05_01.sql
+  - 06-data-modeling/30-practical-geonames/05_02.sql
+
+  # EAV anti-patterns chapter — DDL files only; 01_04.sql is a SELECT kept
+  - 06-data-modeling/31-anti-patterns/01_01_eav.create.params.sql
+  - 06-data-modeling/31-anti-patterns/01_02_eav.insert.params.sql
+  - 06-data-modeling/31-anti-patterns/01_03_eav.support.sql
+  - 06-data-modeling/31-anti-patterns/02_01.sql
+
+  # Denormalisation: DDL, REFRESH MATERIALIZED VIEW, \pset+EXPLAIN, and
+  # queries that depend on the cache.* schema (not present in test DB).
+  - 06-data-modeling/32-denormalisation/04_02_f1db.points.mv.sql
+  - 06-data-modeling/32-denormalisation/04_03.sql
+  - 06-data-modeling/32-denormalisation/04_04.sql
+  - 06-data-modeling/32-denormalisation/05_01.sql
+  - 06-data-modeling/32-denormalisation/05_02.sql
+  - 06-data-modeling/32-denormalisation/06_01.sql
+  - 06-data-modeling/32-denormalisation/06_03.sql
+
+  # Not-only-SQL: magic schema DDL and role / function DDL
+  # (01_04.sql already excluded above; 01_01/01_03 are BEGIN+DDL blocks)
+  - 06-data-modeling/33-not-only-sql/01_01_magic.sql
+  - 06-data-modeling/33-not-only-sql/01_03_magic.cards.sql
+  - 06-data-modeling/33-not-only-sql/02_01.sql
+  - 06-data-modeling/33-not-only-sql/02_02.sql
+
+  # Tweet schema DDL (BEGIN + CREATE TABLE/SCHEMA; 01_tweets.sql already above)
+  - 07-concurrency/35-practical-intro/02_tweets.norm.1.sql
+  - 07-concurrency/35-practical-intro/03_tweets.norm.2.sql
+
+  # Isolation / locking: UPDATE DML, transaction scripts, ALTER TABLE DDL
+  # (07_02.sql is a SELECT and is kept)
+  - 07-concurrency/37-isolation-locking/03_01.sql
+  - 07-concurrency/37-isolation-locking/03_02.sql
+  - 07-concurrency/37-isolation-locking/03_03.sql
+  - 07-concurrency/37-isolation-locking/03_04.sql
+  - 07-concurrency/37-isolation-locking/07_01_tweets.activity.sql
+  - 07-concurrency/37-isolation-locking/07_03.sql
+  - 07-concurrency/37-isolation-locking/07_04.sql
+  - 07-concurrency/37-isolation-locking/08_01_tweets.activity.nokey.sql
+
+  # Computing and caching: DDL (CREATE VIEW / MATVIEW) and REFRESH
+  # (02_02.sql and 03_02.sql are SELECT queries and are kept)
+  - 07-concurrency/38-computing-and-caching/01.sql
+  - 07-concurrency/38-computing-and-caching/02_01_dream-view-counters.sql
+  - 07-concurrency/38-computing-and-caching/03_01_dream-mat-view.sql
+  - 07-concurrency/38-computing-and-caching/03_03.sql
+
+  # Trigger DDL (BEGIN + CREATE TABLE / TRIGGER)
+  - 07-concurrency/39-triggers/01_01_dream-trigger-daily.sql
+  - 07-concurrency/39-triggers/03_01_dream-trigger-counter.sql
+
+  # ── 40-listen-notify chapter ─────────────────────────────────────────────
+  # The listen/notify pattern requires a live multi-session setup: one session
+  # LISTENs, another sends NOTIFYs, and a consumer processes the async payloads.
+  # This is exercised by the taop concurrency Common Lisp app (taop retweet),
+  # not by a single-connection regression test.  Exclude every SQL file here
+  # and test the chapter via the dedicated concurrency test suite instead.
+  - 07-concurrency/40-listen-notify/*.sql
+
+  # MoMA: only the LOCK TABLE statement (02.sql SELECT is kept)
+  - 07-concurrency/41-moma/02_01.sql
+
+  # ── Extension-dependent queries ───────────────────────────────────────────
+  # Only plpgsql, btree_gist, and uuid-ossp are installed in the test DB.
+  # All extension chapters require extensions that are not available.
+
+  # Extensions 101 — requires pg_trgm
+  - 08-extensions/43-extensions-101/*.sql
+
+  # hstore — requires the hstore extension (04_01 already listed above)
+  - 08-extensions/44-hstore/01_01.sql
+  - 08-extensions/44-hstore/01_02.sql
+  - 08-extensions/44-hstore/02_01.sql
+  - 08-extensions/44-hstore/03_01_hstore-audit-table.sql
+  - 08-extensions/44-hstore/03_02_hstore-audit-trigger.sql
+  - 08-extensions/44-hstore/03_03_hstore-audit-table-relname.sql
+  - 08-extensions/44-hstore/04_02.sql
+  - 08-extensions/44-hstore/05_01.sql
+
+  # Last.fm — requires lastfm data tables (not loaded)
+  - 08-extensions/45-lastfm/*.sql
+
+  # Trigrams — requires pg_trgm extension
+  - 08-extensions/46-trigrams/*.sql
+
+  # Intarray tags — requires intarray extension
+  - 08-extensions/47-intarray-tags/*.sql
+
+  # Pub names KNN — requires specialized GiST extensions
+  - 08-extensions/48-pub-names-knn/*.sql
+
+  # Earth distance — requires cube and earthdistance extensions
+  - 08-extensions/49-earthdistance/*.sql
+
+  # IP geolocation — requires ip4r extension
+  - 08-extensions/50-geolocation-ip4r/*.sql
+
+  # HyperLogLog — requires hyperloglog extension
+  - 08-extensions/51-hyperloglog/*.sql

@@ -1,0 +1,24 @@
+   surname    |  pos  | fast | group | prev  | next 
+--------------+-------+------+-------+-------+------
+Hamilton      | 1     | 20   | 1     | <nil> | RAI
+Räikkönen     | 2     | 17   | 1     | HAM   | VET
+Vettel        | 3     | 21   | 1     | RAI   | WEB
+Webber        | 4     | 22   | 1     | VET   | ALO
+Alonso        | 5     | 15   | 1     | WEB   | GRO
+Grosjean      | 6     | 16   | 1     | ALO   | BUT
+Button        | 7     | 12   | 1     | GRO   | MAS
+Massa         | 8     | 18   | 1     | BUT   | PER
+Pérez         | 9     | 13   | 2     | MAS   | MAL
+Maldonado     | 10    | 14   | 2     | PER   | HUL
+Hülkenberg    | 11    | 9    | 2     | MAL   | VER
+Vergne        | 12    | 11   | 2     | HUL   | RIC
+Ricciardo     | 13    | 8    | 2     | VER   | VDG
+van der Garde | 14    | 6    | 2     | RIC   | PIC
+Pic           | 15    | 5    | 2     | VDG   | BIA
+Bianchi       | 16    | 3    | 3     | PIC   | CHI
+Chilton       | 17    | 4    | 3     | BIA   | DIR
+di Resta      | 18    | 10   | 3     | CHI   | ROS
+Rosberg       | 19    | 19   | 3     | DIR   | SUT
+Sutil         | <nil> | 2    | 3     | ROS   | GUT
+Gutiérrez     | <nil> | 1    | 3     | SUT   | BOT
+Bottas        | <nil> | 7    | 3     | GUT   | <nil>

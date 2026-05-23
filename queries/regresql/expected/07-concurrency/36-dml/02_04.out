@@ -1,0 +1,16 @@
+  follower   |              follower's bio               | following
+-------------+-------------------------------------------+----------
+Lysander     | in love with #Hermia.                     | Hermia
+Demetrius    | in love with #Hermia.                     | Hermia
+Hermia       | daughter to Egeus, in love with Lysander. | Lysander
+Helena       | in love with Demetrius.                   | Demetrius
+Peaseblossom | Team #Fairies                             | Oberon
+Peaseblossom | Team #Fairies                             | Titania
+Cobweb       | Team #Fairies                             | Oberon
+Cobweb       | Team #Fairies                             | Titania
+Moth         | Team #Fairies                             | Oberon
+Moth         | Team #Fairies                             | Titania
+Mustardseed  | Team #Fairies                             | Oberon
+Mustardseed  | Team #Fairies                             | Titania
+Fairy        | One of them #Fairies                      | Oberon
+Fairy        | One of them #Fairies                      | Titania

@@ -1,0 +1,23 @@
+decade | rank | forename  |   surname   | wins
+-------+------+-----------+-------------+-----
+1950   | 1    | Juan      | Fangio      | 24
+1950   | 2    | Alberto   | Ascari      | 13
+1950   | 3    | Stirling  | Moss        | 12
+1960   | 1    | Jim       | Clark       | 25
+1960   | 2    | Graham    | Hill        | 14
+1960   | 3    | Jackie    | Stewart     | 11
+1970   | 1    | Niki      | Lauda       | 17
+1970   | 2    | Jackie    | Stewart     | 16
+1970   | 3    | Emerson   | Fittipaldi  | 14
+1980   | 1    | Alain     | Prost       | 39
+1980   | 2    | Ayrton    | Senna       | 20
+1980   | 2    | Nelson    | Piquet      | 20
+1990   | 1    | Michael   | Schumacher  | 35
+1990   | 2    | Damon     | Hill        | 22
+1990   | 3    | Ayrton    | Senna       | 21
+2000   | 1    | Michael   | Schumacher  | 56
+2000   | 2    | Fernando  | Alonso      | 21
+2000   | 3    | Kimi      | Räikkönen   | 18
+2010   | 1    | Lewis     | Hamilton    | 46
+2010   | 2    | Sebastian | Vettel      | 41
+2010   | 3    | Nico      | Rosberg     | 23

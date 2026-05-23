@@ -1,0 +1,5 @@
+oprname | oprcode | oprleft | oprright | oprresult
+--------+---------+---------+----------+----------
+=       | int8eq  | bigint  | bigint   | boolean
+=       | int84eq | bigint  | integer  | boolean
+=       | int82eq | bigint  | smallint | boolean

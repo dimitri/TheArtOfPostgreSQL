@@ -1,0 +1,11 @@
+left  | right |   =   |  <>   | is distinct | is not distinct from
+------+-------+-------+-------+-------------+---------------------
+true  | true  | true  | false | false       | true
+true  | false | false | true  | true        | false
+true  | <nil> | <nil> | <nil> | true        | false
+false | true  | false | true  | true        | false
+false | false | true  | false | false       | true
+false | <nil> | <nil> | <nil> | true        | false
+<nil> | true  | <nil> | <nil> | true        | false
+<nil> | false | <nil> | <nil> | true        | false
+<nil> | <nil> | <nil> | <nil> | false       | true
