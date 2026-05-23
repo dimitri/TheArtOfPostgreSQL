@@ -1,0 +1,59 @@
+services:
+  devcontainer:
+    # Use the pre-built image from ghcr.io when available (fast Codespace start).
+    # Falls back to a local build when the image has not yet been pushed
+    # (e.g. first run, or local dev without internet access).
+    image: ghcr.io/dimitri/theartofpostgresql/devcontainer:main
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      target: devcontainer
+    environment:
+      # PostgreSQL connection — targets the postgres service below.
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: taop
+      PGUSER: taop
+      PGPASSWORD: taop
+      # Dataset directories — match paths baked into the devcontainer image.
+      SCAN34_DIR: /data/scan34
+      MAGIC_DIR: /data/magic
+      RATES_DIR: /data/rates
+      SHAKESPEARE_DIR: /data/shakespeare
+      SHAKESPEARE_PLAY_XML: /data/shakespeare/shakes/dream.xml
+      F1DB_DIR: /data/f1db
+      MOMA_DIR: /data/MoMA
+      OPENDATA_DIR: /data/opendata
+      EAV_DIR: /data/eav
+      SANDBOX_DIR: /data/sandbox
+      COUNTER_DIR: /data/counter
+      COMMITLOG_DIR: /data/commitlog
+      CHINOOK_SQL: /data/Chinook_PostgreSql.sql
+    # Keep the container running; VS Code / Codespaces attaches a shell to it.
+    command: sleep infinity
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: taop
+      POSTGRES_USER: taop
+      POSTGRES_PASSWORD: taop
+    ports:
+      - "5433:5432"
+    volumes:
+      # Mount one level above /data so that both PG≤17 (which use
+      # /var/lib/postgresql/data) and PG18+ (versioned subdirectory)
+      # can find their data directory inside the same named volume.
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taop -d taop"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

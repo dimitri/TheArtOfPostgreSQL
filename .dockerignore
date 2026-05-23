@@ -2,3 +2,7 @@
 .gitignore
 tooling/build/quicklisp
 tooling/system-index.txt
+# Pre-compiled host binary; excluded so Docker always compiles a fresh Linux
+# ELF from source (the subdirectory tooling/bin/.dockerignore is not honoured
+# by Docker — only this root-level file is read).
+tooling/bin/taop
