@@ -1,12 +1,17 @@
 services:
   postgres:
-    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    build:
+      context: .
+      dockerfile: docker/postgres.Dockerfile
+      args:
+        POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
+    image: taop-postgres:${POSTGRES_VERSION:-16}
     environment:
       POSTGRES_DB: taop
       POSTGRES_USER: taop
       POSTGRES_PASSWORD: taop
     ports:
-      - "5433:5432"
+      - "65432:5432"
     volumes:
       # Mount one level above /data so that both PG≤17 (which use
       # /var/lib/postgresql/data) and PG18+ (which use a versioned
