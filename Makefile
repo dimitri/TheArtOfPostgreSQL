@@ -15,5 +15,7 @@ commitlog: up
 psql: up
 	docker compose run --rm -it --remove-orphans psql
 
+clean:
+	docker compose down -v
 
-.PHONY: build load-data commitlog psql
+.PHONY: build load-data commitlog psql clean
