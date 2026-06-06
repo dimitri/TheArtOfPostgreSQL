@@ -55,11 +55,6 @@
              ;; git clone https://github.com/dimitri/pubnames.git
              (:file "pubnames")
 
-             ;; lastfm
-             ;; The Last.fm dataset is too large (~1GB) to include in the repository.
-             ;; Uncomment when you have the data available.
-             ;; (:file "lastfm_load_json")
-
              ;; magic
              (:file "magic")
 
@@ -80,6 +75,12 @@
 
              ;; counter
              (:file "counter")
+
+             ;; lastfm (10k-track subset; full tags DB is phase 2)
+             (:file "lastfm_load_json")
+
+             ;; geonames (1% sample, 115k rows; reference data + normalization)
+             (:file "geonames")
 
              ;; chinook
              (:file "chinook")

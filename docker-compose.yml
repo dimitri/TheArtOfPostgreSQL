@@ -37,6 +37,8 @@ services:
       PGDATABASE: taop
       PGHOST: postgres
       PGPORT: 5432
+      GEONAMES_DIR: /data/geonames
+      LASTFM_DIR: /data/lastfm
       SCAN34_DIR: /data/scan34
       MAGIC_DIR: /data/magic
       RATES_DIR: /data/rates

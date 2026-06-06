@@ -1,0 +1,9 @@
+load csv
+  from /tmp/geonames/allCountries.txt
+  into pgsql://appdev@/appdev
+  target table raw.geonames
+
+  with fields terminated by '\t',
+       fields optionally enclosed by '§',
+       fields escaped by '%',
+       truncate;

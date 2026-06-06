@@ -66,16 +66,34 @@
 
 (in-package #:taop)
 
-(define-command (("lastfm") (zipfilename))
+(defun lastfm-default-zipfile ()
+  "Return the path to the Last.fm subset ZIP file from LASTFM_DIR env var,
+   or use a default filename in current directory if not set."
+  (let ((dir (or (uiop:getenv "LASTFM_DIR") (uiop:getcwd))))
+    (uiop:parse-native-namestring
+     (merge-pathnames "lastfm_subset.zip"
+                      (uiop:ensure-directory-pathname dir)))))
+
+(define-command (("lastfm") (&optional zipfilename))
     "Load Last.fm subset ZIP file of JSON data into the database.
 
-     Requires one argument:
+     Creates lastfm.track table with ~10k tracks (artist, title, track_id).
+
+     Arguments (optional):
        - ZIPFILENAME  path to Last.fm subset zip file
+                      (default: LASTFM_DIR/lastfm_subset.zip)
+
+     Environment Variables:
+       LASTFM_DIR  directory containing lastfm_subset.zip
 
      The ZIP file should contain JSON files with track data.
 
-     Note: The Last.fm dataset is too large (~1GB) to include in the
-     repository. Download from:
-     https://www.bicicletorama.com/work/data/lastfm_subset.zip"
-  (let ((lastfm::*db* (get-connspec *dbname*)))
-    (lastfm::process-zipfile zipfilename)))
+     Note: Download the subset from:
+     http://labrosa.ee.columbia.edu/millionsong/sites/default/files/lastfm/lastfm_subset.zip"
+  (let ((zip (or zipfilename (lastfm-default-zipfile))))
+    (let ((lastfm::*db* (get-connspec *dbname*)))
+      (format t ";;; Last.fm Dataset Loader~%")
+      (format t ";;; ZIP file: ~a~%" zip)
+      (let ((count (lastfm::process-zipfile zip)))
+        (format t ";;; Loaded ~d tracks~%" count))
+      (format t ";;; Done!~%"))))
