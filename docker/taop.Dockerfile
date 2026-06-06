@@ -63,6 +63,14 @@ COPY --chown=taop:taop apps/cdstore/ /usr/src/taop/cdstore/
 COPY --chown=taop:taop data/ /data/
 COPY --chown=taop:taop starter-kit/ /starter-kit/
 
+# Fetch the hashtag CSV from OVH Cloud at build time (optional; skip if HASHTAG_URL unset)
+ARG HASHTAG_URL=""
+RUN if [ -n "$HASHTAG_URL" ]; then \
+      mkdir -p /data/hashtag && \
+      curl -fSL --retry 3 -o /data/hashtag/tweets.csv "$HASHTAG_URL" && \
+      chown taop:taop /data/hashtag/tweets.csv ; \
+    else echo "HASHTAG_URL unset — skipping hashtag CSV fetch"; fi
+
 USER taop
 WORKDIR /usr/src/taop/queries
 

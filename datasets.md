@@ -88,3 +88,17 @@ bandwidth usage, storage consumption).
 - Detecting and handling resets in metrics
 
 **Load:** `docker compose run --rm taop counter`
+
+## Hashtag (Follow the Hashtag)
+
+A collection of 200,000 geolocated tweets from the USA. Two tables:
+- `public.tweet`: raw tweet data with user info and location (latitude/longitude)
+- `public.hashtag`: hashtags extracted via regex with a GIN index on the
+  `hashtags text[]` array
+
+The CSV (≈90 MB) is fetched at Docker build time from OVH Cloud Object Storage
+and is NOT committed to git.
+
+**Load:** `docker compose run --rm taop hashtag`
+
+**Source:** http://followthehashtag.com/datasets/free-twitter-dataset-usa-200000-free-usa-tweets/

@@ -84,6 +84,9 @@
              ;; chinook
              (:file "chinook")
 
+             ;; hashtag (200k USA tweets; CSV fetched at image build time)
+             (:file "hashtag")
+
              ;; load all datasets
              (:file "load-data")
 

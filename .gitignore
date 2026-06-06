@@ -1,3 +1,5 @@
+.DS_Store
+
 # Codespaces / devcontainer stamp file — marks that poststart.sh has already run.
 # Created at runtime inside the workspace; must not be committed.
 .devcontainer/.loaded

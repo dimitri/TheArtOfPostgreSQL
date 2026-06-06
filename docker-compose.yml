@@ -29,6 +29,8 @@ services:
       context: .
       dockerfile: docker/taop.Dockerfile
       target: taop
+      args:
+        HASHTAG_URL: "${HASHTAG_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv}"
     environment:
       PGPASSWORD: taop
       PGUSER: taop
@@ -46,6 +48,7 @@ services:
       EAV_DIR: /data/eav
       SANDBOX_DIR: /data/sandbox
       COUNTER_DIR: /data/counter
+      HASHTAG_DIR: /data/hashtag
       CHINOOK_SQL: /usr/src/taop/cdstore/Chinook_PostgreSql.sql
     volumes:
       - ./queries:/usr/src/taop/queries:ro
