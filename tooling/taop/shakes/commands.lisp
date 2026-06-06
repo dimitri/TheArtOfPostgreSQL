@@ -10,7 +10,7 @@
 
 (in-package #:taop)
 
-(defun run-psql-file (filepath)
+(defun run-psql-file-from-dir (filepath)
   "Execute SQL from FILENAME using psql command line tool.
    This function is compatible with psql meta-commands like \\ir."
   (format t "~%;;; Running SQL file: ~a~%" filepath)
@@ -62,7 +62,7 @@
     (format t ";;; Play: ~a~%" play-path)
 
     (format t "~%;;; Step 1: Loading tweet schema...")
-    (run-psql-file schema-file)
+    (run-psql-file-from-dir schema-file)
 
     (format t "~%;;; Step 2: Parsing and loading play...")
     (handler-case

@@ -23,7 +23,7 @@
   (or (uiop:getenv "GEONAMES_DIR")
       (uiop:getcwd)))
 
-(defun run-psql-file (dir filepath)
+(defun run-psql-file-in-dir (dir filepath)
   "Execute a SQL file using psql with client-side features (e.g., \\copy).
    Requires PG* environment variables to be set (via compose)."
   (uiop:run-program (list "psql" "-v" "ON_ERROR_STOP=1" "-f" (namestring filepath))
@@ -43,13 +43,15 @@
        GEONAMES_DIR  default directory for geonames data files
 
      Workflow:
-       1. Create geoname.class + geoname.feature
+       0. Load reference data into raw.* schema (country, feature codes)
+       1. Create geoname.class + geoname.feature (from raw.*)
        2. Create geoname.country + neighbor relations
        3. Create geoname.region + geoname.district
        4. Load sample.geonames from CSV, normalize to geoname.geoname, create GiST index"
   (let* ((dir (uiop:ensure-directory-pathname
                 (or directory (geonames-default-directory))))
-         (scripts '("geonames.feature.sql"      ; geoname.class, geoname.feature
+         (scripts '("geonames.raw.sql"          ; raw.geonames, raw.country, raw.feature (reference tables)
+                    "geonames.feature.sql"      ; geoname.class, geoname.feature (from raw.feature)
                     "geonames.country.sql"      ; geoname.country, geoname.continent, geoname.region (table), geoname.neighbour
                     "geonames.admin.sql"        ; geoname.region, geoname.district
                     "geonames.from.sample.sql"))); sample.geonames + geoname.geoname + GiST
@@ -58,6 +60,6 @@
 
     (dolist (script scripts)
       (format t "~%;;; Loading ~a...~%" script)
-      (run-psql-file dir (merge-pathnames script dir)))
+      (run-psql-file-in-dir dir (merge-pathnames script dir)))
 
     (format t "~%;;; Done!~%")))

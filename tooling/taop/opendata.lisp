@@ -21,7 +21,7 @@
   (or (uiop:getenv "OPENDATA_DIR")
       (uiop:getcwd)))
 
-(defun run-psql-file (filepath)
+(defun run-psql-file-simple (filepath)
   "Execute SQL from FILENAME using psql command line tool.
    This function is compatible with psql meta-commands like \\copy."
   (format t "~%;;; Running SQL file: ~a~%" filepath)
@@ -56,12 +56,12 @@
     (format t ";;; Directory: ~a~%" opendata-dir)
 
     (format t "~%;;; Step 1: Loading hello data...~%")
-    (run-psql-file hello-file)
+    (run-psql-file-simple hello-file)
 
     (format t "~%;;; Step 2: Loading Archives de la Planete data...~%")
-    (run-psql-file archives-file)
+    (run-psql-file-simple archives-file)
 
     (format t "~%;;; Step 3: Loading CIA World Factbook data...~%")
-    (run-psql-file factbook-file)
+    (run-psql-file-simple factbook-file)
 
     (format t "~%;;; Done!~%")))

@@ -33,6 +33,14 @@
 
   (pomo:with-connection *db*
 
+    ;; Create schema and table if they don't exist
+    (pomo:execute "CREATE SCHEMA IF NOT EXISTS lastfm")
+    (pomo:execute "CREATE TABLE IF NOT EXISTS lastfm.track (
+                    tid text,
+                    artist text,
+                    title text
+                  )")
+
     (let ((count 0)
           (copier (open-db-writer pomo:*database* *tablename* *colnames*)))
 
@@ -70,7 +78,7 @@
   "Return the path to the Last.fm subset ZIP file from LASTFM_DIR env var,
    or use a default filename in current directory if not set."
   (let ((dir (or (uiop:getenv "LASTFM_DIR") (uiop:getcwd))))
-    (uiop:parse-native-namestring
+    (namestring
      (merge-pathnames "lastfm_subset.zip"
                       (uiop:ensure-directory-pathname dir)))))
 
