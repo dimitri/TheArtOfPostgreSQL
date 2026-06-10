@@ -6,6 +6,9 @@ services:
       args:
         POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
     image: taop-postgres:${POSTGRES_VERSION:-16}
+    # pg_stat_statements must be preloaded at server start; the Query
+    # Optimization course relies on it for workload observation labs.
+    command: postgres -c shared_preload_libraries=pg_stat_statements
     environment:
       POSTGRES_DB: taop
       POSTGRES_USER: taop
