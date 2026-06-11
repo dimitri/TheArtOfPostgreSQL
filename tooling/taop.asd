@@ -91,6 +91,9 @@
              ;; osm-london (Holborn-area streets + parks from OSM; PostGIS)
              (:file "osm-london")
 
+             ;; natural earth 50m countries (242 country polygons, PostGIS)
+             (:file "natural_earth")
+
              ;; chinook
              (:file "chinook")
 
