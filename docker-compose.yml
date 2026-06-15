@@ -38,6 +38,7 @@ services:
       PGHOST: postgres
       PGPORT: 5432
       GEONAMES_DIR: /data/geonames
+      NATURALEARTH_DIR: /data/naturalearth
       LASTFM_DIR: /data/lastfm
       SCAN34_DIR: /data/scan34
       MAGIC_DIR: /data/magic

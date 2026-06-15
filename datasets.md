@@ -108,6 +108,31 @@ indexing via GiST.
 database is 1.5 GB. Output row counts won't match the book (which used the
 full database), but all queries work correctly on the sample.
 
+## Natural Earth (PostGIS)
+
+Public-domain country polygons from [Natural Earth](https://www.naturalearthdata.com/),
+1:50m Admin-0 Countries (~240 features). Provides coastlines and national
+borders to project and overlay the point datasets (geonames, pubnames, tweets)
+onto — this is the dataset that PostGIS is added for.
+
+**Schema:** `naturalearth.countries`
+- `geom`: MULTIPOLYGON, SRID 4326 (WGS 84), with a GiST index
+- `name` / `name_long`, `iso_a2` / `iso_a3`, `continent`, `region_un`,
+  `subregion`, `pop_est`, `gdp_md`
+
+Only the small (≈800 KB) source shapefile zip is committed
+(`data/naturalearth/`); it is converted to a PostGIS SQL dump at image build
+time (see `data/naturalearth/SOURCE.md`).
+
+**Requires:** the PostGIS extension (the lab's postgres image is built on
+`postgis/postgis`; the loader runs `CREATE EXTENSION IF NOT EXISTS postgis`).
+
+**Load:** `docker compose run --rm taop naturalearth`
+
+**Note:** the postgres image is now Debian/glibc based (PostGIS), not the older
+Alpine/musl image. After pulling these changes, recreate the database volume
+before rebuilding: `make clean` (i.e. `docker compose down -v`).
+
 ## Last.fm
 
 A collection of 10,262 tracks from the Last.fm music dataset with artist names,

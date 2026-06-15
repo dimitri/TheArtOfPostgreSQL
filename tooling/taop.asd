@@ -82,6 +82,9 @@
              ;; geonames (1% sample, 115k rows; reference data + normalization)
              (:file "geonames")
 
+             ;; naturalearth (1:50m Admin-0 country polygons; PostGIS)
+             (:file "naturalearth")
+
              ;; chinook
              (:file "chinook")
 

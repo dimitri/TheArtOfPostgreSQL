@@ -1,21 +1,32 @@
-# PostgreSQL server image for the lab, extended with the Citus HyperLogLog
-# (hll) extension built from source.  The official postgres:*-alpine image
-# ships pg_config, the server headers and PGXS but no compiler, so we add
-# build-base + git in a throwaway virtual package, compile hll, then drop the
-# build tools.  hll is C++, so libstdc++ is kept as a runtime dependency.
+# PostgreSQL + PostGIS server image for the lab, additionally extended with the
+# Citus HyperLogLog (hll) extension built from source.
 #
-# with_llvm=no skips JIT bitcode generation, which avoids pulling clang/llvm.
+# We start from the official postgis/postgis image (Debian bookworm based). It
+# bundles PostGIS and the stock cube / earthdistance contribs that the geo
+# chapters use, then we compile hll on top with PGXS and drop the build tools.
+# hll is C++, so libstdc++ (already present in the Debian base, pulled by g++)
+# is kept as a runtime dependency.  with_llvm=no skips JIT bitcode generation,
+# which avoids pulling clang/llvm.
+#
+# NOTE: this image is Debian/glibc, whereas the previous one was Alpine/musl.
+# An existing postgres_data volume initialised under the old image is NOT
+# locale-compatible; run `make clean` (docker compose down -v) before rebuilding.
 ARG POSTGRES_VERSION=16
-FROM postgres:${POSTGRES_VERSION}-alpine
+ARG POSTGIS_VERSION=3.4
+FROM postgis/postgis:${POSTGRES_VERSION}-${POSTGIS_VERSION}
 
 ARG HLL_VERSION=v2.18
 
 RUN set -eux; \
-    apk add --no-cache libstdc++; \
-    apk add --no-cache --virtual .hll-build git build-base; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends \
+        ca-certificates git build-essential "postgresql-server-dev-${PG_MAJOR}"; \
     git clone --depth 1 --branch "${HLL_VERSION}" \
         https://github.com/citusdata/postgresql-hll.git /tmp/hll; \
-    make -C /tmp/hll PG_CONFIG=/usr/local/bin/pg_config with_llvm=no; \
-    make -C /tmp/hll PG_CONFIG=/usr/local/bin/pg_config with_llvm=no install; \
+    make -C /tmp/hll with_llvm=no \
+        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config"; \
+    make -C /tmp/hll with_llvm=no \
+        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config" install; \
     rm -rf /tmp/hll; \
-    apk del .hll-build
+    apt-get purge -y --auto-remove git build-essential "postgresql-server-dev-${PG_MAJOR}"; \
+    rm -rf /var/lib/apt/lists/*
