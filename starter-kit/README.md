@@ -5,7 +5,7 @@ when you’re getting started. Some patterns fundamentally change how you
 think about SQL—replacing application code, simplifying complex logic, or
 unlocking performance gains.
 
-This directory contains 3 hand-picked SQL queries that demonstrate some of
+This directory contains 6 hand-picked SQL queries that demonstrate some of
 PostgreSQL's powerful features that are not widely used and known, despite
 being very useful in important use-cases.
 
@@ -14,6 +14,13 @@ being very useful in important use-cases.
 1. **Nested LATERAL Joins** - Top-N queries per group, nested
 2. **GROUPING SETS + FILTER** - Multiple aggregations in one query
 3. **percentile_cont()** - Calculate multiple percentiles at once
+4. **k-Nearest-Neighbour search** - find the closest rows with `<->` and a GiST index
+5. **A map with no graphics library** - draw a density map as text, with `GROUP BY` and Unicode blocks
+6. **WITH RECURSIVE** - walk a river network (or any tree) by following a parent reference
+
+Queries 4–6 are spatial: they use PostGIS with the geographic datasets
+(`taop pubnames`, `taop hashtag`, `taop hydrorivers`), and each one renders a
+real map.
 
 ## How to Use
 

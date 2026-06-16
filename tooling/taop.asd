@@ -82,8 +82,14 @@
              ;; geonames (1% sample, 115k rows; reference data + normalization)
              (:file "geonames")
 
-             ;; naturalearth (1:50m Admin-0 country polygons; PostGIS)
+             ;; naturalearth (countries, French départements, rivers; PostGIS)
              (:file "naturalearth")
+
+             ;; hydrorivers (French river network with NEXT_DOWN topology; PostGIS)
+             (:file "hydrorivers")
+
+             ;; osm-london (Holborn-area streets + parks from OSM; PostGIS)
+             (:file "osm-london")
 
              ;; chinook
              (:file "chinook")

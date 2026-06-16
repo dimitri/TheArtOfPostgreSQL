@@ -116,12 +116,21 @@ really do.
 
 ### What you’ll learn
 
-The starter kit walks you through three advanced—but highly practical—SQL
+The starter kit walks you through six advanced—but highly practical—SQL
 patterns:
 
 * **Nested LATERAL joins** — solve top-N per group problems cleanly
 * **GROUPING SETS + FILTER** — compute multiple aggregations in a single query
 * **percentile_cont()** — calculate multiple percentiles efficiently
+* **k-Nearest-Neighbour search** — find the closest rows with `<->` and a GiST index
+* **A map with no graphics library** — render a density map as text
+* **WITH RECURSIVE** — walk a river network, or any tree, by following a parent reference
+
+The last three are spatial, built on PostGIS. Each one draws a real map — like
+the entire Loire river basin, gathered from a single `WITH RECURSIVE` query that
+walks every reach upstream from the river's mouth:
+
+![The Loire basin, gathered upstream with one recursive query](starter-kit/img/loire-basin.png)
 
 ### How to approach it
 

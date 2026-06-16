@@ -115,14 +115,17 @@ Public-domain country polygons from [Natural Earth](https://www.naturalearthdata
 borders to project and overlay the point datasets (geonames, pubnames, tweets)
 onto — this is the dataset that PostGIS is added for.
 
-**Schema:** `naturalearth.countries`
-- `geom`: MULTIPOLYGON, SRID 4326 (WGS 84), with a GiST index
-- `name` / `name_long`, `iso_a2` / `iso_a3`, `continent`, `region_un`,
-  `subregion`, `pop_est`, `gdp_md`
+**Schemas:**
+- `naturalearth.countries` — 1:50m world country polygons (MULTIPOLYGON, SRID
+  4326, GiST index): `name`/`name_long`, `iso_a2`/`iso_a3`, `continent`,
+  `region_un`, `subregion`, `pop_est`, `gdp_md`
+- `naturalearth.admin1` — 1:10m French départements (and neighbouring regions),
+  clipped to the France frame: `name`, `adm0_a3`, `iso_3166_2`
+- `naturalearth.rivers` — 1:10m major rivers, clipped to the France frame
 
-Only the small (≈800 KB) source shapefile zip is committed
-(`data/naturalearth/`); it is converted to a PostGIS SQL dump at image build
-time (see `data/naturalearth/SOURCE.md`).
+The source shapefile zips are committed under `data/naturalearth/`; each is
+converted to a PostGIS SQL dump at image build time (admin-1 and rivers are
+clipped to France). See `data/naturalearth/SOURCE.md`.
 
 **Requires:** the PostGIS extension (the lab's postgres image is built on
 `postgis/postgis`; the loader runs `CREATE EXTENSION IF NOT EXISTS postgis`).
@@ -132,6 +135,42 @@ time (see `data/naturalearth/SOURCE.md`).
 **Note:** the postgres image is now Debian/glibc based (PostGIS), not the older
 Alpine/musl image. After pulling these changes, recreate the database volume
 before rebuilding: `make clean` (i.e. `docker compose down -v`).
+
+## HydroRIVERS (PostGIS)
+
+The French river network from [HydroSHEDS
+HydroRIVERS](https://www.hydrosheds.org/products/hydrorivers) v1.0 (Europe),
+clipped to France (~59,000 reaches). Each reach carries `next_down` — the id of
+the reach it flows into — which turns the table into a tree. This is the
+dataset behind the book's `WITH RECURSIVE` river-tributaries example.
+
+**Schema:** `hydrorivers.rivers`
+- `geom`: MULTILINESTRING, SRID 4326, with a GiST index
+- `hyriv_id` (reach id), `next_down` (downstream reach, 0 at the sea),
+  `main_riv` (the basin's outlet reach), `ord_stra` (Strahler order),
+  `dis_av_cms` (mean discharge), `length_km`
+
+The European source (~68 MB) is **not** committed: it is fetched from OVH Cloud
+at image build time (`HYDRORIVERS_URL`, see `.env.example`) and clipped to
+France, mirroring the hashtag-CSV pattern. Requires PostGIS.
+
+**Load:** `docker compose run --rm taop hydrorivers`
+
+## London OSM (PostGIS)
+
+An [OpenStreetMap](https://www.openstreetmap.org/) extract of the Holborn area
+of London (a ~600 m box around the kNN search point), with the major streets
+and parks. Provides the street-map backdrop for the nearest-pub figure in the
+kNN section.
+
+**Schemas:** `osm_london.roads` (lines: `highway`, `name`) and
+`osm_london.parks` (polygons), both SRID 4326 with GiST indexes.
+
+The raw `holborn.osm` (Overpass download, ~1.2 MB) is committed under
+`data/osm-london/`; it is converted to PostGIS SQL dumps at image build time.
+OSM data is © OpenStreetMap contributors, licensed ODbL. Requires PostGIS.
+
+**Load:** `docker compose run --rm taop osm-london`
 
 ## Last.fm
 

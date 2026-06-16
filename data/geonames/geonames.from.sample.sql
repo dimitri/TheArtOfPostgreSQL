@@ -2,6 +2,8 @@ begin;
 
 create schema if not exists sample;
 
+drop table if exists sample.geonames cascade;
+
 create table sample.geonames
  (
    geonameid         bigint,
@@ -19,6 +21,8 @@ create table sample.geonames
 );
 
 \copy sample.geonames from 'allCountries.sample.copy'
+
+drop table if exists geoname.geoname cascade;
 
 create table geoname.geoname
  (
