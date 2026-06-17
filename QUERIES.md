@@ -79,6 +79,27 @@ CTEs simplify complex queries by creating temporary named result sets.
 - `queries/04-sql-select/16-sql-103/05_03_f1db.seasons.winners.sql`
   Recursive CTE for F1 season analysis, traversing race results.
 
+### WITH RECURSIVE — River Networks
+
+A four-step build-up from a flat query to full recursive graph traversal,
+using the HydroRIVERS dataset (load with `docker compose run --rm taop hydrorivers`).
+
+- `queries/04-sql-select/16-sql-103/05_04_hydrorivers.mainstem.sql`
+  Flat query: Loire main channels by stream order (`ord_stra >= 6`). 155 reaches.
+  The visible seed that motivates adding confluents.
+
+- `queries/04-sql-select/16-sql-103/05_05_hydrorivers.ring1.sql`
+  Manual ring 1: mainstem plus every reach that flows directly into it. 316 reaches.
+  Uses one `UNION ALL` and one self-join via `next_down`.
+
+- `queries/04-sql-select/16-sql-103/05_06_hydrorivers.ring2.sql`
+  Manual ring 2: adds another set of confluents. 448 reaches total.
+  Shows the repeated pattern that `WITH RECURSIVE` automates.
+
+- `queries/04-sql-select/16-sql-103/05_07_hydrorivers.recursive.sql`
+  Full `WITH RECURSIVE` traversal: all 6,297 reaches of the Loire basin.
+  One query, no named tributaries.
+
 ### DISTINCT ON
 
 - `queries/04-sql-select/16-sql-103/06_01.sql`
@@ -381,6 +402,19 @@ MaxMind GeoLite2 IP geolocation data.
 - IP Range Lookup: `queries/08-extensions/50-geolocation-ip4r/02_01.sql`, `02_02.sql`
 - City Lookup: `queries/08-extensions/50-geolocation-ip4r/03_01.sql`
 - Emergency Pubs: `queries/08-extensions/50-geolocation-ip4r/04_01.sql`, `04_02.sql`
+
+### HydroRIVERS (French River Network)
+
+**Load:** `docker compose run --rm taop hydrorivers`
+
+HydroSHEDS river network for France: every river reach as a row, with a
+`next_down` column pointing to the downstream reach. The topology forms a
+tree, making it ideal for teaching `WITH RECURSIVE`.
+
+- Flat query (stream order): `queries/04-sql-select/16-sql-103/05_04_hydrorivers.mainstem.sql`
+- Ring 1 (one confluent layer): `queries/04-sql-select/16-sql-103/05_05_hydrorivers.ring1.sql`
+- Ring 2 (two confluent layers): `queries/04-sql-select/16-sql-103/05_06_hydrorivers.ring2.sql`
+- Full recursive basin: `queries/04-sql-select/16-sql-103/05_07_hydrorivers.recursive.sql`
 
 ### Commitlog (Git History)
 

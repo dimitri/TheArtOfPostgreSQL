@@ -27,45 +27,95 @@ That single column turns the table into a tree.
 ## The Problem
 
 We want **every reach that drains into the Loire** — the whole basin, from the
-mouth at Saint-Nazaire up to the smallest headwater stream. The Loire's outlet
-reach happens to be `hyriv_id = 20446779`. How do we follow `next_down`
-*backwards*, all the way up?
+mouth at Saint-Nazaire up to the smallest headwater stream. How do we follow
+`next_down` backwards, all the way up?
 
-## First, by hand
+## Start with what you can see
 
-Start at the mouth. Everything that flows *into* it is a row whose `next_down`
-points at it:
-
-```sql
--- step 0: the outlet
-select hyriv_id from hydrorivers.rivers where hyriv_id = 20446779;
-
--- step 1: its direct tributaries (one self-join)
-select up.hyriv_id
-  from hydrorivers.rivers as up
-  join hydrorivers.rivers as mouth on up.next_down = mouth.hyriv_id
- where mouth.hyriv_id = 20446779;
-```
-
-To go one level further, we join the table to itself *again*:
+The `main_riv` column labels every reach with its basin's outlet id, and
+`ord_stra` is the Strahler stream order — higher means larger. A flat query
+gets us the main channels straight away:
 
 ```sql
--- step 2: tributaries of the tributaries
-select up2.hyriv_id
-  from hydrorivers.rivers as up2
-  join hydrorivers.rivers as up1   on up2.next_down = up1.hyriv_id
-  join hydrorivers.rivers as mouth on up1.next_down = mouth.hyriv_id
- where mouth.hyriv_id = 20446779;
+select hyriv_id, geom, ord_stra
+  from hydrorivers.rivers
+ where main_riv = 20446779   -- the Loire basin
+   and ord_stra >= 6;        -- trunk and major tributaries only
 ```
 
-You can see where this is going: the Loire basin is **6,297 reaches** deep in
-places, and we are *not* writing 6,297 self-joins. The number of levels isn't
-even known ahead of time. This is exactly what recursion is for.
+That gives 155 reaches — the Loire trunk and its biggest branches, spread
+across the map:
+
+![Loire main channels — flat query on stream order](img/fig-river-mainstem.png)
+
+But we had to guess the threshold, and we still have no idea which smaller
+streams feed those channels. The connectivity lives in `next_down`.
+
+## Building up manually, ring by ring
+
+We can use the mainstem as a seed and add one ring of confluents at a time.
+**Ring 1** — every reach whose `next_down` lands on a mainstem channel:
+
+```sql
+with mainstem as (
+  select hyriv_id, geom, ord_stra
+    from hydrorivers.rivers
+   where main_riv = 20446779 and ord_stra >= 6
+)
+  select geom, ord_stra from mainstem          -- 155 high-order channels
+
+union all
+
+  select r.geom, r.ord_stra
+    from hydrorivers.rivers r
+    join mainstem m on r.next_down = m.hyriv_id
+   where r.main_riv = 20446779
+     and r.ord_stra < 6;                       -- 161 direct tributaries
+```
+
+316 reaches total. You can see the first tributaries appearing at every
+confluence:
+
+![Mainstem plus one ring of confluents: 316 reaches](img/fig-river-hop1.png)
+
+**Ring 2** — name the first ring and repeat: add every reach that flows into
+a ring-1 channel:
+
+```sql
+with mainstem as (
+  select hyriv_id, geom, ord_stra
+    from hydrorivers.rivers
+   where main_riv = 20446779 and ord_stra >= 6
+),
+ring1 as (
+  select r.hyriv_id, r.geom, r.ord_stra
+    from hydrorivers.rivers r
+    join mainstem m on r.next_down = m.hyriv_id
+   where r.main_riv = 20446779 and r.ord_stra < 6
+)
+  select geom, ord_stra from mainstem
+union all
+  select geom, ord_stra from ring1             -- 161 direct tributaries
+union all
+  select r.geom, r.ord_stra
+    from hydrorivers.rivers r
+    join ring1 on r.next_down = ring1.hyriv_id
+   where r.main_riv = 20446779;               -- 132 more: total 448
+```
+
+448 reaches — and the pattern is clear: every additional ring requires a new
+CTE and a new join:
+
+![Two rings of confluents: 448 reaches out of 6,297](img/fig-river-hop2.png)
+
+The Loire basin has **6,297 reaches**. We are not writing 6,297 CTEs. The
+number of rings isn't even known ahead of time. This is exactly what
+recursion is for.
 
 ## The Query
 
-A `with recursive` CTE does the self-join *for us*, over and over, until a round
-adds nothing new:
+A `with recursive` CTE does this automatically — it keeps adding rings until
+a round adds nothing new:
 
 ```sql
 with recursive loire as (
@@ -78,7 +128,7 @@ with recursive loire as (
 
        select r.hyriv_id, r.geom, r.ord_stra       -- recursive term
          from hydrorivers.rivers as r
-              join loire on r.next_down = loire.hyriv_id   -- one step upstream
+              join loire on r.next_down = loire.hyriv_id
 )
 select count(*) from loire;
 ```
@@ -92,7 +142,7 @@ select count(*) from loire;
 Every reach of the basin, gathered in one query — and we never named a single
 tributary. Plotted, it draws the whole Loire system:
 
-![The Loire basin, gathered upstream with WITH RECURSIVE](img/loire-basin.png)
+![The Loire basin, gathered upstream with WITH RECURSIVE](img/fig-river-recursive.png)
 
 ## How it works
 
@@ -105,8 +155,8 @@ A `with recursive` CTE always has the same two-part shape, joined by `union all`
    it again and again, each round seeing only the rows the previous round added,
    and stops when a round adds nothing.
 
-The join `on r.next_down = loire.hyriv_id` is what walks the tree: *give me every
-reach that flows into a reach I already have.* Flip it to
+The join `on r.next_down = loire.hyriv_id` is what walks the tree: *give me
+every reach that flows into a reach I already have.* Flip it to
 `on r.hyriv_id = loire.next_down` and the same query traces a single reach the
 other way — *downstream* to the sea.
 
