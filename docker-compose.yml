@@ -14,7 +14,7 @@ services:
       POSTGRES_USER: taop
       POSTGRES_PASSWORD: taop
     ports:
-      - "65432:5432"
+      - "5433:5432"
     volumes:
       # Mount one level above /data so that both PG≤17 (which use
       # /var/lib/postgresql/data) and PG18+ (which use a versioned
