@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS natural_earth.ne_countries CASCADE;
 CREATE TABLE natural_earth.ne_countries (
     id         SERIAL PRIMARY KEY,
     name       TEXT   NOT NULL,
-    iso_a2     CHAR(2),
+    iso_a2     VARCHAR(10),
     geom       GEOMETRY(MULTIPOLYGON, 4326)
 );
 
