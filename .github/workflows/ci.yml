@@ -23,6 +23,8 @@ jobs:
       POSTGRES_VERSION: ${{ matrix.pg }}
       # constant project name → docker compose looks for image taop-taop:latest
       COMPOSE_PROJECT_NAME: taop
+      # PG 18: skip PostGIS datasets until PostGIS releases Docker image support
+      SKIP_POSTGIS_DATASETS: ${{ matrix.pg == '18' && 'true' || 'false' }}
 
     steps:
       - uses: actions/checkout@v4
