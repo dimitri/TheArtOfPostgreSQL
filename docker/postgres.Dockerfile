@@ -13,7 +13,10 @@
 # locale-compatible; run `make clean` (docker compose down -v) before rebuilding.
 ARG POSTGRES_VERSION=16
 ARG POSTGIS_VERSION=3.4
-FROM postgis/postgis:${POSTGRES_VERSION}-${POSTGIS_VERSION}
+# For PG 18, use postgis:18-latest (3.4 not yet released for PG 18)
+# Override via: docker build --build-arg POSTGIS_IMAGE_TAG=18-latest
+ARG POSTGIS_IMAGE_TAG=${POSTGRES_VERSION}-${POSTGIS_VERSION}
+FROM postgis/postgis:${POSTGIS_IMAGE_TAG}
 
 ARG HLL_VERSION=v2.18
 

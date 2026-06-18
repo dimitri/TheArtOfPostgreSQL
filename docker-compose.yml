@@ -5,6 +5,7 @@ services:
       dockerfile: docker/postgres.Dockerfile
       args:
         POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
+        POSTGIS_IMAGE_TAG: ${POSTGIS_IMAGE_TAG:-${POSTGRES_VERSION:-16}-3.4}
     image: taop-postgres:${POSTGRES_VERSION:-16}
     # pg_stat_statements must be preloaded at server start; the Query
     # Optimization course relies on it for workload observation labs.

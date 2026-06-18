@@ -23,6 +23,8 @@ jobs:
       POSTGRES_VERSION: ${{ matrix.pg }}
       # constant project name → docker compose looks for image taop-taop:latest
       COMPOSE_PROJECT_NAME: taop
+      # PG 18: use postgis:18-latest (3.4 not yet released for PG 18)
+      POSTGIS_IMAGE_TAG: ${{ matrix.pg == '18' && '18-latest' || format('{0}-3.4', matrix.pg) }}
 
     steps:
       - uses: actions/checkout@v4
