@@ -23,6 +23,8 @@ jobs:
       POSTGRES_VERSION: ${{ matrix.pg }}
       # constant project name → docker compose looks for image taop-taop:latest
       COMPOSE_PROJECT_NAME: taop
+      # PG 18: use plain postgres image (PostGIS not yet available)
+      POSTGRES_DOCKERFILE: ${{ matrix.pg == '18' && 'docker/postgres-pg18.Dockerfile' || 'docker/postgres.Dockerfile' }}
       # PG 18: skip PostGIS datasets until PostGIS releases Docker image support
       SKIP_POSTGIS_DATASETS: ${{ matrix.pg == '18' && 'true' || 'false' }}
 

@@ -2,7 +2,7 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: docker/postgres.Dockerfile
+      dockerfile: ${POSTGRES_DOCKERFILE:-docker/postgres.Dockerfile}
       args:
         POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
     image: taop-postgres:${POSTGRES_VERSION:-16}
