@@ -23,7 +23,7 @@ select genre.name as genre,
                  left join playlist_track using (track_id)
            where track.genre_id = genre.genre_id
         group by track.track_id
-        order by count desc
+        order by count desc, track.track_id
            limit :n
        )
        /*

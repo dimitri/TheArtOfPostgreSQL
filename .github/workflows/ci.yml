@@ -39,6 +39,9 @@ jobs:
           target: taop
           load: true
           tags: taop-taop:latest
+          build-args: |
+            HASHTAG_URL=https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv
+            HYDRORIVERS_URL=https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip
           cache-from: type=gha,scope=taop-build
           cache-to: type=gha,scope=taop-build,mode=max
 
