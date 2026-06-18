@@ -16,7 +16,7 @@ ARG HLL_VERSION=v2.18
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
-        ca-certificates git build-essential postgresql-server-dev; \
+        ca-certificates git build-essential postgresql-server-dev-${POSTGRES_VERSION}; \
     git clone --depth 1 --branch "${HLL_VERSION}" \
         https://github.com/citusdata/postgresql-hll.git /tmp/hll; \
     make -C /tmp/hll with_llvm=no \
@@ -24,5 +24,5 @@ RUN set -eux; \
     make -C /tmp/hll with_llvm=no \
         PG_CONFIG="/usr/lib/postgresql/${POSTGRES_VERSION}/bin/pg_config" install; \
     rm -rf /tmp/hll; \
-    apt-get purge -y --auto-remove git build-essential postgresql-server-dev; \
+    apt-get purge -y --auto-remove git build-essential postgresql-server-dev-${POSTGRES_VERSION}; \
     rm -rf /var/lib/apt/lists/*
