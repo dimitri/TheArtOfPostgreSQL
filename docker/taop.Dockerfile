@@ -105,6 +105,28 @@ RUN set -eux; \
     fi
 
 #
+# Castles stage: download European medieval castle locations from the OpenStreetMap
+# Overpass API at build time, extract id/name/lon/lat with jq, and write a CSV
+# file.  Loaded at run time with `taop castles`.  If the Overpass API is
+# unreachable the stage produces an empty CSV so the final image still builds.
+#
+FROM debian:bookworm-slim AS castles-build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl jq ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+    mkdir -p /out; \
+    curl -fSL --retry 3 --max-time 300 -X POST \
+      --data-urlencode \
+        'data=[out:json][timeout:180][bbox:35,-15,72,45];(node["historic"="castle"];way["historic"="castle"];relation["historic"="castle"];);out center;' \
+      https://overpass-api.de/api/interpreter \
+      -o /tmp/castles.json \
+    && jq -r '.elements[] | select((.type=="node" and .lon!=null) or ((.type=="way" or .type=="relation") and .center!=null)) | [.id, (.tags.name // ""), (if .type=="node" then .lon else .center.lon end), (if .type=="node" then .lat else .center.lat end)] | @csv' \
+         /tmp/castles.json > /out/castles.csv \
+    && echo "Fetched $(wc -l < /out/castles.csv) castle locations from Overpass API." \
+    || { echo "Overpass API fetch failed — creating empty placeholder CSV."; \
+         : > /out/castles.csv; }
+
+#
 # London OSM stage: convert the committed OpenStreetMap extract for the Holborn
 # area (major streets + parks, fetched from Overpass) into PostGIS-loadable SQL
 # dumps at build time. Provides the street-map backdrop for the kNN pub figure.
@@ -150,6 +172,10 @@ COPY --from=hydrorivers-build --chown=taop:taop /out/hydrorivers.sql /data/hydro
 # `taop osm-london`.
 COPY --from=osmlondon-build --chown=taop:taop /tmp/osm_roads.sql /data/osm-london/osm_roads.sql
 COPY --from=osmlondon-build --chown=taop:taop /tmp/osm_parks.sql /data/osm-london/osm_parks.sql
+
+# Castle ruins: CSV of European medieval castle locations fetched from OSM Overpass API
+# at build time (see the castles-build stage above).  Loaded with `taop castles`.
+COPY --from=castles-build --chown=taop:taop /out/castles.csv /data/castles/castles.csv
 
 # Fetch the hashtag CSV from OVH Cloud at build time (optional; skip if HASHTAG_URL unset)
 ARG HASHTAG_URL=""
