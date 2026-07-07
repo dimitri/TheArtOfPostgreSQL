@@ -12,18 +12,7 @@ ARG POSTGRES_VERSION=18
 FROM postgres:${POSTGRES_VERSION}
 
 ARG POSTGRES_VERSION=18
-ARG HLL_VERSION=v2.18
 
-RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        ca-certificates git build-essential postgresql-server-dev-${POSTGRES_VERSION}; \
-    git clone --depth 1 --branch "${HLL_VERSION}" \
-        https://github.com/citusdata/postgresql-hll.git /tmp/hll; \
-    make -C /tmp/hll with_llvm=no \
-        PG_CONFIG="/usr/lib/postgresql/${POSTGRES_VERSION}/bin/pg_config"; \
-    make -C /tmp/hll with_llvm=no \
-        PG_CONFIG="/usr/lib/postgresql/${POSTGRES_VERSION}/bin/pg_config" install; \
-    rm -rf /tmp/hll; \
-    apt-get purge -y --auto-remove git build-essential postgresql-server-dev-${POSTGRES_VERSION}; \
-    rm -rf /var/lib/apt/lists/*
+# PostgreSQL 18 support: HLL extension v2.18 does not compile due to
+# -Werror=missing-variable-declarations in PG 18's strict compiler flags.
+# HLL will be added back once upstream releases a PG 18-compatible version.
