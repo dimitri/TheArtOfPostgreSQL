@@ -85,8 +85,14 @@ jobs:
       # generate a version-specific expected file on the fly (01.pg14.out,
       # 01.pg16.out …) so regresql test uses it instead of the committed
       # generic 01.out.  All other expected files are committed and stable.
+      #
+      # PG 18: skip book query tests because some queries depend on PostGIS
+      # datasets (hydrorivers, osm-london) which are not available without
+      # PostGIS Docker image support.  Once PostGIS releases PG 18 support,
+      # these tests can run on all versions.
       - name: Run book query regression tests
         working-directory: queries
+        if: ${{ matrix.pg != '18' }}
         run: regresql test
 
       - name: Capture postgres logs on failure
