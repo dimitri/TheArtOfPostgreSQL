@@ -45,7 +45,7 @@
                                        (muffle-warning))))
                     (apply fun args))
                 (cli-error (e)
-                  (format t "ERROR running command: ~{a~~^ ~}%"
+                  (format t "ERROR running command: ~{~a~^ ~}~%"
                           (command-verbs command))
                   (format t
                           "ERROR: ~a~%~@[DETAIL: ~a~%~]~@[HINT: ~a~%~]"

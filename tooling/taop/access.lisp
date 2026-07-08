@@ -22,6 +22,16 @@
 
 (defun run-sql-file (connspec filepath)
   "Execute SQL from FILENAME using a PostgreSQL connection."
+  ;; pomo:execute-file on a missing path only WARNs ("doesn't seem to
+  ;; exist...") and returns NIL rather than signaling a file-error; whatever
+  ;; NIL gets passed to next inside execute-file then blows up with an
+  ;; unrelated-looking "NIL is not of type STRING-OUTPUT-STREAM" crash. Check
+  ;; up front and raise a clear, actionable cli-error instead.
+  (unless (probe-file filepath)
+    (error 'cli-error
+           :mesg (format nil "SQL file not found: ~a" filepath)
+           :detail "The directory this path is under is usually set via an env variable that's only configured for the docker-compose service meant to load this data."
+           :hint (format nil "If this is commitlog.sql, run it via 'docker compose run --rm commitlog' (that service bakes in the cloned repos and COMMITLOG_DIR) rather than the 'taop' service, which doesn't include that data.")))
   (format t "~%;;; Running SQL file: ~a~%" filepath)
   (pomo:with-connection connspec
     (pomo:execute-file filepath)))
