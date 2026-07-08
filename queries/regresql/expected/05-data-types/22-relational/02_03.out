@@ -1,23 +1,29 @@
 oprname |           oprleft           |         oprcode         
 --------+-----------------------------+-------------------------
 =       | bigint                      | int84eq
-=       | bigint                      | int82eq
 =       | bigint                      | int8eq
-=       | smallint                    | int24eq
+=       | bigint                      | int82eq
 =       | smallint                    | int28eq
 =       | smallint                    | int2eq
+=       | smallint                    | int24eq
+=       | integer                     | int48eq
 =       | integer                     | int42eq
 =       | integer                     | int4eq
-=       | integer                     | int48eq
 =       | text                        | texteq
 =       | text                        | texteqname
 =       | circle                      | circle_eq
 =       | time without time zone      | time_eq
 =       | timestamp without time zone | timestamp_eq_timestamptz
-=       | timestamp without time zone | timestamp_eq_date
 =       | timestamp without time zone | timestamp_eq
-=       | timestamp with time zone    | timestamptz_eq_timestamp
+=       | timestamp without time zone | timestamp_eq_date
 =       | timestamp with time zone    | timestamptz_eq
+=       | timestamp with time zone    | timestamptz_eq_timestamp
 =       | timestamp with time zone    | timestamptz_eq_date
 =       | interval                    | interval_eq
 =       | time with time zone         | timetz_eq
+=       | ip4                         | ip4_eq
+=       | ip4r                        | ip4r_eq
+=       | ip6                         | ip6_eq
+=       | ip6r                        | ip6r_eq
+=       | ipaddress                   | ipaddress_eq
+=       | iprange                     | iprange_eq
