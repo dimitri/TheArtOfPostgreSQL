@@ -68,6 +68,61 @@ docker compose run --rm taop load-data
                TOTAL     9.310s
 ```
 
+## Query UI — Browse and Run Queries in the Browser
+
+Alongside `psql`, this repo ships a small local web app for browsing and
+running every query interactively — no client to install, nothing to
+configure.
+
+```bash
+docker compose up -d postgres query-ui
+```
+
+Open **http://localhost:8042** — two views, switchable from the top nav:
+
+- **Book Queries** (default) — the full table of contents from the book, one
+  query per file, with a SQL editor, `EXPLAIN` (Text/Diagram/JSON tabs), CSV
+  export, and a read-only/read-write toggle for the handful of queries that
+  need `CREATE`/`INSERT`.
+- **Starter Kit** (http://localhost:8042/starter-kit.html) — the same
+  six-lab walkthrough described below, but as a runnable notebook: click
+  **▶ Run** on any cell and see results inline, right next to the prose that
+  explains them. PostGIS queries that build their own `<svg>...</svg>`
+  output (the river-basin and pub-crawl maps) render as an actual map, not a
+  wall of path data.
+
+It's a single self-contained Go binary — no separate service to run, no
+external JS/CSS dependencies, frontend embedded in the executable.
+
+### Keeping it up to date
+
+`queries/`, `starter-kit/`, and `toc.txt` are mounted read-only into the
+container and indexed once at startup, so editing them on the host only
+needs a restart:
+
+```bash
+docker compose restart query-ui
+```
+
+Changes to the app itself (anything under `src/query-ui/`, including the
+frontend HTML) are compiled into the binary via `go:embed`, so they need a
+rebuild before `up -d` will serve them:
+
+```bash
+docker compose build query-ui && docker compose up -d query-ui
+```
+
+Not sure which one you need? `docker compose build query-ui && docker
+compose up -d query-ui` always works for both cases — it's just the slower
+option when a plain restart would have been enough. To sanity-check what a
+running container is actually serving:
+
+```bash
+curl -s http://localhost:8042/ | diff - src/query-ui/frontend/dist/index.html
+```
+
+An empty diff means the container is serving your latest code.
+
 ## Run this. See why PostgreSQL matters.
 
 Start a psql session:
@@ -107,7 +162,9 @@ complex application logic.
 
 If you’re new to this lab, begin with the **starter kit**.
 
-→ [`starter-kit/`](starter-kit/)
+→ Run it interactively at **http://localhost:8042/starter-kit.html** (see
+[Query UI](#query-ui--browse-and-run-queries-in-the-browser) above), or read
+it straight from the source in [`starter-kit/`](starter-kit/).
 
 This is a **guided, hands-on learning path** built from a small set of
 carefully selected queries. Instead of exploring hundreds of files, you will
