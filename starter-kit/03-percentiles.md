@@ -25,7 +25,7 @@ with perc_arrays as (
           avg(cts-ats) as average,
           percentile_cont(array[0.5, 0.9, 0.95, 0.99])
              within group(order by cts-ats) as parr
-     from commits
+     from commitlog
     where ats <> cts
  group by project
 )

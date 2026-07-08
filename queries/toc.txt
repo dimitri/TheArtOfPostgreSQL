@@ -172,6 +172,14 @@
           04-sql-select/16-sql-103/05_01.sql
           04-sql-select/16-sql-103/05_02_f1db.accidents.sql
           04-sql-select/16-sql-103/05_03_f1db.seasons.winners.sql
+          04-sql-select/16-sql-103/05_04_hydrorivers.mainstem.sql
+          04-sql-select/16-sql-103/05_05_hydrorivers.ring1.sql
+          04-sql-select/16-sql-103/05_06_hydrorivers.ring2.sql
+          04-sql-select/16-sql-103/05_07_hydrorivers.recursive.sql
+          04-sql-select/16-sql-103/05_08_hydrorivers.svg.mainstem.sql
+          04-sql-select/16-sql-103/05_09_hydrorivers.svg.ring1.sql
+          04-sql-select/16-sql-103/05_10_hydrorivers.svg.ring2.sql
+          04-sql-select/16-sql-103/05_11_hydrorivers.svg.recursive.sql
       16.6 Distinct On
           04-sql-select/16-sql-103/06_01.sql
           04-sql-select/16-sql-103/06_02.sql
@@ -570,6 +578,7 @@
       48.4 Indexing kNN Search
           08-extensions/48-pub-names-knn/04_01.sql
           08-extensions/48-pub-names-knn/04_02.sql
+          08-extensions/48-pub-names-knn/05_01_pubnames.svg.knn.sql
     49 How far is the nearest pub?
       49.1 The `earthdistance` PostgreSQL contrib
           08-extensions/49-earthdistance/01_01.sql
