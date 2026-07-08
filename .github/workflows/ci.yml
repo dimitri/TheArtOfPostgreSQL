@@ -10,6 +10,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  content-checks:
+    name: Query content checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Static checks against queries/*.sql — no database needed, so this
+      # runs standalone rather than gating on the PG matrix below. Guards
+      # against regressions like the old camelCase Chinook column names or
+      # a \set dependency that only worked because of book's continuous
+      # psql session, both found and fixed by hand once already (see
+      # tooling/checks/*.sh for the full story on each).
+      - name: Run content checks
+        run: ./tooling/checks/run-all.sh
+
   test:
     name: PG ${{ matrix.pg }}
     runs-on: ubuntu-latest

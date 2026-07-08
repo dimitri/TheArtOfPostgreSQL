@@ -1,4 +1,4 @@
 SELECT name, title
   FROM artist, album
- WHERE artist.artistid = album.artistid
-   AND artist.artistid = 1;
+ WHERE artist.artist_id = album.artist_id
+   AND artist.artist_id = 1;

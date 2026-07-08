@@ -43,10 +43,74 @@ select hyriv_id, geom, ord_stra
    and ord_stra >= 6;        -- trunk and major tributaries only
 ```
 
-That gives 155 reaches — the Loire trunk and its biggest branches, spread
-across the map:
+That gives 155 reaches — the Loire trunk and its biggest branches.
 
-![Loire main channels — flat query on stream order](img/fig-river-mainstem.png)
+Every query in this page is shown twice: the plain version above returns
+rows you'd read in `psql` — a `geom` column of raw WKB is not something a
+terminal renders. The second version below is the *same* query with a
+PostGIS tail bolted on: it wraps the same reaches in `ST_AsSVG()`, adds a
+background pulled straight from `naturalearth.countries` — clipped to a
+square window around the basin so France's neighbors show up too, borders and
+all — and hands back one row containing one finished `<svg>...</svg>`
+document. Run it and switch to the **Map** tab on its output:
+
+```sql
+with mainstem as (
+  select hyriv_id, geom, ord_stra
+    from hydrorivers.rivers
+   where main_riv = 20446779   -- the Loire basin
+     and ord_stra >= 6         -- trunk and major tributaries only
+),
+loire_bbox as (
+  select st_xmin(bbox) as x0, st_xmax(bbox) as x1,
+         st_ymin(bbox) as y0, st_ymax(bbox) as y1
+    from (select st_extent(geom) as bbox
+            from hydrorivers.rivers
+           where main_riv = 20446779) e
+),
+win as (
+  -- a square viewing window centered on the basin, padded out far enough
+  -- that neighboring countries have a chance to show up alongside France
+  select st_makeenvelope(
+           (x0+x1)/2 - half, (y0+y1)/2 - half,
+           (x0+x1)/2 + half, (y0+y1)/2 + half,
+           4326) as env
+    from loire_bbox,
+         lateral (select greatest(x1-x0, y1-y0)/2 + 2.0 as half) h
+),
+countries as (
+  -- real country borders straight from naturalearth.countries, clipped to
+  -- the viewing window so whatever fits in the square gets drawn
+  select c.name,
+         st_intersection(c.geom, win.env) as geom
+    from naturalearth.countries c, win
+   where st_intersects(c.geom, win.env)
+),
+layers as (
+  select 1 as z, '<path d="' || st_assvg(geom, 0, 3) || '" fill="' ||
+         (case when name = 'France' then '#F2EFE9' else '#ECECEC' end) ||
+         '" stroke="#C0B8AE" stroke-width="0.02"/>' as elem
+    from countries
+  union all
+  select 2, '<path d="' || st_assvg(geom, 0, 4) ||
+         '" fill="none" stroke="#5B8DB8" stroke-width="0.05" stroke-linecap="round"/>' as elem
+    from mainstem
+)
+  -- ST_AsSVG negates Y for us (SVG grows downward, latitude grows north),
+  -- so the viewBox's y origin is -ymax, not -ymin.
+  select '<svg viewBox="' || w.x0 || ' ' || (-w.y1) || ' ' ||
+         (w.x1 - w.x0) || ' ' || (w.y1 - w.y0) ||
+         '" xmlns="http://www.w3.org/2000/svg">' ||
+         '<rect x="' || w.x0 || '" y="' || (-w.y1) || '" width="' ||
+                (w.x1 - w.x0) || '" height="' || (w.y1 - w.y0) ||
+                '" fill="#E8EEF5"/>' ||
+         string_agg(layers.elem, '' order by layers.z) || '</svg>' as svg
+    from layers,
+         (select st_xmin(env) as x0, st_xmax(env) as x1,
+                 st_ymin(env) as y0, st_ymax(env) as y1
+            from win) as w
+   group by w.x0, w.x1, w.y0, w.y1;
+```
 
 But we had to guess the threshold, and we still have no idea which smaller
 streams feed those channels. The connectivity lives in `next_down`.
@@ -73,10 +137,73 @@ union all
      and r.ord_stra < 6;                       -- 161 direct tributaries
 ```
 
-316 reaches total. You can see the first tributaries appearing at every
-confluence:
+316 reaches total — the first tributaries appearing at every confluence.
 
-![Mainstem plus one ring of confluents: 316 reaches](img/fig-river-hop1.png)
+Same duplication as before — plain rows above, a complete SVG document below,
+same country-borders backdrop, ring 1 drawn in a lighter blue on top of the
+mainstem:
+
+```sql
+with mainstem as (
+  select hyriv_id, geom, ord_stra
+    from hydrorivers.rivers
+   where main_riv = 20446779 and ord_stra >= 6
+),
+ring1 as (
+  select r.hyriv_id, r.geom, r.ord_stra
+    from hydrorivers.rivers r
+    join mainstem m on r.next_down = m.hyriv_id
+   where r.main_riv = 20446779
+     and r.ord_stra < 6
+),
+loire_bbox as (
+  select st_xmin(bbox) as x0, st_xmax(bbox) as x1,
+         st_ymin(bbox) as y0, st_ymax(bbox) as y1
+    from (select st_extent(geom) as bbox
+            from hydrorivers.rivers
+           where main_riv = 20446779) e
+),
+win as (
+  select st_makeenvelope(
+           (x0+x1)/2 - half, (y0+y1)/2 - half,
+           (x0+x1)/2 + half, (y0+y1)/2 + half,
+           4326) as env
+    from loire_bbox,
+         lateral (select greatest(x1-x0, y1-y0)/2 + 2.0 as half) h
+),
+countries as (
+  select c.name,
+         st_intersection(c.geom, win.env) as geom
+    from naturalearth.countries c, win
+   where st_intersects(c.geom, win.env)
+),
+layers as (
+  select 1 as z, '<path d="' || st_assvg(geom, 0, 3) || '" fill="' ||
+         (case when name = 'France' then '#F2EFE9' else '#ECECEC' end) ||
+         '" stroke="#C0B8AE" stroke-width="0.02"/>' as elem
+    from countries
+  union all
+  select 2, '<path d="' || st_assvg(geom, 0, 4) ||
+         '" fill="none" stroke="#5B8DB8" stroke-width="0.05" stroke-linecap="round"/>' as elem
+    from mainstem
+  union all
+  select 3, '<path d="' || st_assvg(geom, 0, 4) ||
+         '" fill="none" stroke="#7FA5C7" stroke-width="0.02" stroke-linecap="round"/>' as elem
+    from ring1
+)
+  select '<svg viewBox="' || w.x0 || ' ' || (-w.y1) || ' ' ||
+         (w.x1 - w.x0) || ' ' || (w.y1 - w.y0) ||
+         '" xmlns="http://www.w3.org/2000/svg">' ||
+         '<rect x="' || w.x0 || '" y="' || (-w.y1) || '" width="' ||
+                (w.x1 - w.x0) || '" height="' || (w.y1 - w.y0) ||
+                '" fill="#E8EEF5"/>' ||
+         string_agg(layers.elem, '' order by layers.z) || '</svg>' as svg
+    from layers,
+         (select st_xmin(env) as x0, st_xmax(env) as x1,
+                 st_ymin(env) as y0, st_ymax(env) as y1
+            from win) as w
+   group by w.x0, w.x1, w.y0, w.y1;
+```
 
 **Ring 2** — name the first ring and repeat: add every reach that flows into
 a ring-1 channel:
@@ -104,9 +231,80 @@ union all
 ```
 
 448 reaches — and the pattern is clear: every additional ring requires a new
-CTE and a new join:
+CTE and a new join.
 
-![Two rings of confluents: 448 reaches out of 6,297](img/fig-river-hop2.png)
+One more ring added to the SVG version, one more shade of blue:
+
+```sql
+with mainstem as (
+  select hyriv_id, geom, ord_stra
+    from hydrorivers.rivers
+   where main_riv = 20446779 and ord_stra >= 6
+),
+ring1 as (
+  select r.hyriv_id, r.geom, r.ord_stra
+    from hydrorivers.rivers r
+    join mainstem m on r.next_down = m.hyriv_id
+   where r.main_riv = 20446779 and r.ord_stra < 6
+),
+ring2 as (
+  select r.hyriv_id, r.geom, r.ord_stra
+    from hydrorivers.rivers r
+    join ring1 on r.next_down = ring1.hyriv_id
+   where r.main_riv = 20446779
+),
+loire_bbox as (
+  select st_xmin(bbox) as x0, st_xmax(bbox) as x1,
+         st_ymin(bbox) as y0, st_ymax(bbox) as y1
+    from (select st_extent(geom) as bbox
+            from hydrorivers.rivers
+           where main_riv = 20446779) e
+),
+win as (
+  select st_makeenvelope(
+           (x0+x1)/2 - half, (y0+y1)/2 - half,
+           (x0+x1)/2 + half, (y0+y1)/2 + half,
+           4326) as env
+    from loire_bbox,
+         lateral (select greatest(x1-x0, y1-y0)/2 + 2.0 as half) h
+),
+countries as (
+  select c.name,
+         st_intersection(c.geom, win.env) as geom
+    from naturalearth.countries c, win
+   where st_intersects(c.geom, win.env)
+),
+layers as (
+  select 1 as z, '<path d="' || st_assvg(geom, 0, 3) || '" fill="' ||
+         (case when name = 'France' then '#F2EFE9' else '#ECECEC' end) ||
+         '" stroke="#C0B8AE" stroke-width="0.02"/>' as elem
+    from countries
+  union all
+  select 2, '<path d="' || st_assvg(geom, 0, 4) ||
+         '" fill="none" stroke="#5B8DB8" stroke-width="0.05" stroke-linecap="round"/>' as elem
+    from mainstem
+  union all
+  select 3, '<path d="' || st_assvg(geom, 0, 4) ||
+         '" fill="none" stroke="#7FA5C7" stroke-width="0.02" stroke-linecap="round"/>' as elem
+    from ring1
+  union all
+  select 4, '<path d="' || st_assvg(geom, 0, 4) ||
+         '" fill="none" stroke="#A3BDD6" stroke-width="0.012" stroke-linecap="round"/>' as elem
+    from ring2
+)
+  select '<svg viewBox="' || w.x0 || ' ' || (-w.y1) || ' ' ||
+         (w.x1 - w.x0) || ' ' || (w.y1 - w.y0) ||
+         '" xmlns="http://www.w3.org/2000/svg">' ||
+         '<rect x="' || w.x0 || '" y="' || (-w.y1) || '" width="' ||
+                (w.x1 - w.x0) || '" height="' || (w.y1 - w.y0) ||
+                '" fill="#E8EEF5"/>' ||
+         string_agg(layers.elem, '' order by layers.z) || '</svg>' as svg
+    from layers,
+         (select st_xmin(env) as x0, st_xmax(env) as x1,
+                 st_ymin(env) as y0, st_ymax(env) as y1
+            from win) as w
+   group by w.x0, w.x1, w.y0, w.y1;
+```
 
 The Loire basin has **6,297 reaches**. We are not writing 6,297 CTEs. The
 number of rings isn't even known ahead of time. This is exactly what
@@ -140,9 +338,69 @@ select count(*) from loire;
 ```
 
 Every reach of the basin, gathered in one query — and we never named a single
-tributary. Plotted, it draws the whole Loire system:
+tributary.
 
-![The Loire basin, gathered upstream with WITH RECURSIVE](img/fig-river-recursive.png)
+And the SVG version of the same `with recursive` query — no ring-counting,
+same country-borders backdrop, all 6,297 reaches drawn in one pass:
+
+```sql
+with recursive loire as (
+
+       select hyriv_id, geom, ord_stra            -- base case
+         from hydrorivers.rivers
+        where hyriv_id = 20446779                  --   the outlet
+
+    union all
+
+       select r.hyriv_id, r.geom, r.ord_stra       -- recursive term
+         from hydrorivers.rivers as r
+              join loire on r.next_down = loire.hyriv_id
+),
+loire_bbox as (
+  select st_xmin(bbox) as x0, st_xmax(bbox) as x1,
+         st_ymin(bbox) as y0, st_ymax(bbox) as y1
+    from (select st_extent(geom) as bbox
+            from hydrorivers.rivers
+           where main_riv = 20446779) e
+),
+win as (
+  select st_makeenvelope(
+           (x0+x1)/2 - half, (y0+y1)/2 - half,
+           (x0+x1)/2 + half, (y0+y1)/2 + half,
+           4326) as env
+    from loire_bbox,
+         lateral (select greatest(x1-x0, y1-y0)/2 + 2.0 as half) h
+),
+countries as (
+  select c.name,
+         st_intersection(c.geom, win.env) as geom
+    from naturalearth.countries c, win
+   where st_intersects(c.geom, win.env)
+),
+layers as (
+  select 1 as z, '<path d="' || st_assvg(geom, 0, 3) || '" fill="' ||
+         (case when name = 'France' then '#F2EFE9' else '#ECECEC' end) ||
+         '" stroke="#C0B8AE" stroke-width="0.02"/>' as elem
+    from countries
+  union all
+  select 2, '<path d="' || st_assvg(geom, 0, 4) ||
+         '" fill="none" stroke="#5B8DB8" stroke-width="' ||
+         (0.008 * ord_stra)::text || '" stroke-linecap="round"/>' as elem
+    from loire
+)
+  select '<svg viewBox="' || w.x0 || ' ' || (-w.y1) || ' ' ||
+         (w.x1 - w.x0) || ' ' || (w.y1 - w.y0) ||
+         '" xmlns="http://www.w3.org/2000/svg">' ||
+         '<rect x="' || w.x0 || '" y="' || (-w.y1) || '" width="' ||
+                (w.x1 - w.x0) || '" height="' || (w.y1 - w.y0) ||
+                '" fill="#E8EEF5"/>' ||
+         string_agg(layers.elem, '' order by layers.z) || '</svg>' as svg
+    from layers,
+         (select st_xmin(env) as x0, st_xmax(env) as x1,
+                 st_ymin(env) as y0, st_ymax(env) as y1
+            from win) as w
+   group by w.x0, w.x1, w.y0, w.y1;
+```
 
 ## How it works
 

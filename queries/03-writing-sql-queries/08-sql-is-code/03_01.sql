@@ -1,12 +1,12 @@
 with artist_albums as
  (
-    select albumid, title
+    select album_id, title
       from      album
-           join artist using(artistid)
+           join artist using(artist_id)
      where artist.name = 'AC/DC'
  )
   select title, name, milliseconds
     from artist_albums
           left join track
-              using(albumid)
-order by trackid;
+              using(album_id)
+order by track_id;

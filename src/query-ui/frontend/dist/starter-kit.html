@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Starter Kit - The Art of PostgreSQL</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #3498db;
+      --dark: #2c3e50;
+      --light: #ecf0f1;
+      --border: #bdc3c7;
+      --success: #27ae60;
+      --warning: #e74c3c;
+      --code-bg: #282c34;
+      --code-fg: #abb2bf;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* Shared app switcher — identical markup/styling to index.html, so
+       "Book Queries" and "Starter Kit" read as two views of one app. */
+    .app-nav {
+      display: flex;
+      gap: 6px;
+      padding: 8px 16px;
+      background: #1a252f;
+    }
+
+    .app-nav-item {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .app-nav-item:hover {
+      color: white;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .app-nav-item.active {
+      color: white;
+      background: var(--primary);
+    }
+
+    /* Menu: the six starter-kit pages, styled after
+       oss.theartofpostgresql.com/projects/ — a dark hero band in the same
+       plum/lavender palette (deep #372649, muted #67527a, sky #60b2d3),
+       Bookman serif headings over Lato body text, and a project-card grid. */
+    .menu-hero {
+      background: #372649;
+      padding: 64px 20px 56px;
+      text-align: center;
+    }
+
+    .menu-hero h1 {
+      font: 500 2.6rem/1.25 'Bookman', 'Bookman Old Style', Georgia, serif;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .menu-hero .subtitle {
+      font: 300 1.15rem/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #b8a9c9;
+      max-width: 620px;
+      margin: 0 auto;
+    }
+
+    .menu {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 20px 60px;
+    }
+
+    .page-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 24px;
+    }
+
+    .page-card {
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      background: white;
+      border: 1px solid #e5e3e7;
+      border-radius: 8px;
+      padding: 28px 26px;
+      transition: all 0.15s;
+    }
+
+    .page-card:hover {
+      border-color: #60b2d3;
+      box-shadow: 0 6px 20px rgba(55,38,73,0.1);
+      transform: translateY(-2px);
+    }
+
+    .page-card .icon {
+      width: 30px;
+      height: 30px;
+      fill: #67527a;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .page-card:hover .icon {
+      fill: #60b2d3;
+    }
+
+    .page-card .num {
+      font: 700 0.75rem 'Lato', sans-serif;
+      letter-spacing: 1px;
+      color: #60b2d3;
+      margin-bottom: 6px;
+    }
+
+    .page-card .title {
+      font: 500 1.25rem 'Bookman', 'Bookman Old Style', Georgia, serif;
+      color: #372649;
+      margin-bottom: 8px;
+    }
+
+    .page-card .blurb {
+      font: 400 0.92rem/1.55 'Lato', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #67527a;
+      flex: 1;
+    }
+
+    .page-card .start {
+      font: 700 0.8rem 'Lato', sans-serif;
+      color: #67527a;
+      margin-top: 18px;
+    }
+
+    .page-card:hover .start {
+      color: #60b2d3;
+    }
+
+    /* Notebook: a single centered column of cells, like Jupyter */
+    .notebook {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px 20px 80px;
+    }
+
+    .notebook-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .back-to-menu {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    .back-to-menu:hover {
+      text-decoration: underline;
+    }
+
+    .markdown-cell { padding: 4px 0; }
+    .markdown-cell h1 { font-size: 1.6rem; margin: 24px 0 12px; color: var(--dark); }
+    .markdown-cell h2 { font-size: 1.3rem; margin: 22px 0 10px; color: var(--dark); }
+    .markdown-cell h3 { font-size: 1.1rem; margin: 18px 0 8px; color: var(--dark); }
+    .markdown-cell h4 { font-size: 1rem; margin: 16px 0 6px; color: var(--dark); }
+    .markdown-cell p { margin-bottom: 12px; }
+    .markdown-cell code {
+      background: var(--light);
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 0.9em;
+    }
+    .markdown-cell a { color: var(--primary); }
+    .markdown-cell ul { margin: 0 0 12px 22px; }
+    .markdown-cell blockquote {
+      margin: 0 0 12px;
+      padding: 4px 14px;
+      border-left: 3px solid var(--primary);
+      color: #555;
+    }
+    .markdown-cell blockquote p { margin-bottom: 0; }
+    .markdown-cell img {
+      max-width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      margin: 8px 0;
+    }
+    .markdown-cell .md-code-block {
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+      white-space: pre;
+    }
+
+    /* SQL cell: Jupyter-style — [In] gutter, editable code, Run button,
+       output appears directly below the same cell (not a shared results
+       pane elsewhere on the page). */
+    .sql-cell {
+      display: flex;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .cell-gutter {
+      flex: 0 0 50px;
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 0.75rem;
+      color: #7f8c8d;
+      text-align: right;
+      padding-top: 10px;
+    }
+
+    .cell-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cell-input-wrapper {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--code-bg);
+    }
+
+    .cell-textarea {
+      display: block;
+      width: 100%;
+      min-height: 60px;
+      padding: 12px;
+      border: none;
+      background: transparent;
+      color: var(--code-fg);
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    .cell-textarea:focus {
+      outline: none;
+    }
+
+    .cell-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .cell-run-btn {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 4px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    .cell-run-btn:hover {
+      background: #2980b9;
+    }
+
+    .cell-run-btn:disabled {
+      background: #95a5a6;
+      cursor: default;
+    }
+
+    .cell-status {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+    }
+
+    .cell-output {
+      margin-top: 8px;
+      display: none;
+    }
+
+    .cell-output.show {
+      display: block;
+    }
+
+    .cell-output-error {
+      padding: 10px 12px;
+      background: #fee;
+      border-left: 3px solid var(--warning);
+      color: var(--warning);
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      border-radius: 4px;
+    }
+
+    .cell-output-table-wrap {
+      max-height: 300px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    table.cell-output-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 0.8rem;
+    }
+
+    table.cell-output-table th {
+      background: var(--light);
+      padding: 6px 10px;
+      text-align: left;
+      position: sticky;
+      top: 0;
+    }
+
+    table.cell-output-table td {
+      padding: 5px 10px;
+      border-top: 1px solid #f0f0f0;
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .null { color: #95a5a6; font-style: italic; }
+
+    /* Map/Table tabs: shown only when a cell's result is a single raw-SVG
+       value (e.g. built with PostGIS's ST_AsSVG) rather than a row set. */
+    .cell-output-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .cell-tab-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      color: #555;
+      cursor: pointer;
+    }
+
+    .cell-tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .cell-output-svg {
+      background: var(--code-bg);
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .cell-output-svg svg {
+      width: 100%;
+      height: auto;
+      max-height: 480px;
+      display: block;
+    }
+
+    .loading-notebook {
+      text-align: center;
+      padding: 60px 20px;
+      color: #7f8c8d;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-nav">
+    <a href="/starter-kit.html" class="app-nav-item active">📓 Starter Kit</a>
+    <a href="/" class="app-nav-item">📖 Book Queries</a>
+  </div>
+
+  <div id="app"><div class="loading-notebook">Loading…</div></div>
+
+  <script>
+    let pages = [];
+
+    // No server-side routing needed for a 2-view single-page app: the menu
+    // is shown when the hash is empty, a page's notebook when it names a
+    // slug — plain hash-based client routing keeps this a single static
+    // asset like index.html, with no extra chi route per page.
+    async function init() {
+      try {
+        const res = await fetch('/api/starter-kit');
+        const data = await res.json();
+        pages = data.pages || [];
+
+        window.addEventListener('hashchange', render);
+        render();
+      } catch (err) {
+        document.getElementById('app').innerHTML =
+          `<div class="menu"><div class="cell-output-error">Failed to load starter kit: ${escapeHtml(err.message)}</div></div>`;
+      }
+    }
+
+    function render() {
+      const slug = window.location.hash.replace(/^#/, '');
+      if (slug) {
+        renderPage(slug);
+      } else {
+        renderMenu();
+      }
+    }
+
+    // One-line pitch per page, matching the root README's "What you'll
+    // learn" list — curated copy, not auto-extracted from the page body, so
+    // it stays short and consistent even as the pages themselves evolve.
+    // Font Awesome Free 6 solid icons (MIT/CC-BY-licensed path data,
+    // https://github.com/FortAwesome/Font-Awesome), inlined as raw SVG
+    // rather than pulled from the Font Awesome CDN's webfont — this app is
+    // a single self-contained Go binary with no other external runtime
+    // dependency, and a handful of inline icons keeps it that way.
+    const FA_ICONS = {
+      bullseye:      { vb: '0 0 512 512', d: 'M448 256A192 192 0 1 0 64 256a192 192 0 1 0 384 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 80a80 80 0 1 0 0-160 80 80 0 1 0 0 160zm0-224a144 144 0 1 1 0 288 144 144 0 1 1 0-288zM224 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z' },
+      'chart-column': { vb: '0 0 512 512', d: 'M32 32c17.7 0 32 14.3 32 32l0 336c0 8.8 7.2 16 16 16l400 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L80 480c-44.2 0-80-35.8-80-80L0 64C0 46.3 14.3 32 32 32zM160 224c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32zm128-64l0 160c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-160c0-17.7 14.3-32 32-32s32 14.3 32 32zm64 32c17.7 0 32 14.3 32 32l0 96c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-96c0-17.7 14.3-32 32-32zM480 96l0 224c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-224c0-17.7 14.3-32 32-32s32 14.3 32 32z' },
+      'arrow-trend-up': { vb: '0 0 576 512', d: 'M384 160c-17.7 0-32-14.3-32-32s14.3-32 32-32l160 0c17.7 0 32 14.3 32 32l0 160c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-82.7L342.6 374.6c-12.5 12.5-32.8 12.5-45.3 0L192 269.3 54.6 406.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l160-160c12.5-12.5 32.8-12.5 45.3 0L320 306.7 466.7 160 384 160z' },
+      'location-dot': { vb: '0 0 384 512', d: 'M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z' },
+      map:            { vb: '0 0 576 512', d: 'M384 476.1L192 421.2l0-385.3L384 90.8l0 385.3zm32-1.2l0-386.5L543.1 37.5c15.8-6.3 32.9 5.3 32.9 22.3l0 334.8c0 9.8-6 18.6-15.1 22.3L416 474.8zM15.1 95.1L160 37.2l0 386.5L32.9 474.5C17.1 480.8 0 469.2 0 452.2L0 117.4c0-9.8 6-18.6 15.1-22.3z' },
+      water:          { vb: '0 0 576 512', d: 'M269.5 69.9c11.1-7.9 25.9-7.9 37 0C329 85.4 356.5 96 384 96c26.9 0 55.4-10.8 77.4-26.1c0 0 0 0 0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 149.7 417 160 384 160c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4C42.8 92.6 61 83.5 75.3 71.6c11.1-9.5 27.3-10.1 39.2-1.7c0 0 0 0 0 0C136.7 85.2 165.1 96 192 96c27.5 0 55-10.6 77.5-26.1zm37 288C329 373.4 356.5 384 384 384c26.9 0 55.4-10.8 77.4-26.1c0 0 0 0 0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 437.7 417 448 384 448c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4c18.1-4.2 36.2-13.3 50.6-25.2c11.1-9.4 27.3-10.1 39.2-1.7c0 0 0 0 0 0C136.7 373.2 165.1 384 192 384c27.5 0 55-10.6 77.5-26.1c11.1-7.9 25.9-7.9 37 0zm0-144C329 229.4 356.5 240 384 240c26.9 0 55.4-10.8 77.4-26.1c0 0 0 0 0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 293.7 417 304 384 304c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4c18.1-4.2 36.2-13.3 50.6-25.2c11.1-9.5 27.3-10.1 39.2-1.7c0 0 0 0 0 0C136.7 229.2 165.1 240 192 240c27.5 0 55-10.6 77.5-26.1c11.1-7.9 25.9-7.9 37 0z' },
+    };
+
+    function faIcon(name) {
+      const icon = FA_ICONS[name];
+      return `<svg class="icon" viewBox="${icon.vb}" xmlns="http://www.w3.org/2000/svg"><path d="${icon.d}"/></svg>`;
+    }
+
+    const PAGE_BLURBS = {
+      '01-nested-lateral': { icon: 'bullseye', blurb: 'Solve top-N per group problems cleanly with a LATERAL join.' },
+      '02-grouping-sets':  { icon: 'chart-column', blurb: 'Compute multiple aggregations in a single query with GROUPING SETS + FILTER.' },
+      '03-percentiles':    { icon: 'arrow-trend-up', blurb: 'Calculate multiple percentiles efficiently with percentile_cont().' },
+      '04-knn-search':     { icon: 'location-dot', blurb: 'Find the closest rows with the <-> operator and a GiST index.' },
+      '05-map-as-text':    { icon: 'map', blurb: 'Render a density map as text — no graphics library required.' },
+      '06-recursive-rivers': { icon: 'water', blurb: 'Walk a river network, or any tree, by following a parent reference.' },
+    };
+
+    function renderMenu() {
+      const app = document.getElementById('app');
+      const cards = pages.map((p, i) => {
+        const meta = PAGE_BLURBS[p.slug] || { icon: 'map', blurb: '' };
+        return `
+        <a class="page-card" href="#${encodeURIComponent(p.slug)}">
+          ${faIcon(meta.icon)}
+          <span class="num">STEP ${String(i + 1).padStart(2, '0')}</span>
+          <div class="title">${escapeHtml(p.title)}</div>
+          <p class="blurb">${escapeHtml(meta.blurb)}</p>
+          <span class="start">Start this lab &rarr;</span>
+        </a>
+      `;
+      }).join('');
+
+      app.innerHTML = `
+        <div class="menu-hero">
+          <h1>PostgreSQL Starter Kit</h1>
+          <p class="subtitle">Six hand-picked queries that demonstrate PostgreSQL features that
+             are not widely known despite being very useful — run each one directly against
+             the lab database as you read.</p>
+        </div>
+        <div class="menu">
+          <div class="page-list">${cards}</div>
+        </div>
+      `;
+    }
+
+    async function renderPage(slug) {
+      const app = document.getElementById('app');
+      app.innerHTML = '<div class="loading-notebook">Loading…</div>';
+
+      try {
+        const res = await fetch(`/api/starter-kit/${encodeURIComponent(slug)}`);
+        if (!res.ok) {
+          const text = await res.text();
+          app.innerHTML = `<div class="notebook"><div class="cell-output-error">${escapeHtml(text)}</div></div>`;
+          return;
+        }
+        const page = await res.json();
+
+        const notebook = document.createElement('div');
+        notebook.className = 'notebook';
+
+        const header = document.createElement('div');
+        header.className = 'notebook-header';
+        header.innerHTML = `<a class="back-to-menu" href="#">← All pages</a>`;
+        notebook.appendChild(header);
+
+        let sqlCellCount = 0;
+        (page.cells || []).forEach(cell => {
+          if (cell.type === 'markdown') {
+            const div = document.createElement('div');
+            div.className = 'markdown-cell';
+            div.innerHTML = cell.html;
+            notebook.appendChild(div);
+          } else if (cell.type === 'sql') {
+            sqlCellCount++;
+            notebook.appendChild(renderSQLCell(cell.sql, sqlCellCount));
+          }
+        });
+
+        app.innerHTML = '';
+        app.appendChild(notebook);
+      } catch (err) {
+        app.innerHTML = `<div class="notebook"><div class="cell-output-error">${escapeHtml(err.message)}</div></div>`;
+      }
+    }
+
+    // Each SQL cell is fully self-contained: its own textarea, Run button,
+    // and output area right below it — Jupyter's model of "this cell's
+    // result belongs to this cell", not a single shared results pane like
+    // the main Book Queries page uses.
+    function renderSQLCell(sql, index) {
+      const row = document.createElement('div');
+      row.className = 'sql-cell';
+
+      const gutter = document.createElement('div');
+      gutter.className = 'cell-gutter';
+      gutter.textContent = `In [${index}]:`;
+      row.appendChild(gutter);
+
+      const body = document.createElement('div');
+      body.className = 'cell-body';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'cell-input-wrapper';
+      const textarea = document.createElement('textarea');
+      textarea.className = 'cell-textarea';
+      textarea.value = sql;
+      textarea.spellcheck = false;
+      textarea.rows = Math.min(14, Math.max(2, sql.split('\n').length));
+      wrapper.appendChild(textarea);
+      body.appendChild(wrapper);
+
+      const actions = document.createElement('div');
+      actions.className = 'cell-actions';
+      const runBtn = document.createElement('button');
+      runBtn.className = 'cell-run-btn';
+      runBtn.textContent = '▶ Run';
+      const status = document.createElement('span');
+      status.className = 'cell-status';
+      actions.appendChild(runBtn);
+      actions.appendChild(status);
+      body.appendChild(actions);
+
+      const output = document.createElement('div');
+      output.className = 'cell-output';
+      body.appendChild(output);
+
+      runBtn.addEventListener('click', () => runCell(textarea, runBtn, status, output));
+      textarea.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') runCell(textarea, runBtn, status, output);
+      });
+
+      // Delegated once per cell (not re-attached per run) so it keeps working
+      // across re-renders of `output` on repeated Run clicks.
+      output.addEventListener('click', e => {
+        const btn = e.target.closest('.cell-tab-btn');
+        if (!btn) return;
+        const tab = btn.dataset.tab;
+        output.querySelectorAll('.cell-tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+        output.querySelectorAll('.cell-tab-content').forEach(c => {
+          c.style.display = c.dataset.tab === tab ? '' : 'none';
+        });
+      });
+
+      row.appendChild(body);
+      return row;
+    }
+
+    async function runCell(textarea, runBtn, status, output) {
+      const sql = textarea.value.trim();
+      if (!sql) return;
+
+      runBtn.disabled = true;
+      status.textContent = 'Running…';
+      output.classList.remove('show');
+
+      try {
+        const res = await fetch('/api/query/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sql })
+        });
+        const result = await res.json();
+
+        if (result.error) {
+          output.innerHTML = `<div class="cell-output-error">${escapeHtml(result.error)}</div>`;
+          status.textContent = '';
+        } else {
+          output.innerHTML = renderCellResult(result);
+          status.textContent = `${result.row_count} row(s), ${result.timing_ms.toFixed(2)}ms`;
+        }
+        output.classList.add('show');
+      } catch (err) {
+        output.innerHTML = `<div class="cell-output-error">${escapeHtml(err.message)}</div>`;
+        output.classList.add('show');
+        status.textContent = '';
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    function renderCellResult(result) {
+      if (result.command_tag && (!result.rows || result.rows.length === 0)) {
+        return `<p><strong>${escapeHtml(result.command_tag)}</strong></p>`;
+      }
+      if (!result.rows || result.rows.length === 0) {
+        return '<p>No rows returned.</p>';
+      }
+
+      const tableHTML = renderTable(result);
+      const svg = extractSVG(result);
+      if (!svg) return tableHTML;
+
+      // A query built to hand back one finished `<svg>...</svg>` string (the
+      // starter kit's PostGIS -> SVG examples) gets a Map tab in front of the
+      // raw single-cell table, rather than a wall of path-data text.
+      return `
+        <div class="cell-output-tabs">
+          <button class="cell-tab-btn active" data-tab="map">Map</button>
+          <button class="cell-tab-btn" data-tab="table">Table</button>
+        </div>
+        <div class="cell-tab-content" data-tab="map">${svg}</div>
+        <div class="cell-tab-content" data-tab="table" style="display:none">${tableHTML}</div>
+      `;
+    }
+
+    function renderTable(result) {
+      let html = '<div class="cell-output-table-wrap"><table class="cell-output-table"><thead><tr>';
+      result.columns.forEach(col => { html += `<th>${escapeHtml(col)}</th>`; });
+      html += '</tr></thead><tbody>';
+
+      result.rows.forEach(row => {
+        html += '<tr>';
+        result.columns.forEach(col => {
+          const value = row[col];
+          const display = value === null || value === undefined
+            ? '<span class="null">NULL</span>'
+            : escapeHtml(typeof value === 'object' ? JSON.stringify(value) : String(value));
+          html += `<td>${display}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      html += '</tbody></table></div>';
+      return html;
+    }
+
+    // Detects the starter kit's "one row, one column, raw <svg> markup"
+    // convention (the natural output of a query ending in a PostGIS
+    // ST_AsSVG(...) string-build) so it can get the Map tab treatment
+    // instead of being shown as an unreadable single table cell.
+    function extractSVG(result) {
+      if (result.columns.length !== 1 || result.rows.length !== 1) return null;
+      const value = result.rows[0][result.columns[0]];
+      if (typeof value !== 'string') return null;
+      const trimmed = value.trim();
+      if (!trimmed.startsWith('<svg')) return null;
+      return `<div class="cell-output-svg">${ensureSvgDimensions(trimmed)}</div>`;
+    }
+
+    // A bare `<svg viewBox="...">` with no width/height attributes has no
+    // intrinsic size of its own, only an aspect ratio — and CSS `height:
+    // auto` on a sized-by-percentage-width replaced element isn't reliably
+    // derived from that aspect ratio across browsers (some fall back to the
+    // SVG spec's 300x150 default, rendering a tall, mostly-empty box). Query
+    // results here never set width/height on the SVG they build, so add
+    // them explicitly from the viewBox before the browser ever lays it out.
+    function ensureSvgDimensions(svgMarkup) {
+      if (/<svg[^>]*\swidth=/.test(svgMarkup)) return svgMarkup;
+      const m = svgMarkup.match(/viewBox="\s*[-\d.eE]+\s+[-\d.eE]+\s+([\d.eE]+)\s+([\d.eE]+)\s*"/);
+      if (!m) return svgMarkup;
+      const w = parseFloat(m[1]), h = parseFloat(m[2]);
+      if (!(w > 0) || !(h > 0)) return svgMarkup;
+      // The viewBox on a PostGIS-built map is in degrees (e.g. 0.009 wide),
+      // and some browsers treat sub-1 width/height attributes as too small
+      // to establish a usable intrinsic size — renderGeoJSONMap works around
+      // the same problem by hardcoding pixel-scale 260x180. Do the same
+      // here: normalize to a reasonable pixel-scale size, same aspect ratio.
+      const scale = 800 / Math.max(w, h);
+      const pxW = Math.round(w * scale), pxH = Math.round(h * scale);
+      return svgMarkup.replace('<svg ', `<svg width="${pxW}" height="${pxH}" `);
+    }
+
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    init();
+  </script>
+</body>
+</html>

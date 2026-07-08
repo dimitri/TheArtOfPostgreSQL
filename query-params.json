@@ -1,0 +1,23 @@
+{
+  "_comment": "Some book queries deliberately show bare :name / :n parameters with no \\set — the book uses them to illustrate passing values from application code (regresql-style bind params, see queries/regresql/plans/), not psql variables. Running one of these directly in query-ui would hit an unresolved ':name' and fail. Each entry here is the literal \\set line(s) query-ui prepends when serving that file, so it's immediately runnable — the .sql files on disk are untouched. Values are illustrative sample data, not part of the book's text. QUOTING: a plain \\set name 'Queen' stores the *unquoted* text Queen (psql strips the assignment's quotes the same way a shell would) -- fine for a query that itself does :'name' (the query adds the quotes back at substitution time), but wrong for a query using bare :name where a string is expected, which needs the *stored value itself* to already contain literal quote characters: \\set name '''Queen''' (the doubled '' decode to one literal quote, same trick the book uses for \\set season 'date ''1978-01-01'''). Check which form (:name vs :'name') the target query actually uses before adding an entry.",
+
+  "03-writing-sql-queries/06-application-use-case/04_01_artist.sql": [
+    "\\set n 10"
+  ],
+  "03-writing-sql-queries/06-application-use-case/05_01_album-by-artist.sql": [
+    "\\set name '''Queen'''"
+  ],
+  "03-writing-sql-queries/07-psql/04_01_alesi.sql": [
+    "\\set name Alesi",
+    "\\set n 3"
+  ],
+  "07-concurrency/37-isolation-locking/07_02.sql": [
+    "\\set id 1"
+  ],
+  "07-concurrency/37-isolation-locking/07_03.sql": [
+    "\\set id 1"
+  ],
+  "07-concurrency/37-isolation-locking/07_04.sql": [
+    "\\set id 1"
+  ]
+}

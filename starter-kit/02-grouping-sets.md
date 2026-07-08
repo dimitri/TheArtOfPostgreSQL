@@ -178,14 +178,30 @@ select season,
 Join back to find who achieved those top scores:
 
 ```sql
+with points as (
+    select year as season, driverid, constructorid, sum(points) as points
+      from results join races using(raceid)
+     group by grouping sets((year, driverid), (year, constructorid))
+),
+tops as (
+    select season,
+           max(points) filter(where driverid is not null) as driver_pts,
+           max(points) filter(where constructorid is not null) as constructor_pts
+      from points
+     group by season
+)
 -- Join the tops CTE to the points CTE twice:
 -- once to find the driver, once to find the constructor
-from tops
-join points as champ_driver on champ_driver.season = tops.season
-                     and champ_driver.constructorid is null
-                     and champ_driver.points = tops.dtops
-join points as champ_constructor on champ_constructor.season = tops.season
-                               and champ_constructor.driverid is null
-                               and champ_constructor.points = tops.ctops
+select tops.season,
+       champ_driver.driverid,
+       champ_constructor.constructorid
+  from tops
+       join points as champ_driver on champ_driver.season = tops.season
+                            and champ_driver.constructorid is null
+                            and champ_driver.points = tops.driver_pts
+       join points as champ_constructor on champ_constructor.season = tops.season
+                                 and champ_constructor.driverid is null
+                                 and champ_constructor.points = tops.constructor_pts
+ order by tops.season;
 ```
 

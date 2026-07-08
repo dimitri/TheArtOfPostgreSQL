@@ -114,5 +114,28 @@ services:
     tty: true
     command: ["psql"]
 
+  query-ui:
+    build:
+      context: .
+      dockerfile: src/query-ui/Dockerfile
+    ports:
+      - "8042:8042"
+    environment:
+      DATABASE_URL: postgresql://taop:taop@postgres:5432/taop
+    volumes:
+      - ./queries:/queries:ro
+      - ./toc.txt:/toc.txt:ro
+      - ./query-params.json:/query-params.json:ro
+      - ./starter-kit:/starter-kit:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      # scratch base image has no shell/wget; the binary probes itself instead
+      test: ["CMD", "/query-ui", "-healthcheck", "-port", "8042"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
