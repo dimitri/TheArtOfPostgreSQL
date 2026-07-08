@@ -10,16 +10,16 @@ as $$
 declare
   rec record;
 begin
-  for rec in select albumid
+  for rec in select album_id
                from album
-                    join artist using(artistid)
+                    join artist using(artist_id)
               where album.name = get_all_albums.name
   loop
        select title, sum(milliseconds) * interval '1ms'
          into album, duration
          from album
-              left join track using(albumid)
-        where albumid = record.albumid
+              left join track using(album_id)
+        where album_id = record.album_id
      group by title
      order by title;
 

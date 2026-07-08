@@ -1,3 +1,6 @@
+\set beginning '2017-04-01'
+\set months 3
+
 select date, name, drivers.surname as winner
   from races
        left join

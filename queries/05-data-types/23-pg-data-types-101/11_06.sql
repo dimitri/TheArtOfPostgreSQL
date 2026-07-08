@@ -1,5 +1,7 @@
 set lc_time to 'fr_FR';
 
+\set day '2017-06-01'
+
   select to_char(ats, 'TMDay TMDD TMMonth, HHam') as time,
          substring(hash from 1 for 8) as hash,
          substring(subject from 1 for 40) || '…' as subject

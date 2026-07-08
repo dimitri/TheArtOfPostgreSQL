@@ -1,4 +1,4 @@
   select name
     from track
-   where albumid = 193
-order by trackid;
+   where album_id = 193
+order by track_id;

@@ -1,3 +1,5 @@
+\set start '2017-02-01'
+
 with computed_data as
 (
   select cast(date as date)   as date,
