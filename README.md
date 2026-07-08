@@ -84,6 +84,9 @@ Open **http://localhost:8042** — two views, switchable from the top nav:
   query per file, with a SQL editor, `EXPLAIN` (Text/Diagram/JSON tabs), CSV
   export, and a read-only/read-write toggle for the handful of queries that
   need `CREATE`/`INSERT`.
+
+  ![Book Queries: the top-3-drivers-per-decade query and its EXPLAIN diagram](img/query-ui-explain.png)
+
 - **Starter Kit** (http://localhost:8042/starter-kit.html) — the same
   six-lab walkthrough described below, but as a runnable notebook: click
   **▶ Run** on any cell and see results inline, right next to the prose that
