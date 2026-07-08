@@ -1,0 +1,1790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Art of PostgreSQL - Book Queries</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #3498db;
+      --dark: #2c3e50;
+      --light: #ecf0f1;
+      --border: #bdc3c7;
+      --success: #27ae60;
+      --warning: #e74c3c;
+      --code-bg: #282c34;
+      --code-fg: #abb2bf;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* Shared app switcher — identical markup/styling on this page and
+       starter-kit.html, so "Book Queries" and "Starter Kit" read as two
+       views of one app rather than two unrelated pages. */
+    .app-nav {
+      flex-shrink: 0;
+      display: flex;
+      gap: 6px;
+      padding: 8px 16px;
+      background: #1a252f;
+    }
+
+    .app-nav-item {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .app-nav-item:hover {
+      color: white;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .app-nav-item.active {
+      color: white;
+      background: var(--primary);
+    }
+
+    .container {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Sidebar: Part > Chapter > Section > Query, all in one drill-down tree.
+       This replaces the old separate "queries panel" in the main content
+       area — one navigation surface instead of two, leaving the editor the
+       full remaining width. */
+    .sidebar {
+      width: 320px;
+      flex-shrink: 0;
+      background: var(--dark);
+      color: white;
+      overflow-y: auto;
+      border-right: 1px solid rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      transition: width 0.2s, min-width 0.2s;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      overflow: hidden;
+      border-right: none;
+    }
+
+    .sidebar-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.1rem;
+      margin-bottom: 4px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .sidebar-header .subtitle {
+      font-size: 0.8rem;
+      opacity: 0.8;
+      white-space: nowrap;
+    }
+
+    .toc-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 0;
+    }
+
+    .part {
+      padding: 9px 15px;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: background 0.15s;
+      font-weight: 600;
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+
+    .part:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .part.expanded {
+      background: rgba(52,152,219,0.15);
+      border-left-color: var(--primary);
+    }
+
+    .chapters-list {
+      display: none;
+    }
+
+    .part.expanded .chapters-list {
+      display: block;
+    }
+
+    .chapter {
+      padding: 7px 15px 7px 30px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      border-left: 2px solid transparent;
+      transition: background 0.15s;
+      opacity: 0.9;
+    }
+
+    .chapter:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .chapter.active {
+      background: rgba(52,152,219,0.25);
+      border-left-color: var(--success);
+      opacity: 1;
+    }
+
+    .sections-list {
+      display: none;
+    }
+
+    .chapter.expanded .sections-list {
+      display: block;
+    }
+
+    .section {
+      padding: 6px 15px 6px 42px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      opacity: 0.85;
+      border-left: 2px solid transparent;
+      transition: background 0.15s;
+    }
+
+    .section:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .queries-list {
+      display: none;
+    }
+
+    .section.expanded .queries-list {
+      display: block;
+    }
+
+    .query-item {
+      padding: 5px 15px 5px 56px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-family: "Monaco", "Courier New", monospace;
+      opacity: 0.75;
+      border-left: 2px solid transparent;
+      transition: background 0.15s;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .query-item:hover {
+      background: rgba(255,255,255,0.08);
+      opacity: 1;
+    }
+
+    .query-item.active {
+      background: var(--primary);
+      border-left-color: var(--success);
+      opacity: 1;
+    }
+
+    /* The leading "04_01" in a filename like "04_01_artist.sql" is the
+       query's number within the section, not part of its name — shown as
+       a distinct badge so "artist.sql" reads as the actual filename. */
+    .query-item-num {
+      display: inline-block;
+      min-width: 2.4em;
+      color: var(--success);
+      opacity: 0.9;
+    }
+
+    .no-queries {
+      padding: 4px 15px 4px 56px;
+      font-size: 0.75rem;
+      opacity: 0.4;
+      font-style: italic;
+    }
+
+    /* Main content: header + full-width editor */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .main-header {
+      background: white;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-toggle {
+      background: var(--light);
+      border: none;
+      border-radius: 4px;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .sidebar-toggle:hover {
+      background: #d5dbdb;
+    }
+
+    .main-header-text {
+      min-width: 0;
+    }
+
+    .main-header h2 {
+      font-size: 1.2rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .main-header .chapter-path {
+      font-size: 0.8rem;
+      color: #7f8c8d;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Editor: now the sole occupant of the main content area */
+    .editor-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: white;
+      overflow: hidden;
+    }
+
+    .editor-header {
+      padding: 12px 20px;
+      background: var(--light);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .editor-header h3 {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .editor-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(52,152,219,0.3);
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #333;
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #d5dbdb;
+    }
+
+    /* Read-only is the safe default (matches every prior behavior exactly);
+       switching to read-write is an explicit, clearly-marked opt-in — CREATE
+       TABLE/INSERT/UPDATE/DELETE otherwise fail with a Postgres-level
+       "cannot execute X in a read-only transaction" error. The whole editor
+       gets a red accent while armed so it's unmistakable which mode is
+       live before running anything destructive. */
+    .mode-toggle {
+      padding: 8px 14px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: var(--light);
+      color: #333;
+      transition: all 0.2s;
+    }
+
+    .mode-toggle.armed {
+      background: var(--warning);
+      border-color: var(--warning);
+      color: white;
+    }
+
+    .editor-panel.readwrite-armed .query-input-wrapper {
+      box-shadow: 0 0 0 2px var(--warning);
+    }
+
+    .editor-panel.readwrite-armed .editor-header {
+      background: #fdeeec;
+    }
+
+    .editor-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 20px;
+      gap: 15px;
+    }
+
+    /* The query input now gets a generous default height (was a cramped
+       140px) and can be dragged taller by the user; the results area below
+       absorbs whatever space is left. */
+    .query-input-area {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .query-input-label {
+      padding: 8px 15px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #7f8c8d;
+      background: var(--light);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* The SQL editor is a dark, syntax-highlighted surface like the
+       read-only .query-view below, but still has to stay editable — a
+       plain <textarea> can only render flat, uncolored text, so this is the
+       standard "invisible textarea over a highlighted <pre>" overlay: both
+       layers share identical padding/font metrics and sit exactly on top of
+       each other, the textarea's actual glyphs are made transparent (only
+       the caret and text selection stay visible), and the highlighted <pre>
+       underneath is what the user actually sees rendered. Typing re-renders
+       the <pre> and the two layers' scroll positions are kept in sync in
+       JS (see updateSQLHighlight/syncHighlightScroll). */
+    .query-input-wrapper {
+      position: relative;
+      flex: 0 0 auto;
+      height: 260px;
+      min-height: 120px;
+      max-height: 60vh;
+      resize: vertical;
+      overflow: hidden;
+      background: var(--code-bg);
+    }
+
+    .query-input-highlight,
+    .query-input {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      padding: 15px;
+      border: none;
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      overflow: auto;
+    }
+
+    .query-input-highlight {
+      pointer-events: none;
+      color: var(--code-fg);
+    }
+
+    .query-input {
+      z-index: 1;
+      background: transparent;
+      color: transparent;
+      caret-color: var(--code-fg);
+      resize: none; /* dragging happens on .query-input-wrapper instead */
+    }
+
+    .query-input::placeholder {
+      color: #6b7280;
+      opacity: 1;
+    }
+
+    .query-input:focus {
+      outline: none;
+    }
+
+    /* Non-SQL files (the book's .py/.java companion scripts and .diff
+       patches) are loaded for reading only: no Run/EXPLAIN, no output pane —
+       there is nothing to execute or to show a result for — and the input
+       area expands to fill the space the (now hidden) output pane would
+       have used, since a full script or patch benefits from the room. */
+    .editor-panel.readonly-script #run-btn,
+    .editor-panel.readonly-script #explain-btn,
+    .editor-panel.readonly-script #clear-btn,
+    .editor-panel.readonly-script #results-area,
+    .editor-panel.readonly-script #error-container,
+    .editor-panel.readonly-script #loading {
+      display: none !important;
+    }
+
+    .editor-panel.readonly-script .query-input-area {
+      flex: 1;
+    }
+
+    .editor-panel.readonly-script .query-input-wrapper {
+      display: none;
+    }
+
+    /* Read-only syntax-highlighted view for .py/.java/.diff files, shown in
+       place of the (editable, SQL-only) textarea above. Plain <textarea>
+       can't render colored spans, and these files are never executed or
+       edited, so a <pre><code> populated with highlighted markup is simpler
+       than wiring up an editable-overlay code editor. */
+    .query-view {
+      display: none;
+      flex: 1;
+      margin: 0;
+      padding: 15px;
+      overflow: auto;
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 0.95rem;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      white-space: pre;
+    }
+
+    .editor-panel.readonly-script .query-view {
+      display: block;
+    }
+
+    .tok-keyword   { color: #c678dd; }
+    .tok-string    { color: #98c379; }
+    .tok-comment   { color: #7f848e; font-style: italic; }
+    .tok-number    { color: #d19a66; }
+    .tok-key       { color: #61afef; }
+    .tok-diff-add  { color: #98c379; }
+    .tok-diff-remove { color: #e06c75; }
+    .tok-diff-hunk { color: #61afef; }
+    .tok-diff-file { color: #e5c07b; font-weight: 600; }
+    .tok-diff-meta { color: #7f848e; }
+
+    .explain-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .explain-tab {
+      padding: 6px 14px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #7f8c8d;
+      border-bottom: 2px solid transparent;
+    }
+
+    .explain-tab:hover {
+      color: #333;
+    }
+
+    .explain-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* jsonb columns (decoded natively by pgx into a real object) and
+       jsonb_pretty()/to_json() text output both render as a pretty-printed,
+       syntax-highlighted block instead of "[object Object]" or an
+       unreadable single-line string. A max-height keeps one large JSON
+       value from dominating the whole results table; it scrolls internally. */
+    .json-cell {
+      margin: 0;
+      max-height: 200px;
+      overflow: auto;
+      background: var(--code-bg);
+      color: var(--code-fg);
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      white-space: pre;
+    }
+
+    /* The EXPLAIN JSON tab reuses the same syntax-highlighted renderer as
+       results-table JSON cells, but has the whole tab area to work with
+       rather than one table cell — let it use much more of it. */
+    .explain-tab-content .json-cell {
+      max-height: 65vh;
+      font-size: 0.85rem;
+    }
+
+    .results-table td.td-json {
+      white-space: normal;
+      max-width: 400px;
+      overflow: visible;
+      text-overflow: clip;
+      vertical-align: top;
+    }
+
+    .cell-output-svg {
+      background: var(--code-bg);
+      border-radius: 6px;
+      padding: 10px;
+      max-width: 480px;
+    }
+
+    .cell-output-svg svg {
+      width: 100%;
+      height: auto;
+      max-height: 420px;
+      display: block;
+    }
+
+    /* Results area */
+    .results-area {
+      flex: 1;
+      overflow: auto;
+      display: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      min-height: 0;
+    }
+
+    .results-area.show {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .results-header {
+      padding: 10px 15px;
+      background: var(--light);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .results-header h4 {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .results-content {
+      flex: 1;
+      overflow: auto;
+      padding: 15px;
+      background: white;
+      font-family: "Monaco", "Courier New", monospace;
+    }
+
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    .results-table th {
+      background: var(--light);
+      padding: 10px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .results-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .results-table tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    .results-table td {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .results-table td.null {
+      color: #95a5a6;
+      font-style: italic;
+    }
+
+    /* Messages */
+    .error-message {
+      display: none;
+      flex: 0 0 auto;
+      padding: 15px;
+      background: #fee;
+      border-left: 4px solid var(--warning);
+      color: var(--warning);
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      padding: 10px;
+      text-align: center;
+      color: var(--primary);
+      font-weight: 500;
+      flex: 0 0 auto;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .loading::after {
+      content: " ⏳";
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar {
+        position: fixed;
+        z-index: 100;
+        height: 100vh;
+      }
+
+      .sidebar:not(.collapsed) {
+        width: 280px;
+      }
+
+      .query-input {
+        height: 180px;
+      }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #bdc3c7;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #95a5a6;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-nav">
+    <a href="/starter-kit.html" class="app-nav-item">📓 Starter Kit</a>
+    <a href="/" class="app-nav-item active">📖 Book Queries</a>
+  </div>
+  <div class="container">
+    <!-- Sidebar: full drill-down tree, Part > Chapter > Section > Query -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h1>📖 The Art of PostgreSQL</h1>
+        <div class="subtitle">Book Queries (Local)</div>
+      </div>
+
+      <div class="toc-container" id="toc-container">
+        <!-- Populated by JavaScript -->
+      </div>
+    </aside>
+
+    <!-- Main Content: header + full-width editor -->
+    <main class="main">
+      <div class="main-header">
+        <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle navigation">☰</button>
+        <div class="main-header-text">
+          <h2 id="chapter-title">Welcome</h2>
+          <div class="chapter-path" id="chapter-path">Select a query from the sidebar to get started</div>
+        </div>
+      </div>
+
+      <div class="editor-panel" id="editor-panel">
+        <div class="editor-header">
+          <h3>Query Editor</h3>
+          <div class="editor-buttons">
+            <button class="mode-toggle" id="mode-toggle" title="Switch between read-only and read-write execution">
+              🔒 Read-only
+            </button>
+            <button class="btn btn-primary" id="run-btn">▶ Run</button>
+            <button class="btn btn-secondary" id="explain-btn">📊 EXPLAIN</button>
+            <button class="btn btn-secondary" id="clear-btn">✕ Clear</button>
+          </div>
+        </div>
+
+        <div class="editor-content">
+          <div class="query-input-area">
+            <div class="query-input-label" id="query-input-label">SQL Query (Ctrl+Enter to run, drag bottom edge to resize)</div>
+            <div class="query-input-wrapper" id="query-input-wrapper">
+              <pre class="query-input-highlight" id="query-input-highlight" aria-hidden="true"><code id="query-input-highlight-code"></code></pre>
+              <textarea class="query-input" id="query-input" placeholder="SELECT * FROM f1db.drivers LIMIT 10;" spellcheck="false"></textarea>
+            </div>
+            <pre class="query-view" id="query-view"><code id="query-view-code"></code></pre>
+          </div>
+
+          <div id="error-container" class="error-message"></div>
+
+          <div id="results-area" class="results-area">
+            <div class="results-header">
+              <h4 id="results-title">Results</h4>
+              <button class="btn btn-secondary" id="download-csv">↓ CSV</button>
+            </div>
+            <div id="results-content" class="results-content">
+              <!-- Populated by JavaScript -->
+            </div>
+          </div>
+
+          <div class="loading" id="loading">Executing query</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let toc = null;
+    let lastResult = null;
+    let currentLanguage = 'sql';
+    let readWriteMode = false;
+
+    // Initialize
+    // Shown on first load instead of an empty editor with a placeholder —
+    // README.md's own "Run this. See why PostgreSQL matters." example, so
+    // clicking Run works immediately with no query picked and no typing.
+    const DEFAULT_QUERY_PATH = '04-sql-select/15-sql-102/03_01_f1db.decade.top3.sql';
+
+    function findQueryLocation(path) {
+      for (const part of toc.Parts || []) {
+        for (const chapter of part.Chapters || []) {
+          for (const section of chapter.Sections || []) {
+            for (const q of section.Queries || []) {
+              if (q.Path === path) return { chapter, section };
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    async function init() {
+      try {
+        const tocRes = await fetch('/api/toc');
+        toc = await tocRes.json();
+
+        renderTOC();
+        setupEventListeners();
+
+        const loc = findQueryLocation(DEFAULT_QUERY_PATH);
+        if (loc) {
+          await loadQuery(loc.chapter, loc.section, DEFAULT_QUERY_PATH);
+        }
+
+        console.log('✓ Initialized');
+      } catch (err) {
+        console.error('Initialization error:', err);
+        showError('Failed to load TOC: ' + err.message);
+      }
+    }
+
+    function renderTOC() {
+      const container = document.getElementById('toc-container');
+      container.innerHTML = '';
+
+      if (!toc || !toc.Parts) return;
+
+      toc.Parts.forEach(part => {
+        const partEl = document.createElement('div');
+        partEl.className = 'part';
+        partEl.innerHTML = `<div>${part.Num}. ${part.Title}</div>`;
+
+        const chaptersEl = document.createElement('div');
+        chaptersEl.className = 'chapters-list';
+
+        (part.Chapters || []).forEach(chapter => {
+          const chapterEl = renderChapter(chapter);
+          chaptersEl.appendChild(chapterEl);
+        });
+
+        partEl.appendChild(chaptersEl);
+
+        partEl.addEventListener('click', (e) => {
+          if (e.target === partEl || e.target.parentElement === partEl) {
+            partEl.classList.toggle('expanded');
+          }
+        });
+
+        container.appendChild(partEl);
+      });
+    }
+
+    function renderChapter(chapter) {
+      const chapterEl = document.createElement('div');
+      chapterEl.className = 'chapter';
+      chapterEl.textContent = `${chapter.Num} ${chapter.Title}`;
+      chapterEl.dataset.chapter = chapter.Num;
+
+      const sectionsEl = document.createElement('div');
+      sectionsEl.className = 'sections-list';
+
+      const sections = chapter.Sections || [];
+      if (sections.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'no-queries';
+        empty.textContent = 'No sections';
+        sectionsEl.appendChild(empty);
+      } else {
+        sections.forEach(section => {
+          sectionsEl.appendChild(renderSection(chapter, section));
+        });
+      }
+
+      chapterEl.appendChild(sectionsEl);
+
+      chapterEl.addEventListener('click', (e) => {
+        if (e.target === chapterEl) {
+          chapterEl.classList.toggle('expanded');
+          markActiveChapter(chapter);
+        }
+      });
+
+      return chapterEl;
+    }
+
+    function renderSection(chapter, section) {
+      const sectionEl = document.createElement('div');
+      sectionEl.className = 'section';
+      sectionEl.textContent = `${section.Num} ${section.Title}`;
+
+      const queriesEl = document.createElement('div');
+      queriesEl.className = 'queries-list';
+
+      const refs = section.Queries || [];
+      if (refs.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'no-queries';
+        empty.textContent = 'No queries';
+        queriesEl.appendChild(empty);
+      } else {
+        refs.forEach(query => {
+          const queryEl = document.createElement('div');
+          queryEl.className = 'query-item';
+          const { num, name } = splitQueryFilename(query.File);
+          queryEl.innerHTML = num
+            ? `<span class="query-item-num">${escapeHtml(num)}</span> ${escapeHtml(name)}`
+            : escapeHtml(name);
+          queryEl.title = query.Path;
+          queryEl.dataset.path = query.Path;
+
+          queryEl.addEventListener('click', (e) => {
+            e.stopPropagation();
+            loadQuery(chapter, section, query.Path);
+          });
+
+          queriesEl.appendChild(queryEl);
+        });
+      }
+
+      sectionEl.appendChild(queriesEl);
+
+      sectionEl.addEventListener('click', (e) => {
+        if (e.target === sectionEl) {
+          e.stopPropagation();
+          sectionEl.classList.toggle('expanded');
+        }
+      });
+
+      return sectionEl;
+    }
+
+    function markActiveChapter(chapter) {
+      document.querySelectorAll('.chapter').forEach(el => {
+        el.classList.toggle('active', el.dataset.chapter === chapter.Num);
+      });
+    }
+
+    // Splits a filename like "04_01_artist.sql" into the query's number
+    // within its section ("04_01") and its actual descriptive filename
+    // ("artist.sql") — the leading digit groups are numbering, not part of
+    // the name. Files with no descriptive suffix (e.g. "01_01.sql") have
+    // nothing to split off, so num is null and the whole filename is used.
+    function splitQueryFilename(filename) {
+      const m = filename.match(/^(\d+(?:_\d+)*)_([a-zA-Z].*)$/);
+      if (!m) return { num: null, name: filename };
+      return { num: m[1], name: m[2] };
+    }
+
+    // Only .sql files are executable. Book queries also reference .py/.java
+    // companion scripts and .diff patches purely for reading — loading one
+    // into the editor must not offer Run/EXPLAIN or an output pane, since
+    // there is both nothing to execute and nothing to show; the input area
+    // instead expands to full height with basic syntax highlighting.
+    function setEditorMode(language, content) {
+      currentLanguage = language;
+      const isSQL = language === 'sql';
+      const input = document.getElementById('query-input');
+
+      document.getElementById('editor-panel').classList.toggle('readonly-script', !isSQL);
+      input.readOnly = !isSQL;
+      document.getElementById('query-input-label').textContent = isSQL
+        ? 'SQL Query (Ctrl+Enter to run, drag bottom edge to resize)'
+        : `${language} script (read-only — not executable here)`;
+
+      if (!isSQL) {
+        clearResults();
+        clearError();
+
+        const highlighters = { python: highlightPython, java: highlightJava, diff: highlightDiff };
+        const highlight = highlighters[language] || escapeHtml;
+        document.getElementById('query-view-code').innerHTML = highlight(content);
+      } else {
+        // Programmatically setting textarea.value (loadQuery) doesn't fire
+        // 'input', so the highlight has to be refreshed explicitly here.
+        updateSQLHighlight();
+      }
+    }
+
+    async function loadQuery(chapter, section, queryPath) {
+      try {
+        // Parse path: "04-sql-select/14-sql-101/01_01.sql", but also
+        // "04-sql-select/16-sql-103/05_02_f1db.accidents.sql" — strip only
+        // the trailing extension, not everything after the first dot, or
+        // "05_02_f1db.accidents" truncates to "05_02_f1db" and the lookup
+        // 404s.
+        const parts = queryPath.split('/');
+        const queryID = parts[parts.length - 1].replace(/\.(sql|py|java|diff)$/, '');
+
+        showLoading(true);
+
+        const res = await fetch(`/api/query/${chapter.Num}/${parts[0]}/${parts[1]}/${queryID}`);
+
+        // Error responses (e.g. 404 "Query not found") aren't JSON — parsing
+        // them as JSON throws, which used to surface as a confusing
+        // "Failed to load query: <JSON parse error>" instead of the actual
+        // problem. Read as text and only parse JSON on success.
+        if (!res.ok) {
+          const text = await res.text();
+          showError(text || `Failed to load query (HTTP ${res.status})`);
+          return;
+        }
+
+        const data = await res.json();
+        if (data.error) {
+          showError(data.error);
+          return;
+        }
+
+        document.getElementById('query-input').value = data.content;
+        const { name: filename } = splitQueryFilename(queryPath.split('/').pop());
+        document.getElementById('chapter-title').textContent = filename;
+        document.getElementById('chapter-path').textContent =
+          `${chapter.Num} ${chapter.Title} › ${section.Num} ${section.Title}`;
+
+        setEditorMode(data.language, data.content);
+
+        document.querySelectorAll('.query-item').forEach(el => {
+          el.classList.toggle('active', el.dataset.path === queryPath);
+        });
+
+        clearResults();
+        clearError();
+      } catch (err) {
+        showError('Failed to load query: ' + err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function setupEventListeners() {
+      document.getElementById('run-btn').addEventListener('click', executeQuery);
+      document.getElementById('explain-btn').addEventListener('click', explainQuery);
+      document.getElementById('clear-btn').addEventListener('click', clearResults);
+      document.getElementById('download-csv').addEventListener('click', downloadCSV);
+      document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
+      document.getElementById('mode-toggle').addEventListener('click', toggleReadWriteMode);
+
+      // Allow Ctrl+Enter to run query
+      document.getElementById('query-input').addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+          executeQuery();
+        }
+      });
+
+      // Live syntax highlighting while typing, and keep the highlighted
+      // <pre> scrolled to the same position as the invisible-text textarea
+      // on top of it.
+      document.getElementById('query-input').addEventListener('input', updateSQLHighlight);
+      document.getElementById('query-input').addEventListener('scroll', syncHighlightScroll);
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+
+    function toggleReadWriteMode() {
+      readWriteMode = !readWriteMode;
+      const btn = document.getElementById('mode-toggle');
+      btn.textContent = readWriteMode ? '🔓 Read-Write' : '🔒 Read-only';
+      btn.classList.toggle('armed', readWriteMode);
+      document.getElementById('editor-panel').classList.toggle('readwrite-armed', readWriteMode);
+    }
+
+    // Several book queries are themselves written as "explain (...) select
+    // ..." (e.g. 04-sql-select/15-sql-102/01_02.sql) to show EXPLAIN in the
+    // text as-is — sent to our own /api/query/explain unmodified, "EXPLAIN
+    // (FORMAT JSON, ANALYZE) explain (costs off) select ..." would be a
+    // double-EXPLAIN syntax error. Strip the query's own leading EXPLAIN
+    // clause (and whatever options it specified) so the inner statement
+    // gets re-explained with our own ANALYZE + FORMAT JSON — the multi-tab
+    // Text/Diagram/JSON view is always available and always describes a
+    // live run, regardless of what options the original text asked for.
+    function stripLeadingExplain(sql) {
+      return sql.replace(/^\s*explain\b\s*(\([^)]*\))?\s*(analyze\s+)?/i, '');
+    }
+
+    async function runExplain(sql) {
+      showLoading(true);
+      clearError();
+
+      try {
+        const res = await fetch('/api/query/explain', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sql: stripLeadingExplain(sql), read_write: readWriteMode })
+        });
+
+        const result = await res.json();
+
+        if (result.error) {
+          showError(result.error);
+        } else {
+          showExplain(result);
+        }
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function executeQuery() {
+      if (currentLanguage !== 'sql') return; // Ctrl+Enter must not run a .py file as SQL
+
+      const sql = document.getElementById('query-input').value.trim();
+      if (!sql) {
+        showError('Empty query');
+        return;
+      }
+
+      // A query that already starts with the EXPLAIN keyword gets the same
+      // multi-tab treatment as clicking the dedicated EXPLAIN button below,
+      // instead of a plain results table of raw "QUERY PLAN" text lines.
+      if (/^explain\b/i.test(sql)) {
+        return runExplain(sql);
+      }
+
+      showLoading(true);
+      clearError();
+
+      try {
+        const res = await fetch('/api/query/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sql, read_write: readWriteMode })
+        });
+
+        const result = await res.json();
+
+        if (result.error) {
+          showError(result.error);
+        } else {
+          showResults(result);
+        }
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function explainQuery() {
+      if (currentLanguage !== 'sql') return;
+
+      const sql = document.getElementById('query-input').value.trim();
+      if (!sql) {
+        showError('Empty query');
+        return;
+      }
+
+      return runExplain(sql);
+    }
+
+    function showResults(result) {
+      lastResult = result;
+
+      const resultsArea = document.getElementById('results-area');
+      const resultsTitle = document.getElementById('results-title');
+      const resultsContent = document.getElementById('results-content');
+
+      // command_tag (e.g. "CREATE TABLE", "INSERT 0 3") is the only feedback
+      // for a DDL/DML statement in read-write mode, which returns no rows at
+      // all — without it a successful CREATE TABLE looks identical to a
+      // query that just happened to match nothing.
+      const tag = result.command_tag ? ` — ${result.command_tag}` : '';
+      resultsTitle.textContent = `Results (${result.row_count} rows, ${result.timing_ms.toFixed(2)}ms)${tag}`;
+
+      if (!result.rows || result.rows.length === 0) {
+        resultsContent.innerHTML = result.command_tag
+          ? `<p><strong>${escapeHtml(result.command_tag)}</strong></p>`
+          : '<p>No rows returned.</p>';
+      } else {
+        let html = '<table class="results-table"><thead><tr>';
+
+        result.columns.forEach(col => {
+          html += `<th>${escapeHtml(col)}</th>`;
+        });
+
+        html += '</tr></thead><tbody>';
+
+        result.rows.forEach(row => {
+          html += '<tr>';
+          result.columns.forEach(col => {
+            html += renderCell(row[col]);
+          });
+          html += '</tr>';
+        });
+
+        html += '</tbody></table>';
+        resultsContent.innerHTML = html;
+      }
+
+      resultsArea.classList.add('show');
+    }
+
+    // A jsonb column comes back from pgx already decoded into a real JS
+    // object/array (not a string to parse), while jsonb_pretty()/to_json()
+    // text output is a string that merely looks like JSON — both are worth
+    // pretty-printing and syntax-highlighting rather than dumping as
+    // "[object Object]" or an unreadable single-line blob.
+    function renderCell(value) {
+      if (value === null || value === undefined) {
+        return '<td><span class="null">NULL</span></td>';
+      }
+
+      if (typeof value === 'object') {
+        return isGeoJSON(value)
+          ? `<td class="td-json">${renderGeoJSONMap(value)}</td>`
+          : `<td class="td-json">${renderJSONValue(value)}</td>`;
+      }
+
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (parsed !== null && typeof parsed === 'object') {
+              return isGeoJSON(parsed)
+                ? `<td class="td-json">${renderGeoJSONMap(parsed)}</td>`
+                : `<td class="td-json">${renderJSONValue(parsed)}</td>`;
+            }
+          } catch (e) {
+            // Not actually JSON (e.g. a string that just starts with "{" or
+            // "[") — fall through to plain text.
+          }
+        }
+
+        // A query that builds its own `<svg>...</svg>` document (e.g. via
+        // PostGIS's ST_AsSVG()) gets rendered as an inline map instead of a
+        // wall of path-data text — the same convention the starter kit's
+        // Map tab uses.
+        if (trimmed.startsWith('<svg')) {
+          return `<td class="td-json"><div class="cell-output-svg">${ensureSvgDimensions(trimmed)}</div></td>`;
+        }
+      }
+
+      return `<td>${escapeHtml(String(value))}</td>`;
+    }
+
+    // A bare `<svg viewBox="...">` with no width/height attributes has no
+    // intrinsic size of its own, only an aspect ratio — and CSS `height:
+    // auto` on a sized-by-percentage-width replaced element isn't reliably
+    // derived from that aspect ratio across browsers (some fall back to the
+    // SVG spec's 300x150 default, rendering a tall, mostly-empty box). Query
+    // results here never set width/height on the SVG they build, so add
+    // them explicitly from the viewBox before the browser ever lays it out.
+    function ensureSvgDimensions(svgMarkup) {
+      if (/<svg[^>]*\swidth=/.test(svgMarkup)) return svgMarkup;
+      const m = svgMarkup.match(/viewBox="\s*[-\d.eE]+\s+[-\d.eE]+\s+([\d.eE]+)\s+([\d.eE]+)\s*"/);
+      if (!m) return svgMarkup;
+      const w = parseFloat(m[1]), h = parseFloat(m[2]);
+      if (!(w > 0) || !(h > 0)) return svgMarkup;
+      // The viewBox on a PostGIS-built map is in degrees (e.g. 0.009 wide),
+      // and some browsers treat sub-1 width/height attributes as too small
+      // to establish a usable intrinsic size — renderGeoJSONMap works around
+      // the same problem by hardcoding pixel-scale 260x180. Do the same
+      // here: normalize to a reasonable pixel-scale size, same aspect ratio.
+      const scale = 800 / Math.max(w, h);
+      const pxW = Math.round(w * scale), pxH = Math.round(h * scale);
+      return svgMarkup.replace('<svg ', `<svg width="${pxW}" height="${pxH}" `);
+    }
+
+    // Detects a GeoJSON geometry/Feature/FeatureCollection — the natural
+    // output of ST_AsGeoJSON(), which is how a query would actually get a
+    // PostGIS geometry column into a JSON-shaped result to visualize (raw
+    // WKB/EWKB has no practical client-side parser here). Rendered as an
+    // SVG map instead of a pretty-printed JSON blob.
+    const GEOJSON_TYPES = new Set([
+      'Point', 'MultiPoint', 'LineString', 'MultiLineString',
+      'Polygon', 'MultiPolygon', 'GeometryCollection', 'Feature', 'FeatureCollection'
+    ]);
+
+    function isGeoJSON(value) {
+      return value && typeof value === 'object' && GEOJSON_TYPES.has(value.type);
+    }
+
+    function collectGeoJSONCoords(geom, out) {
+      if (!geom) return;
+      if (geom.type === 'Feature') return collectGeoJSONCoords(geom.geometry, out);
+      if (geom.type === 'FeatureCollection') return geom.features.forEach(f => collectGeoJSONCoords(f, out));
+      if (geom.type === 'GeometryCollection') return geom.geometries.forEach(g => collectGeoJSONCoords(g, out));
+
+      const c = geom.coordinates;
+      if (!c) return;
+      if (geom.type === 'Point') out.push(c);
+      else if (geom.type === 'MultiPoint' || geom.type === 'LineString') c.forEach(p => out.push(p));
+      else if (geom.type === 'MultiLineString' || geom.type === 'Polygon') c.forEach(ring => ring.forEach(p => out.push(p)));
+      else if (geom.type === 'MultiPolygon') c.forEach(poly => poly.forEach(ring => ring.forEach(p => out.push(p))));
+    }
+
+    // Geographic coordinates increase northward (lat) but SVG y increases
+    // downward, so every point is drawn with y negated — otherwise the map
+    // renders upside down.
+    function renderGeoJSONMap(value) {
+      const coords = [];
+      collectGeoJSONCoords(value, coords);
+      if (coords.length === 0) {
+        return renderJSONValue(value);
+      }
+
+      const lons = coords.map(c => c[0]), lats = coords.map(c => c[1]);
+      const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+      const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+      const spanLon = maxLon - minLon || 0.01;
+      const spanLat = maxLat - minLat || 0.01;
+      const padLon = spanLon * 0.1, padLat = spanLat * 0.1;
+
+      const vbMinX = minLon - padLon;
+      const vbMinY = -(maxLat + padLat);
+      const vbWidth = spanLon + 2 * padLon;
+      const vbHeight = spanLat + 2 * padLat;
+      const strokeW = Math.max(vbWidth, vbHeight) * 0.004;
+      const pointR = Math.max(vbWidth, vbHeight) * 0.012;
+
+      const project = ([lon, lat]) => [lon, -lat];
+      const pathFor = points => points.map(project)
+        .map(([x, y], i) => `${i === 0 ? 'M' : 'L'} ${x} ${y}`).join(' ');
+
+      let shapes = '';
+      function draw(geom) {
+        switch (geom.type) {
+          case 'Point': {
+            const [x, y] = project(geom.coordinates);
+            shapes += `<circle cx="${x}" cy="${y}" r="${pointR}" fill="#61afef" stroke="#282c34" stroke-width="${strokeW}" />`;
+            break;
+          }
+          case 'MultiPoint':
+            geom.coordinates.forEach(c => draw({ type: 'Point', coordinates: c }));
+            break;
+          case 'LineString':
+            shapes += `<path d="${pathFor(geom.coordinates)}" fill="none" stroke="#61afef" stroke-width="${strokeW}" />`;
+            break;
+          case 'MultiLineString':
+            geom.coordinates.forEach(line => draw({ type: 'LineString', coordinates: line }));
+            break;
+          case 'Polygon':
+            shapes += `<path d="${geom.coordinates.map(ring => pathFor(ring) + ' Z').join(' ')}" ` +
+              `fill="#61afef" fill-opacity="0.3" stroke="#61afef" stroke-width="${strokeW}" fill-rule="evenodd" />`;
+            break;
+          case 'MultiPolygon':
+            geom.coordinates.forEach(poly => draw({ type: 'Polygon', coordinates: poly }));
+            break;
+          case 'GeometryCollection':
+            geom.geometries.forEach(draw);
+            break;
+        }
+      }
+
+      if (value.type === 'Feature') draw(value.geometry);
+      else if (value.type === 'FeatureCollection') value.features.forEach(f => draw(f.geometry));
+      else draw(value);
+
+      const svg = `<svg viewBox="${vbMinX} ${vbMinY} ${vbWidth} ${vbHeight}" width="260" height="180" ` +
+        `xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">${shapes}</svg>`;
+
+      return `<div style="background:${EXPLAIN_COLORS.control.fill};border-radius:4px;padding:6px;display:inline-block;">` +
+        `${svg}<details style="margin-top:4px;"><summary style="cursor:pointer;color:#7f848e;font-size:0.75rem;">raw JSON</summary>` +
+        `${renderJSONValue(value)}</details></div>`;
+    }
+
+    function renderJSONValue(value) {
+      return `<pre class="json-cell">${highlightJSON(JSON.stringify(value, null, 2))}</pre>`;
+    }
+
+    function highlightJSON(code) {
+      const pattern = new RegExp(
+        `(?<key>"(?:[^"\\\\]|\\\\.)*"\\s*(?=:))` +
+        `|(?<string>"(?:[^"\\\\]|\\\\.)*")` +
+        `|(?<number>-?\\b\\d+\\.?\\d*(?:[eE][+-]?\\d+)?\\b)` +
+        `|(?<keyword>\\btrue\\b|\\bfalse\\b|\\bnull\\b)`,
+        'g'
+      );
+      return tokenize(code, pattern);
+    }
+
+    let lastExplainResult = null;
+    let explainTab = 'text';
+
+    const EXPLAIN_TABS = [
+      { id: 'text', label: '📝 Text', render: result => renderExplainText(result.text) },
+      { id: 'diagram', label: '🌳 Diagram', render: result => renderExplainDiagram(result.plan) },
+      { id: 'json', label: '{ } JSON', render: result => renderJSONValue(result.plan) },
+    ];
+
+    function showExplain(result) {
+      try {
+        lastExplainResult = result;
+        explainTab = 'text'; // reset to the default tab on every new EXPLAIN
+
+        document.getElementById('results-title').textContent =
+          `EXPLAIN Plan (${result.timing_ms.toFixed(2)}ms)`;
+
+        renderExplainTabs();
+        document.getElementById('results-area').classList.add('show');
+      } catch (err) {
+        showError('Failed to render EXPLAIN plan: ' + err.message);
+      }
+    }
+
+    function renderExplainTabs() {
+      const tabButtons = EXPLAIN_TABS.map(t =>
+        `<button class="explain-tab${t.id === explainTab ? ' active' : ''}" data-tab="${t.id}">${t.label}</button>`
+      ).join('');
+
+      const active = EXPLAIN_TABS.find(t => t.id === explainTab);
+      document.getElementById('results-content').innerHTML =
+        `<div class="explain-tabs">${tabButtons}</div>` +
+        `<div class="explain-tab-content">${active.render(lastExplainResult)}</div>`;
+
+      document.querySelectorAll('.explain-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          explainTab = btn.dataset.tab;
+          renderExplainTabs();
+        });
+      });
+    }
+
+    // The Text tab is Postgres's own EXPLAIN ANALYZE text output, fetched
+    // and displayed verbatim — no reconstruction of the tree/indentation by
+    // hand, since Postgres already produces exactly that (correctly
+    // indented) and re-deriving it from the JSON plan is both unnecessary
+    // and error-prone (an earlier hand-rolled version of this got the
+    // indentation wrong). See handleQueryExplain: it runs a second
+    // `EXPLAIN (ANALYZE)` (default text format) in the same transaction
+    // alongside the FORMAT JSON one the Diagram tab uses.
+    function renderExplainText(explainText) {
+      if (!explainText) return '<p>No plan text available.</p>';
+      return `<pre style="font-size: 0.85rem; overflow-x: auto; background: var(--code-bg); color: var(--code-fg); padding: 12px; border-radius: 6px;">${escapeHtml(explainText)}</pre>`;
+    }
+
+    // Tree-diagram rendering of an EXPLAIN (FORMAT JSON, ANALYZE) plan,
+    // modeled on the node-card + colored-edge diagrams used for this book's
+    // courses (originally rendered to TikZ from parsed EXPLAIN text; this is
+    // an SVG port working directly off the JSON plan we already have, so no
+    // text-format parser is needed). Each node is a card showing type,
+    // relation, cost range and actual timing/rows; edges are drawn
+    // child-to-parent with width scaled to the child's actual row count so
+    // the biggest data flows are visually obvious at a glance.
+    function explainNodeCategory(nodeType) {
+      const t = (nodeType || '').toLowerCase();
+      if (t.includes('scan')) return 'scan';
+      if (t.includes('join') || t === 'nested loop') return 'join';
+      if (t.includes('aggregate')) return 'aggregate';
+      if (t === 'hash') return 'hash';
+      return 'control';
+    }
+
+    const EXPLAIN_COLORS = {
+      scan:      { stroke: '#e06c75', fill: '#3a2a2c' },
+      join:      { stroke: '#e5a95e', fill: '#3a3126' },
+      aggregate: { stroke: '#61afef', fill: '#25303a' },
+      hash:      { stroke: '#e5c07b', fill: '#3a3626' },
+      control:   { stroke: '#8b95a1', fill: '#2c2f36' },
+    };
+
+    function explainEdgeWidth(rows) {
+      if (!rows || rows <= 0) return 1;
+      return Math.min(8, 1 + Math.log10(rows + 1));
+    }
+
+    // Assigns (x, y) to every node: leaves get sequential horizontal slots,
+    // an internal node centers over the midpoint of its children, and depth
+    // maps directly to a row — a fixed row height (rather than content-
+    // aware spacing) keeps this simple while still producing a readable
+    // tree for the plan sizes a book example realistically has.
+    function layoutPlanTree(root) {
+      const SLOT_WIDTH = 220, ROW_HEIGHT = 110;
+      const nodes = [];
+      const edges = [];
+      let nextSlot = 0;
+
+      function visit(node, depth) {
+        const children = node['Plans'] || [];
+        const childLayouts = children.map(child => visit(child, depth + 1));
+
+        let x;
+        if (childLayouts.length === 0) {
+          x = nextSlot * SLOT_WIDTH;
+          nextSlot++;
+        } else {
+          const xs = childLayouts.map(c => c.x);
+          x = (Math.min(...xs) + Math.max(...xs)) / 2;
+        }
+
+        const laidOut = { node, x, y: depth * ROW_HEIGHT };
+        nodes.push(laidOut);
+        childLayouts.forEach(child => edges.push({ from: laidOut, to: child }));
+        return laidOut;
+      }
+
+      visit(root, 0);
+      return { nodes, edges };
+    }
+
+    function renderExplainDiagram(plan) {
+      const entry = Array.isArray(plan) ? plan[0] : plan;
+      const root = entry && entry.Plan;
+      if (!root) {
+        return '<p>No plan data to diagram.</p>';
+      }
+
+      const NODE_WIDTH = 200, NODE_HEIGHT = 80;
+      const { nodes, edges } = layoutPlanTree(root);
+
+      const xs = nodes.map(n => n.x);
+      const ys = nodes.map(n => n.y);
+      const minX = Math.min(...xs), maxX = Math.max(...xs) + NODE_WIDTH;
+      const maxY = Math.max(...ys) + NODE_HEIGHT;
+      const vbWidth = maxX - minX + 40;
+      const vbHeight = maxY + 40;
+
+      let svg = `<svg viewBox="${minX - 20} -20 ${vbWidth} ${vbHeight}" ` +
+        `width="100%" height="${vbHeight}" xmlns="http://www.w3.org/2000/svg" ` +
+        `font-family="Monaco, Courier New, monospace" font-size="11">`;
+
+      edges.forEach(({ from, to }) => {
+        const x1 = from.x + NODE_WIDTH / 2, y1 = from.y;
+        const x2 = to.x + NODE_WIDTH / 2, y2 = to.y + NODE_HEIGHT;
+        const midY = (y1 + y2) / 2;
+        const width = explainEdgeWidth(to.node['Actual Rows']);
+        svg += `<path d="M ${x2} ${y2} L ${x2} ${midY} L ${x1} ${midY} L ${x1} ${y1}" ` +
+          `fill="none" stroke="#5c6370" stroke-width="${width}" />`;
+      });
+
+      nodes.forEach(({ node, x, y }) => {
+        const cat = explainNodeCategory(node['Node Type']);
+        const colors = EXPLAIN_COLORS[cat];
+        const label = node['Node Type'] || '?';
+        const relation = node['Relation Name'] || node['Index Name'] || '';
+        const alias = node['Alias'] && node['Alias'] !== relation ? node['Alias'] : '';
+        const cost = `cost=${(node['Startup Cost'] || 0).toFixed(2)}..${(node['Total Cost'] || 0).toFixed(2)}`;
+        const actual = node['Actual Total Time'] !== undefined
+          ? `${node['Actual Total Time'].toFixed(2)}ms, ${node['Actual Rows'] || 0} rows`
+          : '';
+
+        // node['Plans'] holds this node's *children*, each recursively
+        // containing their own children — stringifying the node as-is would
+        // dump the entire remaining subtree into the tooltip (for the root
+        // node, that's the whole plan), unreadable and not what "details for
+        // this node" means. Exclude it so the tooltip is just this node's
+        // own properties.
+        const { Plans: _childPlans, ...nodeOwnProps } = node;
+        svg += `<g>` +
+          `<title>${escapeHtml(JSON.stringify(nodeOwnProps, null, 2))}</title>` +
+          `<rect x="${x}" y="${y}" width="${NODE_WIDTH}" height="${NODE_HEIGHT}" rx="6" ` +
+          `fill="${colors.fill}" stroke="${colors.stroke}" stroke-width="1.5" />` +
+          `<text x="${x + 8}" y="${y + 16}" fill="${colors.stroke}" font-weight="bold">${escapeHtml(label)}</text>`;
+
+        if (relation) {
+          const relText = alias ? `${relation} (${alias})` : relation;
+          svg += `<text x="${x + 8}" y="${y + 30}" fill="#abb2bf" font-style="italic">${escapeHtml(relText)}</text>`;
+        }
+
+        svg += `<text x="${x + 8}" y="${y + 46}" fill="#7f848e" font-size="10">${escapeHtml(cost)}</text>`;
+
+        if (actual) {
+          svg += `<text x="${x + 8}" y="${y + 62}" fill="#e5c07b" font-size="10">${escapeHtml(actual)}</text>`;
+        }
+
+        svg += `</g>`;
+      });
+
+      svg += `</svg>`;
+
+      const planningTime = entry['Planning Time'];
+      const executionTime = entry['Execution Time'];
+      const header = `<div style="padding:0 0 10px 0;color:#7f8c8d;font-size:0.85rem;">` +
+        `Planning: ${(planningTime || 0).toFixed(2)}ms &middot; Execution: ${(executionTime || 0).toFixed(2)}ms ` +
+        `&middot; hover a node for full details</div>`;
+
+      return `<div style="background:${EXPLAIN_COLORS.control.fill};border-radius:6px;padding:10px;overflow:auto;">${header}${svg}</div>`;
+    }
+
+    function clearResults() {
+      document.getElementById('results-area').classList.remove('show');
+      lastResult = null;
+    }
+
+    function showError(msg) {
+      const container = document.getElementById('error-container');
+      container.textContent = msg;
+      container.classList.add('show');
+    }
+
+    function clearError() {
+      document.getElementById('error-container').classList.remove('show');
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading').classList.toggle('show', show);
+    }
+
+    function downloadCSV() {
+      if (!lastResult) return;
+
+      let csv = lastResult.columns.map(c => `"${c}"`).join(',') + '\n';
+
+      lastResult.rows.forEach(row => {
+        const cells = lastResult.columns.map(col => {
+          const val = row[col];
+          if (val === null || val === undefined) return '""';
+          const str = String(val).replace(/"/g, '""');
+          return `"${str}"`;
+        });
+        csv += cells.join(',') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'results.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Runs `pattern` (a global regex with named capture groups, one per
+    // token type) over raw source text, wrapping each match in a
+    // `<span class="tok-{group}">` and escaping everything else. Matches are
+    // tried left-to-right in the order the groups are written, so putting
+    // comment/string alternatives before keyword/number ones keeps e.g. a
+    // keyword-looking substring inside a string from being highlighted as a
+    // keyword — the whole string is consumed as one match first.
+    function tokenize(code, pattern) {
+      let out = '';
+      let lastIndex = 0;
+      let m;
+      pattern.lastIndex = 0;
+      while ((m = pattern.exec(code)) !== null) {
+        out += escapeHtml(code.slice(lastIndex, m.index));
+        const cls = Object.keys(m.groups).find(k => m.groups[k] !== undefined);
+        out += `<span class="tok-${cls}">${escapeHtml(m[0])}</span>`;
+        lastIndex = m.index + m[0].length;
+        if (m.index === pattern.lastIndex) pattern.lastIndex++; // guard against zero-length matches
+      }
+      out += escapeHtml(code.slice(lastIndex));
+      return out;
+    }
+
+    function highlightPython(code) {
+      const keywords = 'def|class|import|from|return|if|elif|else|for|while|in|not|and|or|is|None|True|False|' +
+        'try|except|finally|with|as|lambda|yield|pass|break|continue|raise|global|nonlocal|assert|del|self';
+      const pattern = new RegExp(
+        `(?<comment>#.*$)` +
+        `|(?<string>"""[\\s\\S]*?"""|'''[\\s\\S]*?'''|"(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\\\n]|\\\\.)*')` +
+        `|(?<number>\\b\\d+\\.?\\d*\\b)` +
+        `|(?<keyword>\\b(?:${keywords})\\b)`,
+        'gm'
+      );
+      return tokenize(code, pattern);
+    }
+
+    function highlightJava(code) {
+      const keywords = 'public|private|protected|class|interface|extends|implements|import|package|static|' +
+        'final|void|int|long|double|float|boolean|char|byte|short|new|return|if|else|for|while|do|switch|' +
+        'case|default|break|continue|try|catch|finally|throw|throws|this|super|null|true|false|abstract|' +
+        'synchronized|volatile|transient|enum|instanceof';
+      const pattern = new RegExp(
+        `(?<comment>//.*$|/\\*[\\s\\S]*?\\*/)` +
+        `|(?<string>"(?:[^"\\\\\\n]|\\\\.)*"|'(?:[^'\\\\]|\\\\.)')` +
+        `|(?<number>\\b\\d+\\.?\\d*[fFdDlL]?\\b)` +
+        `|(?<keyword>\\b(?:${keywords})\\b)`,
+        'gm'
+      );
+      return tokenize(code, pattern);
+    }
+
+    // Unified diffs are highlighted per-line rather than tokenized, since
+    // the meaningful structure (added/removed/context/hunk-header lines) is
+    // entirely about how each line starts.
+    function highlightDiff(code) {
+      return code.split('\n').map(line => {
+        let cls = null;
+        if (line.startsWith('+++') || line.startsWith('---')) cls = 'diff-file';
+        else if (line.startsWith('@@')) cls = 'diff-hunk';
+        else if (line.startsWith('+')) cls = 'diff-add';
+        else if (line.startsWith('-')) cls = 'diff-remove';
+        else if (line.startsWith('diff ') || line.startsWith('index ')) cls = 'diff-meta';
+        return cls ? `<span class="tok-${cls}">${escapeHtml(line)}</span>` : escapeHtml(line);
+      }).join('\n');
+    }
+
+    // The book's queries are almost entirely lowercase (select, from,
+    // where...), so keywords are matched case-insensitively ('i' flag) and
+    // emitted with whatever case the source actually used.
+    function highlightSQL(code) {
+      const keywords = 'select|from|where|join|left|right|inner|outer|full|cross|on|using|group|by|order|' +
+        'having|limit|offset|insert|into|values|update|set|delete|create|table|temp|temporary|alter|drop|' +
+        'with|recursive|as|and|or|not|null|is|in|exists|distinct|union|all|except|intersect|case|when|then|' +
+        'else|end|asc|desc|returning|lateral|over|partition|window|filter|extract|cast|interval|between|' +
+        'like|ilike|similar|true|false|primary|key|foreign|references|unique|check|default|constraint|' +
+        'index|view|begin|commit|rollback|transaction|explain|analyze|vacuum|truncate';
+      const pattern = new RegExp(
+        `(?<comment>--.*$|/\\*[\\s\\S]*?\\*/)` +
+        `|(?<string>'(?:[^'\\\\]|''|\\\\.)*')` +
+        `|(?<number>\\b\\d+\\.?\\d*\\b)` +
+        `|(?<keyword>\\b(?:${keywords})\\b)`,
+        'gmi'
+      );
+      return tokenize(code, pattern);
+    }
+
+    // Keeps the highlighted <pre> in sync with the (invisible-text)
+    // textarea sitting on top of it: re-render on every keystroke, and
+    // mirror scroll position since the <pre> has no native scrollbar of its
+    // own (see the .query-input-wrapper comment for why this overlay
+    // exists). The trailing space guards against the classic textarea-
+    // overlay off-by-one-line bug: if the value ends with "\n", a <pre>
+    // with no trailing character renders one line shorter than a textarea
+    // showing that same trailing blank line, throwing the overlay out of
+    // alignment.
+    function updateSQLHighlight() {
+      const input = document.getElementById('query-input');
+      document.getElementById('query-input-highlight-code').innerHTML = highlightSQL(input.value) + ' ';
+    }
+
+    function syncHighlightScroll() {
+      const input = document.getElementById('query-input');
+      const highlight = document.getElementById('query-input-highlight');
+      highlight.scrollTop = input.scrollTop;
+      highlight.scrollLeft = input.scrollLeft;
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
