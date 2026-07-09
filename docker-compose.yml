@@ -2,9 +2,17 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: docker/postgres.Dockerfile
+      # Bakes every dataset into the image at build time (see docker/
+      # seeded-postgres.Dockerfile) so `docker compose up` needs no separate
+      # `taop load-data` step. For faster iteration on postgres.Dockerfile
+      # itself (no ~15min reseed per change), override:
+      #   POSTGRES_DOCKERFILE=docker/postgres.Dockerfile docker compose build
+      dockerfile: ${POSTGRES_DOCKERFILE:-docker/seeded-postgres.Dockerfile}
       args:
         POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
+        POSTGIS_VERSION: ${POSTGIS_VERSION:-3.4}
+        HASHTAG_URL: "${HASHTAG_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv}"
+        HYDRORIVERS_URL: "${HYDRORIVERS_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip}"
     image: taop-postgres:${POSTGRES_VERSION:-16}
     # pg_stat_statements must be preloaded at server start; the Query
     # Optimization course relies on it for workload observation labs.
