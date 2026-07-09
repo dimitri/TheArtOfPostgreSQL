@@ -5,7 +5,7 @@ services:
       # Bakes every dataset (including commitlog) into the image at build
       # time (see docker/seeded-postgres.Dockerfile) so `docker compose up`
       # needs no separate load-data step. For faster iteration on
-      # postgres.Dockerfile itself (no ~15min reseed per change), override:
+      # postgres.Dockerfile itself (no full reseed per change), override:
       #   POSTGRES_DOCKERFILE=docker/postgres.Dockerfile docker compose build
       dockerfile: ${POSTGRES_DOCKERFILE:-docker/seeded-postgres.Dockerfile}
       args:

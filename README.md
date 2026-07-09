@@ -37,7 +37,8 @@ The Art of PostgreSQL book is included in every tier.
 ```bash
 # One-time build: compiles the loader, loads every dataset (including the
 # commitlog git-history data), pg_dumps the result into the postgres image.
-# Takes about 15 minutes.
+# A couple of minutes on a decent connection — most of that time is network
+# (base images, apt packages, ~2GB of git history for commitlog), not compute.
 docker compose build
 
 # Start PostgreSQL and the Query UI — the seed restores automatically on

@@ -38,10 +38,10 @@ jobs:
       POSTGRES_VERSION: ${{ matrix.pg }}
       # constant project name → docker compose looks for image taop-taop:latest
       COMPOSE_PROJECT_NAME: taop
-      # docker-compose.yml defaults to the pre-seeded image (bakes in a
-      # ~15min load-data run at build time) — not worth paying that 5x
-      # across this PG-version matrix when this job loads data itself via
-      # the taop service below. Use the on-demand-load image instead.
+      # docker-compose.yml defaults to the pre-seeded image (bakes in a full
+      # load-data run at build time) — not worth paying that 5x across this
+      # PG-version matrix when this job loads data itself via the taop
+      # service below. Use the on-demand-load image instead.
       POSTGRES_DOCKERFILE: docker/postgres.Dockerfile
 
     steps:

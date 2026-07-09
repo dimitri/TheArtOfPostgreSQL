@@ -4,7 +4,10 @@
 # Builds a postgres image pre-seeded with all taop datasets.
 #
 # Usage:
-#   docker compose build          # one-time; takes ~15 min (compile + load)
+#   docker compose build          # one-time; a couple minutes on a decent
+#                                  # connection (mostly network: base images,
+#                                  # apt packages, ~2GB of commitlog history —
+#                                  # not compute, --no-cache barely changes it)
 #   docker compose up -d postgres query-ui
 #   open http://localhost:8042
 #
