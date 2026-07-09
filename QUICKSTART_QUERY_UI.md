@@ -3,14 +3,18 @@
 ## Start it
 
 ```bash
-docker compose up -d postgres query-ui
+docker compose up -d
 ```
 
-Wait a few seconds for both services to become healthy, then open:
+First run pulls postgres pre-seeded from ghcr.io and builds query-ui locally
+— no separate build step. Then open:
 
 ```
 http://localhost:8042
 ```
+
+See the [README Quick Start](README.md#quick-start) for building from source
+instead of pulling.
 
 ## Two views
 
@@ -28,17 +32,9 @@ needed, just run the query.
 
 ## What's running
 
-- **PostgreSQL**: `localhost:5433` (also reachable via `docker compose exec
-  -it postgres psql -U taop`)
+- **PostgreSQL**: `localhost:5433` (also reachable via the psql tool service —
+  see [docker/docker-compose.tools.yml](docker/docker-compose.tools.yml))
 - **Query UI**: `localhost:8042`
-
-## Load the data first
-
-If you haven't already:
-
-```bash
-docker compose run --rm taop load-data
-```
 
 ## Keeping it up to date
 
@@ -57,9 +53,12 @@ for the full reference (architecture, API endpoints, security model).
 **Port already in use?** Something else is bound to 5433 or 8042 — stop it,
 or change the published port in `docker-compose.yml`.
 
-**Database connection error?**
+**Database connection error on first start?** The seed restore runs on first
+`docker compose up` and can take 10–30 seconds. The query-ui waits for
+postgres's healthcheck (which uses TCP, not the unix socket, so it only
+passes once the real server is ready). If it still fails:
 ```bash
-docker compose logs postgres --tail 20
+docker compose logs postgres --tail 30
 docker compose ps   # postgres should show "healthy"
 ```
 

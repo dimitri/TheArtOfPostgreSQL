@@ -35,22 +35,27 @@ The Art of PostgreSQL book is included in every tier.
 ## Quick Start
 
 ```bash
-# One-time build: compiles the loader, loads every dataset (including the
-# commitlog git-history data), pg_dumps the result into the postgres image.
-# A couple of minutes on a decent connection — most of that time is network
-# (base images, apt packages, ~2GB of git history for commitlog), not compute.
-docker compose build
-
-# Start PostgreSQL and the Query UI — the seed restores automatically on
-# first start (a few seconds), so there's no separate load-data step.
 docker compose up -d
 
 open http://localhost:8042
 ```
 
-That's the whole setup — `docker-compose.yml` only defines `postgres` and
-`query-ui`. Everything else (loading individual datasets, an interactive
-`psql` session, refreshing the commitlog data) lives in
+That's the whole setup. `postgres` is pulled pre-seeded with every dataset
+(including commitlog) from ghcr.io — no local build, no load-data step.
+`query-ui` is a quick local build (a few seconds, just a Go binary). Both
+happen automatically on first `up`.
+
+Prefer building from source instead of pulling? `docker compose build`
+compiles the loader, loads every dataset, and pg_dumps the result into the
+image locally — a couple of minutes on a decent connection (most of that
+time is network: base images, apt packages, ~2GB of git history for
+commitlog, not compute) — and a subsequent `docker compose up -d` uses that
+local build instead of the pulled image. To go back to the published image,
+`docker compose pull postgres`.
+
+`docker-compose.yml` only defines `postgres` and `query-ui`. Everything else
+(loading individual datasets, an interactive `psql` session, refreshing the
+commitlog data) lives in
 [`docker/docker-compose.tools.yml`](docker/docker-compose.tools.yml), an
 on-demand file you combine explicitly with `-f`:
 
