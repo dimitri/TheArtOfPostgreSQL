@@ -12,8 +12,12 @@
 # via docker-entrypoint-initdb.d (runs only when the data volume is empty).
 # Subsequent starts skip initdb entirely.
 #
-# Commitlog data (git histories of postgres/pgloader — ~2 GB) is intentionally
-# excluded. Run `docker compose run -it --rm commitlog` separately if needed.
+# Commitlog data (git histories of postgres/pgloader) is included: the
+# commitlog-data stage below clones both repos at build time and the seed
+# stage imports them with `taop commitlog`, same as docker/taop.Dockerfile's
+# standalone commitlog service — only the resulting commitlog.commitlog rows
+# end up in the seed dump, the ~2 GB of cloned git history itself never
+# reaches the final image.
 #
 
 ARG POSTGRES_VERSION=16
@@ -65,6 +69,21 @@ RUN make taop
 RUN sudo install -D -m 755 ./bin/taop /usr/local/bin/taop
 
 USER taop
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Commitlog data — clone postgres/pgloader git histories at build time, same
+# as taop.Dockerfile's commitlog-data stage. Kept as its own stage (rather
+# than folded into taop-build) so a change to the taop source doesn't bust
+# the clone cache and vice versa.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM base AS commitlog-data
+
+COPY --chown=taop:taop data/commitlog/ /data/commitlog/
+
+USER taop
+WORKDIR /data/commitlog
+RUN make postgres
+RUN make pgloader
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Geodata stages — same as taop.Dockerfile
@@ -235,12 +254,13 @@ FROM postgres-base AS seed
 
 # taop is a standalone executable (build.lisp calls uiop:dump-image with
 # :executable t, which embeds the SBCL runtime) — no sbcl needed here. The
-# only runtime dependency across every load-data command is magic.lisp
-# shelling out to `python3 magic.py`, which needs psycopg2. curl and
-# ca-certificates are for the HASHTAG_URL fetch further down this stage
-# (not for the taop binary itself, which never shells out to curl).
+# runtime dependencies across every load-data command are: magic.lisp
+# shelling out to `python3 magic.py` (needs psycopg2), gitlog.lisp shelling
+# out to `git log` against the commitlog-data clones copied in below, and
+# curl/ca-certificates for the HASHTAG_URL fetch further down this stage (not
+# for the taop binary itself, which never shells out to curl).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-psycopg2 curl ca-certificates \
+    python3 python3-psycopg2 git curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # taop binary and the quicklisp pubnames project it loads at runtime
@@ -260,6 +280,12 @@ COPY --from=naturalearth-build /tmp/ne_10m_rivers.sql            /tmp/data/natur
 COPY --from=hydrorivers-build  /out/hydrorivers.sql              /tmp/data/hydrorivers/hydrorivers.sql
 COPY --from=osmlondon-build    /tmp/osm_roads.sql                /tmp/data/osm-london/osm_roads.sql
 COPY --from=osmlondon-build    /tmp/osm_parks.sql                /tmp/data/osm-london/osm_parks.sql
+
+# Cloned postgres/pgloader repos from the commitlog-data stage, layered on
+# top of the commitlog.sql schema file the blanket `COPY data/` above already
+# placed at /tmp/data/commitlog/.
+COPY --from=commitlog-data --chown=taop:taop /data/commitlog/postgresql /tmp/data/commitlog/postgresql
+COPY --from=commitlog-data --chown=taop:taop /data/commitlog/pgloader   /tmp/data/commitlog/pgloader
 
 ARG HASHTAG_URL=""
 RUN if [ -n "$HASHTAG_URL" ]; then \
@@ -291,7 +317,8 @@ ENV PGDATA=/tmp/pgdata \
     CHINOOK_SQL=/tmp/cdstore/Chinook_PostgreSql.sql \
     GEONAMES_DIR=/tmp/data/geonames \
     SHAKESPEARE_DIR=/tmp/data/shakespeare \
-    SHAKESPEARE_PLAY_XML=/tmp/data/shakespeare/shakes/dream.xml
+    SHAKESPEARE_PLAY_XML=/tmp/data/shakespeare/shakes/dream.xml \
+    COMMITLOG_DIR=/tmp/data/commitlog
 
 RUN set -eux; \
     \
@@ -339,6 +366,12 @@ RUN set -eux; \
     \
     # Load all book datasets
     /usr/local/bin/taop load-data; \
+    \
+    # commitlog is intentionally excluded from load-data's automatic sweep
+    # (*commands-to-skip* in load-data.lisp) because it's normally the
+    # separate, opt-in `docker compose run --rm commitlog` service — invoke
+    # it explicitly here so its rows end up in the seed dump too.
+    /usr/local/bin/taop commitlog; \
     \
     # Dump the seeded database as gzipped SQL.
     # The postgres entrypoint auto-decompresses .sql.gz files in initdb.d
