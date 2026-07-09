@@ -2,10 +2,10 @@ services:
   postgres:
     build:
       context: .
-      # Bakes every dataset into the image at build time (see docker/
-      # seeded-postgres.Dockerfile) so `docker compose up` needs no separate
-      # `taop load-data` step. For faster iteration on postgres.Dockerfile
-      # itself (no ~15min reseed per change), override:
+      # Bakes every dataset (including commitlog) into the image at build
+      # time (see docker/seeded-postgres.Dockerfile) so `docker compose up`
+      # needs no separate load-data step. For faster iteration on
+      # postgres.Dockerfile itself (no ~15min reseed per change), override:
       #   POSTGRES_DOCKERFILE=docker/postgres.Dockerfile docker compose build
       dockerfile: ${POSTGRES_DOCKERFILE:-docker/seeded-postgres.Dockerfile}
       args:
@@ -30,97 +30,19 @@ services:
       # can find their data directory inside the same named volume.
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U taop -d taop"]
+      # -h 127.0.0.1 matters: while the seeded-image entrypoint restores the
+      # docker-entrypoint-initdb.d dump on first start, it runs a *temporary*
+      # postgres with listen_addresses='' (unix socket only, by design --
+      # see docker-library/postgres's docker-entrypoint.sh) before starting
+      # the real, network-reachable one. Plain `pg_isready` (no -h) connects
+      # over the unix socket and reports healthy against that temporary
+      # instance -- query-ui would then race to connect over TCP and fail.
+      # Forcing TCP here makes the healthcheck only pass once the real
+      # server, the one other containers can actually reach, is listening.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U taop -d taop"]
       interval: 5s
       timeout: 5s
       retries: 5
-
-  taop:
-    build:
-      context: .
-      dockerfile: docker/taop.Dockerfile
-      target: taop
-      args:
-        HASHTAG_URL: "${HASHTAG_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv}"
-        HYDRORIVERS_URL: "${HYDRORIVERS_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip}"
-    environment:
-      PGPASSWORD: taop
-      PGUSER: taop
-      PGDATABASE: taop
-      PGHOST: postgres
-      PGPORT: 5432
-      GEONAMES_DIR: /data/geonames
-      NATURALEARTH_DIR: /data/naturalearth
-      LASTFM_DIR: /data/lastfm
-      SCAN34_DIR: /data/scan34
-      MAGIC_DIR: /data/magic
-      RATES_DIR: /data/rates
-      SHAKESPEARE_DIR: /data/shakespeare
-      SHAKESPEARE_PLAY_XML: /data/shakespeare/shakes/dream.xml
-      F1DB_DIR: /data/f1db
-      MOMA_DIR: /data/MoMA
-      OPENDATA_DIR: /data/opendata
-      EAV_DIR: /data/eav
-      SANDBOX_DIR: /data/sandbox
-      COUNTER_DIR: /data/counter
-      HASHTAG_DIR: /data/hashtag
-      HYDRORIVERS_DIR: /data/hydrorivers
-      OSM_LONDON_DIR: /data/osm-london
-      NATURAL_EARTH_DIR: /data/natural_earth
-      CHINOOK_SQL: /usr/src/taop/cdstore/Chinook_PostgreSql.sql
-    volumes:
-      - ./queries:/usr/src/taop/queries:ro
-      - ./apps/cdstore:/usr/src/taop/cdstore:ro
-      - ./tooling:/usr/src/taop/tooling:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-    working_dir: /usr/src/taop/queries
-    init: true
-
-  commitlog:
-    build:
-      context: .
-      dockerfile: docker/taop.Dockerfile
-      target: commitlog
-    environment:
-      PGPASSWORD: taop
-      PGUSER: taop
-      PGDATABASE: taop
-      PGHOST: postgres
-      PGPORT: 5432
-      COMMITLOG_DIR: /data/commitlog
-    volumes:
-      - ./queries:/usr/src/taop/queries:ro
-      - ./apps/cdstore:/usr/src/taop/cdstore:ro
-      - ./tooling:/usr/src/taop/tooling:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-    working_dir: /usr/src/taop/queries
-    init: true
-
-  psql:
-    build:
-      context: .
-      dockerfile: docker/psql.Dockerfile
-      args:
-        POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
-    environment:
-      PGPASSWORD: taop
-      PGUSER: taop
-      PGDATABASE: taop
-      PGHOST: postgres
-      PGPORT: 5432
-    volumes:
-      - ./queries:/usr/src/taop/queries:ro
-      - ./apps/cdstore:/usr/src/taop/cdstore:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-    stdin_open: true
-    tty: true
-    command: ["psql"]
 
   query-ui:
     build:

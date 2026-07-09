@@ -12,38 +12,49 @@ Docker images for The Art of PostgreSQL.
 
 ## Usage
 
+`docker-compose.yml` at the repo root only defines **postgres** and
+**query-ui** — `docker compose build && docker compose up -d` is the whole
+setup, since postgres ships pre-seeded with every dataset (commitlog
+included). **taop**, **commitlog**, and **psql** are on-demand and live in
+[`docker-compose.tools.yml`](docker-compose.tools.yml); combine it with the
+base file explicitly via `-f`:
+
 ```bash
-# Build all images
+# Build the seeded postgres + query-ui images
 docker compose build
 
-# Start postgres
-docker compose up -d postgres
+# Start postgres + query-ui
+docker compose up -d
+
+alias dct="docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml"
 
 # Run taop commands
-docker compose run --rm taop
+dct run --rm taop
 
-# Run commitlog commands (includes git repos)
-docker compose run --rm commitlog
+# Run commitlog commands (refresh with commits made since the image was built)
+dct run --rm commitlog
 
 # Open psql prompt
-docker compose run --rm psql
+dct run --rm -it psql
 
-# Load data with taop
-docker compose run --rm taop tweet
-docker compose run --rm taop magic
-docker compose run --rm taop rates
-docker compose run --rm taop moma
-docker compose run --rm taop opendata
-docker compose run --rm taop eav
+# Load one dataset with taop (mainly useful with the fast-iteration
+# escape hatch — see ../.env.example — since postgres already ships
+# pre-seeded with everything by default)
+dct run --rm taop tweet
+dct run --rm taop magic
+dct run --rm taop rates
+dct run --rm taop moma
+dct run --rm taop opendata
+dct run --rm taop eav
 
 # Load commitlog data
-docker compose run --rm commitlog commitlog
-docker compose run --rm commitlog gitlog init
-docker compose run --rm commitlog gitlog import postgres
-docker compose run --rm commitlog gitlog import pgloader
+dct run --rm commitlog commitlog
+dct run --rm commitlog gitlog init
+dct run --rm commitlog gitlog import postgres
+dct run --rm commitlog gitlog import pgloader
 
 # Load GeoLite data (requires manual download)
-docker compose run --rm geolite
+dct run --rm geolite
 ```
 
 ## Images
