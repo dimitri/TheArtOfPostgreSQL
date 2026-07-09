@@ -25,15 +25,22 @@
       (uiop:getcwd)))
 
 (defun run-pg-restore (dump-file)
-  "Restore PostgreSQL dump file using pg_restore."
+  "Restore PostgreSQL dump file using pg_restore.
+   Connection details come from the standard PG* environment variables
+   (PGHOST, PGPORT, PGUSER, PGPASSWORD, PGDATABASE) via pg_restore's own
+   libpq handling, same as every other loader in this codebase — a previous
+   version hardcoded \"-d postgres://taop@postgres/taop\", which only worked
+   by coincidence in the docker-compose flow where the postgres service
+   really is reachable at the hostname \"postgres\"; it broke anywhere else
+   (e.g. a single all-in-one seed container talking to itself over
+   PGHOST=localhost)."
   (let ((args (list "pg_restore"
                     "-Fc"
                     "--no-owner"
                     "--no-acl"
                     "--clean"
                     "--if-exists"
-                    ;; use environment for connection details
-                    "-d" "postgres://taop@postgres/taop"
+                    "-d" (or (uiop:getenv "PGDATABASE") "taop")
                     (namestring dump-file))))
     (format t "~%;;; Running pg_restore: ~{~a ~}~%" args)
     (uiop:run-program args :output t :error-output t)))
