@@ -38,6 +38,11 @@ jobs:
       POSTGRES_VERSION: ${{ matrix.pg }}
       # constant project name → docker compose looks for image taop-taop:latest
       COMPOSE_PROJECT_NAME: taop
+      # docker-compose.yml defaults to the pre-seeded image (bakes in a full
+      # load-data run at build time) — not worth paying that 5x across this
+      # PG-version matrix when this job loads data itself via the taop
+      # service below. Use the on-demand-load image instead.
+      POSTGRES_DOCKERFILE: docker/postgres.Dockerfile
 
     steps:
       - uses: actions/checkout@v4
@@ -65,15 +70,17 @@ jobs:
 
       # load-data iterates *commands* and chinook is not in *commands-to-skip*,
       # so it is included automatically — no separate chinook step needed.
+      # taop lives in docker/docker-compose.tools.yml (on-demand services,
+      # not part of the default docker-compose.yml) — combine both files.
       - name: Load all datasets
-        run: docker compose run --rm taop load-data
+        run: docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml run --rm taop load-data
 
       # Set search_path for taop (book queries) and create cdstore user (cdstore app queries).
       # taop needs f1db + chinook + scan34 schemas resolvable without schema qualification.
       # scan34 is the access_log schema used in chapter 23 (IP address type examples).
       - name: Set up database roles and search paths
         run: |
-          docker compose run --rm --entrypoint psql taop \
+          docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml run --rm --entrypoint psql taop \
             -v ON_ERROR_STOP=1 \
             -c "ALTER ROLE taop SET search_path TO f1db, chinook, public, scan34;" \
             -c "CREATE USER cdstore WITH PASSWORD 'cdstore';" \

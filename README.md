@@ -34,39 +34,32 @@ The Art of PostgreSQL book is included in every tier.
 
 ## Quick Start
 
-### Load the data
-
-The docker-compose setup provided in this repository makes it easy and
-efficient to load a series of dataset that are used throughout [The Art of
-PostgreSQL](https://theartofpostgresql.com) book, courses, and workshops.
-
 ```bash
-# Build Docker images
+# One-time build: compiles the loader, loads every dataset (including the
+# commitlog git-history data), pg_dumps the result into the postgres image.
+# A couple of minutes on a decent connection — most of that time is network
+# (base images, apt packages, ~2GB of git history for commitlog), not compute.
 docker compose build
 
-# Start PostgreSQL
-docker compose up -d postgres
+# Start PostgreSQL and the Query UI — the seed restores automatically on
+# first start (a few seconds), so there's no separate load-data step.
+docker compose up -d
 
-# Load all datasets
-docker compose run --rm taop load-data
-...
-
-;;; SUMMARY
-             dataset     timing     status
- -------------------  ---------  ---------
-              scan34     0.065s         ok
-               tweet     4.801s         ok
-               rates     0.175s         ok
-            pubnames     0.557s         ok
-               magic     0.650s         ok
-                f1db     0.392s         ok
-                moma     0.034s         ok
-            opendata     0.328s         ok
-                 eav     0.030s         ok
-             sandbox     2.278s         ok
- -------------------  ---------
-               TOTAL     9.310s
+open http://localhost:8042
 ```
+
+That's the whole setup — `docker-compose.yml` only defines `postgres` and
+`query-ui`. Everything else (loading individual datasets, an interactive
+`psql` session, refreshing the commitlog data) lives in
+[`docker/docker-compose.tools.yml`](docker/docker-compose.tools.yml), an
+on-demand file you combine explicitly with `-f`:
+
+```bash
+docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml run --rm -it psql
+```
+
+See [`docker/docker-compose.tools.yml`](docker/docker-compose.tools.yml) for
+the other services it defines and when you'd reach for them.
 
 ## Query UI — Browse and Run Queries in the Browser
 
@@ -131,7 +124,7 @@ An empty diff means the container is serving your latest code.
 Start a psql session:
 
 ```bash
-docker compose run --rm -it psql
+docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml run --rm -it psql
 ```
 
 Then run:
@@ -231,7 +224,7 @@ PostgreSQL](https://theartofpostgresql.com).
 
 ```bash
 # Start psql
-docker compose run --rm -it psql
+docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml run --rm -it psql
 
 # View a query file
 \! cat queries/04-sql-select/15-sql-102/03_01_f1db.decade.top3.sql
