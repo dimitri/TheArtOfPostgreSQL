@@ -1,5 +1,15 @@
 services:
   postgres:
+    # image + build together: `docker compose up` pulls this tag from ghcr.io
+    # (published by .github/workflows/postgres-seeded-prebuild.yml on every
+    # push to main that touches data/, tooling/, or this Dockerfile) when no
+    # matching image exists locally yet -- no build, no load-data step, just
+    # a download. Running `docker compose build postgres` at any point builds
+    # from source instead and tags the result with this same name, so it
+    # transparently takes over from the pulled image on subsequent `up`s
+    # (Compose only pulls when no local image is present under the tag).
+    # To go back to the published image: `docker compose pull postgres`.
+    image: ghcr.io/dimitri/theartofpostgresql/postgres-seeded:${POSTGRES_VERSION:-16}
     build:
       context: .
       # Bakes every dataset (including commitlog) into the image at build
@@ -13,7 +23,6 @@ services:
         POSTGIS_VERSION: ${POSTGIS_VERSION:-3.4}
         HASHTAG_URL: "${HASHTAG_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv}"
         HYDRORIVERS_URL: "${HYDRORIVERS_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip}"
-    image: taop-postgres:${POSTGRES_VERSION:-16}
     # pg_stat_statements must be preloaded at server start; the Query
     # Optimization course relies on it for workload observation labs.
     command: postgres -c shared_preload_libraries=pg_stat_statements

@@ -65,8 +65,15 @@ jobs:
           cache-from: type=gha,scope=taop-build
           cache-to: type=gha,scope=taop-build,mode=max
 
+      # --build forces a local build from POSTGRES_DOCKERFILE above rather
+      # than pulling docker-compose.yml's image: tag -- ghcr.io/.../
+      # postgres-seeded now has a real image published for every PG version
+      # in this matrix (see postgres-seeded-prebuild.yml), which would
+      # otherwise get pulled instead and break the load-data step below (its
+      # schemas already exist in that image, and it's not the on-demand-load
+      # Dockerfile this job means to test).
       - name: Start PostgreSQL ${{ matrix.pg }}
-        run: docker compose up -d postgres
+        run: docker compose up -d --build postgres
 
       # load-data iterates *commands* and chinook is not in *commands-to-skip*,
       # so it is included automatically — no separate chinook step needed.

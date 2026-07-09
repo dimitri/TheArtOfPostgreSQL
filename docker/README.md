@@ -13,17 +13,18 @@ Docker images for The Art of PostgreSQL.
 ## Usage
 
 `docker-compose.yml` at the repo root only defines **postgres** and
-**query-ui** — `docker compose build && docker compose up -d` is the whole
-setup, since postgres ships pre-seeded with every dataset (commitlog
-included). **taop**, **commitlog**, and **psql** are on-demand and live in
+**query-ui** — `docker compose up -d` is the whole setup: postgres is
+pulled pre-seeded with every dataset (commitlog included) from
+[ghcr.io/dimitri/theartofpostgresql/postgres-seeded](https://github.com/dimitri/TheArtOfPostgreSQL/pkgs/container/theartofpostgresql%2Fpostgres-seeded)
+(built by [`postgres-seeded-prebuild.yml`](../.github/workflows/postgres-seeded-prebuild.yml)),
+no local build needed. `docker compose build postgres` builds it from
+`seeded-postgres.Dockerfile` instead, for iterating on the seed itself.
+**taop**, **commitlog**, and **psql** are on-demand and live in
 [`docker-compose.tools.yml`](docker-compose.tools.yml); combine it with the
 base file explicitly via `-f`:
 
 ```bash
-# Build the seeded postgres + query-ui images
-docker compose build
-
-# Start postgres + query-ui
+# Start postgres + query-ui (pulls postgres, builds query-ui)
 docker compose up -d
 
 alias dct="docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml"

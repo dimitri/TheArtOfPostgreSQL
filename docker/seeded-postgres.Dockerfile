@@ -4,12 +4,19 @@
 # Builds a postgres image pre-seeded with all taop datasets.
 #
 # Usage:
-#   docker compose build          # one-time; a couple minutes on a decent
-#                                  # connection (mostly network: base images,
-#                                  # apt packages, ~2GB of commitlog history —
-#                                  # not compute, --no-cache barely changes it)
-#   docker compose up -d postgres query-ui
+#   docker compose up -d postgres query-ui   # pulls the pre-built image
 #   open http://localhost:8042
+#
+# docker-compose.yml's postgres service references
+# ghcr.io/dimitri/theartofpostgresql/postgres-seeded directly (built and
+# pushed by .github/workflows/postgres-seeded-prebuild.yml on every push to
+# main that touches this file, data/, or tooling/), so a plain
+# `docker compose up` pulls it -- no local build needed. Building this
+# Dockerfile yourself is only for iterating on the seed's own source:
+#   docker compose build postgres   # a couple minutes on a decent
+#                                    # connection (mostly network: base
+#                                    # images, apt packages, ~2GB of
+#                                    # commitlog history -- not compute)
 #
 # On first `docker compose up`, postgres restores the seed dump automatically
 # via docker-entrypoint-initdb.d (runs only when the data volume is empty).

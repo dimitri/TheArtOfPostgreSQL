@@ -6,15 +6,15 @@
 docker compose up -d
 ```
 
-The first start takes a few extra seconds while postgres restores the
-pre-seeded dump; subsequent starts are instant. Then open:
+First run pulls postgres pre-seeded from ghcr.io and builds query-ui locally
+— no separate build step. Then open:
 
 ```
 http://localhost:8042
 ```
 
-If you haven't built the images yet, run `docker compose build` first — see
-the [README Quick Start](README.md#quick-start).
+See the [README Quick Start](README.md#quick-start) for building from source
+instead of pulling.
 
 ## Two views
 

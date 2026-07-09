@@ -1,0 +1,89 @@
+name: Postgres Seeded Image Prebuild
+
+# Build and push the pre-seeded postgres image to ghcr.io whenever anything
+# that affects its content changes on main. docker-compose.yml's postgres
+# service references this image directly, so `docker compose up` pulls it
+# instead of compiling taop, loading all 19 datasets, and cloning ~2GB of
+# commitlog git history locally.
+#
+# One leg per supported PostgreSQL major version, matching ci.yml's test
+# matrix. Built for both linux/amd64 and linux/arm64 (via QEMU on these
+# amd64 runners) so every reader gets a native-arch pull, not an emulated
+# image at runtime -- the whole point of moving off postgis/postgis onto
+# plain debian:bookworm-slim + PGDG earlier.
+#
+# The taop-build and commitlog-data stages are PG-version-agnostic and
+# byte-for-byte identical to taop.Dockerfile's own (see ci.yml's comment) --
+# reusing the "taop-build" GHA cache scope written by ci.yml/
+# devcontainer-prebuild.yml means those stages (SBCL compile, git clones)
+# are free cache hits here across every PG-version leg.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "data/**"                  # datasets baked into the image (incl. commitlog Makefile)
+      - "tooling/**"                # taop binary source
+      - "docker/seeded-postgres.Dockerfile"
+      - "apps/cdstore/Chinook_PostgreSql.sql"
+  workflow_dispatch:               # allow manual trigger, e.g. for the initial push
+
+permissions:
+  contents: read
+  packages: write   # required to push to ghcr.io
+
+jobs:
+  prebuild:
+    name: Build and push PG ${{ matrix.pg }}
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.pg == '18' }}
+    strategy:
+      matrix:
+        pg: ["14", "15", "16", "17", "18"]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # PG 16 is docker-compose.yml's default (POSTGRES_VERSION:-16) -- also
+      # tag it "latest" for convenience when pulling outside of Compose.
+      - name: Compute image tags
+        id: tags
+        run: |
+          image="ghcr.io/${{ github.repository_owner }}/theartofpostgresql/postgres-seeded"
+          tags="$image:${{ matrix.pg }}"
+          if [ "${{ matrix.pg }}" = "16" ]; then
+            tags="$tags
+          $image:latest"
+          fi
+          {
+            echo "tags<<EOF"
+            echo "$tags"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build and push seeded postgres image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/seeded-postgres.Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            POSTGRES_VERSION=${{ matrix.pg }}
+            HASHTAG_URL=https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv
+            HYDRORIVERS_URL=https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip
+          cache-from: |
+            type=gha,scope=taop-build
+            type=gha,scope=postgres-seeded-${{ matrix.pg }}
+          cache-to: type=gha,scope=postgres-seeded-${{ matrix.pg }},mode=max
