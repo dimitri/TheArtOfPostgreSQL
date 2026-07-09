@@ -228,7 +228,7 @@
                (format t "~%;;; Importing ~a commits...~%" project)
                (let* ((project-dir (merge-pathnames project commitlog-dir)))
                  (pomo:with-connection connspec
-                   (let ((count (copy-git-log connspec "postgres" project-dir)))
+                   (let ((count (copy-git-log connspec project project-dir)))
                      (format t ";;; Loaded ~d commits~%" count))))))
 
     (format t "~%;;; All commitlog data loaded successfully!~%")))
