@@ -29,6 +29,13 @@
 # end up in the seed dump, the ~2 GB of cloned git history itself never
 # reaches the final image.
 #
+# Castle ruins (European medieval castles, from OSM's Overpass API) are also
+# included: the castles-build stage queries Overpass at build time for a CSV
+# of locations, `taop load-data` picks it up automatically (castles isn't in
+# load-data's skip list, unlike commitlog). If Overpass is unreachable at
+# build time the stage falls back to an empty CSV rather than failing the
+# whole build.
+#
 
 ARG POSTGRES_VERSION=16
 ARG POSTGIS_VERSION=3.4
@@ -137,6 +144,28 @@ RUN set -eux; \
     else \
       echo '-- HYDRORIVERS_URL unset at build time.' > /out/hydrorivers.sql; \
     fi
+
+#
+# Castles stage: download European medieval castle locations from the OpenStreetMap
+# Overpass API at build time, extract id/name/lon/lat with jq, and write a CSV
+# file.  Loaded at run time with `taop castles`.  If the Overpass API is
+# unreachable the stage produces an empty CSV so the final image still builds.
+#
+FROM debian:bookworm-slim AS castles-build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl jq ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+    mkdir -p /out; \
+    curl -fSL --retry 3 --max-time 300 -X POST \
+      --data-urlencode \
+        'data=[out:json][timeout:180][bbox:35,-15,72,45];(node["historic"="castle"];way["historic"="castle"];relation["historic"="castle"];);out center;' \
+      https://overpass-api.de/api/interpreter \
+      -o /tmp/castles.json \
+    && jq -r '.elements[] | select((.type=="node" and .lon!=null) or ((.type=="way" or .type=="relation") and .center!=null)) | [.id, (.tags.name // ""), (if .type=="node" then .lon else .center.lon end), (if .type=="node" then .lat else .center.lat end)] | @csv' \
+         /tmp/castles.json > /out/castles.csv \
+    && echo "Fetched $(wc -l < /out/castles.csv) castle locations from Overpass API." \
+    || { echo "Overpass API fetch failed — creating empty placeholder CSV."; \
+         : > /out/castles.csv; }
 
 FROM ghcr.io/osgeo/gdal:alpine-small-latest AS osmlondon-build
 COPY data/osm-london/holborn.osm /tmp/holborn.osm
@@ -291,6 +320,10 @@ COPY --from=hydrorivers-build  /out/hydrorivers.sql              /tmp/data/hydro
 COPY --from=osmlondon-build    /tmp/osm_roads.sql                /tmp/data/osm-london/osm_roads.sql
 COPY --from=osmlondon-build    /tmp/osm_parks.sql                /tmp/data/osm-london/osm_parks.sql
 
+# Castle ruins: CSV of European medieval castle locations fetched from OSM Overpass API
+# at build time (see the castles-build stage above).  Loaded with `taop castles`.
+COPY --from=castles-build --chown=taop:taop /out/castles.csv /tmp/data/castles/castles.csv
+
 # Cloned postgres/pgloader repos from the commitlog-data stage, layered on
 # top of the commitlog.sql schema file the blanket `COPY data/` above already
 # placed at /tmp/data/commitlog/.
@@ -318,6 +351,7 @@ ENV PGDATA=/tmp/pgdata \
     EAV_DIR=/tmp/data/eav \
     SANDBOX_DIR=/tmp/data/sandbox \
     HASHTAG_DIR=/tmp/data/hashtag \
+    CASTLES_DIR=/tmp/data/castles \
     HYDRORIVERS_DIR=/tmp/data/hydrorivers \
     NATURALEARTH_DIR=/tmp/data/naturalearth \
     NATURAL_EARTH_DIR=/tmp/data/natural_earth \

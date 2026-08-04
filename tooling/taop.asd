@@ -100,6 +100,9 @@
              ;; hashtag (200k USA tweets; CSV fetched at image build time)
              (:file "hashtag")
 
+             ;; castles (European medieval castle ruins from OSM; CSV fetched at build time)
+             (:file "castles")
+
              ;; load all datasets
              (:file "load-data")
 
