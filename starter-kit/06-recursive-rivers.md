@@ -422,5 +422,5 @@ The same pattern handles any hierarchy or graph stored as a parent reference: an
 org chart, a threaded comment section, a bill of materials, a category tree — or
 a river and all its tributaries.
 
-> This example is drawn from Chapter 15 of *The Art of PostgreSQL*, **Group By,
+> This example is drawn from Chapter 16 of [*The Art of PostgreSQL*](https://theartofpostgresql.com/book/contents/?utm_source=lab&utm_medium=app&utm_content=starterkit-06-recursive-rivers), **Group By,
 > Having, With, Union All**.

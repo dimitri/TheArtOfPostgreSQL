@@ -55,6 +55,52 @@
       background: var(--primary);
     }
 
+    /* Inline Font Awesome icons ride the text baseline next to their label;
+       more specific rules (.page-card .icon) resize and recolour them. */
+    .icon {
+      width: 1em;
+      height: 1em;
+      fill: currentColor;
+      vertical-align: -0.125em;
+      flex-shrink: 0;
+    }
+
+    .app-nav-item .icon,
+    .app-nav-cta .icon {
+      margin-right: 6px;
+    }
+
+    /* The one commercial CTA in the app, parked on the nav bar's otherwise
+       empty right half. Deliberately not a filled button: it is on screen
+       for the whole session, so it has to stay legible without ever
+       competing with Run or with the active-view tab. Warm amber reads as
+       "offer" against the slate bar and the blue active tab without
+       shouting. */
+    .app-nav-cta {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      color: #e8b563;
+      text-decoration: none;
+      padding: 6px 14px;
+      border: 1px solid rgba(232,181,99,0.35);
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .app-nav-cta:hover {
+      color: #1a252f;
+      background: #e8b563;
+      border-color: #e8b563;
+    }
+
+    .app-nav-cta:focus-visible {
+      outline: 2px solid #e8b563;
+      outline-offset: 2px;
+    }
+
     /* Menu: the six starter-kit pages, styled after
        oss.theartofpostgresql.com/projects/ — a dark hero band in the same
        plum/lavender palette (deep #372649, muted #67527a, sky #60b2d3),
@@ -90,6 +136,39 @@
       gap: 24px;
     }
 
+    /* Closing block at the foot of an individual lab. A reader who got here
+       finished the whole page, so this is the one moment the lab has earned
+       an ask -- kept to a rule, a line of prose and two links, well below
+       the last query rather than floating over it. */
+    .lab-footer {
+      margin: 44px 0 8px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e3e7;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 18px;
+      font-size: 0.92rem;
+      color: #67527a;
+    }
+
+    .lab-footer a {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: #372649;
+      font-weight: 600;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(55,38,73,0.3);
+    }
+
+    .lab-footer a:hover {
+      color: #60b2d3;
+      border-bottom-color: #60b2d3;
+    }
+
+    .lab-footer .next { margin-left: auto; }
+
     .page-card {
       display: flex;
       flex-direction: column;
@@ -107,6 +186,27 @@
       box-shadow: 0 6px 20px rgba(55,38,73,0.1);
       transform: translateY(-2px);
     }
+
+    /* The seventh card closes the funnel rather than continuing it, so it
+       reads as an endpoint: the hero's plum instead of white, no STEP
+       number, and it leaves the app. Sitting in the same grid keeps it an
+       answer to "what now?" rather than an ad bolted onto the page. */
+    .page-card.finish {
+      background: linear-gradient(160deg, #372649, #4a3768);
+      border-color: #372649;
+      color: #f2eef7;
+    }
+
+    .page-card.finish:hover {
+      border-color: #e8b563;
+      box-shadow: 0 6px 20px rgba(55,38,73,0.25);
+    }
+
+    .page-card.finish .icon { fill: #e8b563; }
+    .page-card.finish:hover .icon { fill: #e8b563; }
+    .page-card.finish .num { color: #b9a7cd; }
+    .page-card.finish .blurb { color: #d7cce4; }
+    .page-card.finish .start { color: #e8b563; }
 
     .page-card .icon {
       width: 30px;
@@ -393,10 +493,20 @@
   </style>
 </head>
 <body>
+  <!-- Shared with index.html: Font Awesome path data, faIcon/hydrateIcons,
+       and the UTM-tagged link helper. Must load before any markup below
+       that carries data-icon or any script that calls faIcon(). -->
+  <script src="icons.js"></script>
   <div class="app-nav">
-    <a href="/starter-kit.html" class="app-nav-item active">📓 Starter Kit</a>
-    <a href="/" class="app-nav-item">📖 Book Queries</a>
+    <a href="/starter-kit.html" class="app-nav-item active" data-icon="flask">Starter Kit</a>
+    <a href="/" class="app-nav-item" data-icon="book-open">Book Queries</a>
+    <a class="app-nav-cta" id="nav-cta" data-icon="graduation-cap"
+       target="_blank" rel="noopener">Get the full course</a>
   </div>
+  <script>
+    document.getElementById('nav-cta').href = taopURL('/course/', 'nav-starter-kit');
+    hydrateIcons();
+  </script>
 
   <div id="app"><div class="loading-notebook">Loading…</div></div>
 
@@ -433,24 +543,6 @@
     // One-line pitch per page, matching the root README's "What you'll
     // learn" list — curated copy, not auto-extracted from the page body, so
     // it stays short and consistent even as the pages themselves evolve.
-    // Font Awesome Free 6 solid icons (MIT/CC-BY-licensed path data,
-    // https://github.com/FortAwesome/Font-Awesome), inlined as raw SVG
-    // rather than pulled from the Font Awesome CDN's webfont — this app is
-    // a single self-contained Go binary with no other external runtime
-    // dependency, and a handful of inline icons keeps it that way.
-    const FA_ICONS = {
-      bullseye:      { vb: '0 0 512 512', d: 'M448 256A192 192 0 1 0 64 256a192 192 0 1 0 384 0zM0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256 80a80 80 0 1 0 0-160 80 80 0 1 0 0 160zm0-224a144 144 0 1 1 0 288 144 144 0 1 1 0-288zM224 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z' },
-      'chart-column': { vb: '0 0 512 512', d: 'M32 32c17.7 0 32 14.3 32 32l0 336c0 8.8 7.2 16 16 16l400 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L80 480c-44.2 0-80-35.8-80-80L0 64C0 46.3 14.3 32 32 32zM160 224c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-64c0-17.7 14.3-32 32-32zm128-64l0 160c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-160c0-17.7 14.3-32 32-32s32 14.3 32 32zm64 32c17.7 0 32 14.3 32 32l0 96c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-96c0-17.7 14.3-32 32-32zM480 96l0 224c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-224c0-17.7 14.3-32 32-32s32 14.3 32 32z' },
-      'arrow-trend-up': { vb: '0 0 576 512', d: 'M384 160c-17.7 0-32-14.3-32-32s14.3-32 32-32l160 0c17.7 0 32 14.3 32 32l0 160c0 17.7-14.3 32-32 32s-32-14.3-32-32l0-82.7L342.6 374.6c-12.5 12.5-32.8 12.5-45.3 0L192 269.3 54.6 406.6c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3l160-160c12.5-12.5 32.8-12.5 45.3 0L320 306.7 466.7 160 384 160z' },
-      'location-dot': { vb: '0 0 384 512', d: 'M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z' },
-      map:            { vb: '0 0 576 512', d: 'M384 476.1L192 421.2l0-385.3L384 90.8l0 385.3zm32-1.2l0-386.5L543.1 37.5c15.8-6.3 32.9 5.3 32.9 22.3l0 334.8c0 9.8-6 18.6-15.1 22.3L416 474.8zM15.1 95.1L160 37.2l0 386.5L32.9 474.5C17.1 480.8 0 469.2 0 452.2L0 117.4c0-9.8 6-18.6 15.1-22.3z' },
-      water:          { vb: '0 0 576 512', d: 'M269.5 69.9c11.1-7.9 25.9-7.9 37 0C329 85.4 356.5 96 384 96c26.9 0 55.4-10.8 77.4-26.1c0 0 0 0 0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 149.7 417 160 384 160c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4C42.8 92.6 61 83.5 75.3 71.6c11.1-9.5 27.3-10.1 39.2-1.7c0 0 0 0 0 0C136.7 85.2 165.1 96 192 96c27.5 0 55-10.6 77.5-26.1zm37 288C329 373.4 356.5 384 384 384c26.9 0 55.4-10.8 77.4-26.1c0 0 0 0 0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 437.7 417 448 384 448c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4c18.1-4.2 36.2-13.3 50.6-25.2c11.1-9.4 27.3-10.1 39.2-1.7c0 0 0 0 0 0C136.7 373.2 165.1 384 192 384c27.5 0 55-10.6 77.5-26.1c11.1-7.9 25.9-7.9 37 0zm0-144C329 229.4 356.5 240 384 240c26.9 0 55.4-10.8 77.4-26.1c0 0 0 0 0 0c11.9-8.5 28.1-7.8 39.2 1.7c14.4 11.9 32.5 21 50.6 25.2c17.2 4 27.9 21.2 23.9 38.4s-21.2 27.9-38.4 23.9c-24.5-5.7-44.9-16.5-58.2-25C449.5 293.7 417 304 384 304c-31.9 0-60.6-9.9-80.4-18.9c-5.8-2.7-11.1-5.3-15.6-7.7c-4.5 2.4-9.7 5.1-15.6 7.7c-19.8 9-48.5 18.9-80.4 18.9c-33 0-65.5-10.3-94.5-25.8c-13.4 8.4-33.7 19.3-58.2 25c-17.2 4-34.4-6.7-38.4-23.9s6.7-34.4 23.9-38.4c18.1-4.2 36.2-13.3 50.6-25.2c11.1-9.5 27.3-10.1 39.2-1.7c0 0 0 0 0 0C136.7 229.2 165.1 240 192 240c27.5 0 55-10.6 77.5-26.1c11.1-7.9 25.9-7.9 37 0z' },
-    };
-
-    function faIcon(name) {
-      const icon = FA_ICONS[name];
-      return `<svg class="icon" viewBox="${icon.vb}" xmlns="http://www.w3.org/2000/svg"><path d="${icon.d}"/></svg>`;
-    }
 
     const PAGE_BLURBS = {
       '01-nested-lateral': { icon: 'bullseye', blurb: 'Solve top-N per group problems cleanly with a LATERAL join.' },
@@ -476,6 +568,20 @@
       `;
       }).join('');
 
+      const finish = `
+        <a class="page-card finish" href="${taopURL('/course/', 'starter-kit-finish')}"
+           target="_blank" rel="noopener">
+          ${faIcon('graduation-cap')}
+          <span class="num">AFTER THE SIX</span>
+          <div class="title">Go deeper than the starter kit</div>
+          <p class="blurb">These six are the appetiser. The full course covers window
+             functions, aggregation, schema design, advanced joins, query optimization
+             and reading query plans — across 6 courses and 3 tiers, with the book
+             included in every one.</p>
+          <span class="start">See the course &rarr;</span>
+        </a>
+      `;
+
       app.innerHTML = `
         <div class="menu-hero">
           <h1>PostgreSQL Starter Kit</h1>
@@ -484,7 +590,7 @@
              the lab database as you read.</p>
         </div>
         <div class="menu">
-          <div class="page-list">${cards}</div>
+          <div class="page-list">${cards}${finish}</div>
         </div>
       `;
     }
@@ -523,11 +629,38 @@
           }
         });
 
+        notebook.appendChild(labFooter(slug));
+
         app.innerHTML = '';
         app.appendChild(notebook);
       } catch (err) {
         app.innerHTML = `<div class="notebook"><div class="cell-output-error">${escapeHtml(err.message)}</div></div>`;
       }
+    }
+
+    // Closing CTA for one lab page. The "next lab" link matters as much as
+    // the course link: finishing a page with nowhere to go is what made the
+    // six-lab sequence dead-end, and someone who wants lab 04 next is not
+    // the person to push a course at.
+    function labFooter(slug) {
+      const i = pages.findIndex(p => p.slug === slug);
+      const next = i >= 0 && i + 1 < pages.length ? pages[i + 1] : null;
+
+      const div = document.createElement('div');
+      div.className = 'lab-footer';
+      div.innerHTML = `
+        <span>Every query here is drawn from
+          <a href="${taopURL('/book/contents/', 'lab-' + slug)}"
+             target="_blank" rel="noopener">The Art of PostgreSQL${faIcon('up-right-from-square')}</a>,
+          and goes further in
+          <a href="${taopURL('/course/', 'lab-' + slug)}"
+             target="_blank" rel="noopener">the course${faIcon('graduation-cap')}</a>.
+        </span>
+        ${next
+          ? `<a class="next" href="#${encodeURIComponent(next.slug)}">Next: ${escapeHtml(next.title)}${faIcon('arrow-right')}</a>`
+          : `<a class="next" href="#">Back to all labs${faIcon('arrow-right')}</a>`}
+      `;
+      return div;
     }
 
     // Each SQL cell is fully self-contained: its own textarea, Run button,
@@ -560,7 +693,7 @@
       actions.className = 'cell-actions';
       const runBtn = document.createElement('button');
       runBtn.className = 'cell-run-btn';
-      runBtn.textContent = '▶ Run';
+      runBtn.innerHTML = faIcon('play') + ' Run';
       const status = document.createElement('span');
       status.className = 'cell-status';
       actions.appendChild(runBtn);

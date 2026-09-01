@@ -475,6 +475,7 @@
        have used, since a full script or patch benefits from the room. */
     .editor-panel.readonly-script #run-btn,
     .editor-panel.readonly-script #explain-btn,
+    .editor-panel.readonly-script #format-btn,
     .editor-panel.readonly-script #clear-btn,
     .editor-panel.readonly-script #results-area,
     .editor-panel.readonly-script #error-container,
@@ -754,20 +755,306 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #95a5a6;
     }
+
+    /* ── Welcome panel ─────────────────────────────────────────────────
+       The landing view. Scrolls in the space the editor would occupy and
+       reuses the app's existing palette rather than introducing a second
+       visual language for one screen. */
+    .welcome-panel {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--light);
+      padding: 40px 24px 56px;
+    }
+
+    .welcome-panel.hidden { display: none; }
+    .editor-panel.hidden { display: none; }
+
+    .welcome-inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .welcome-inner h1 {
+      margin: 0 0 12px;
+      font-size: 1.9rem;
+      color: var(--dark);
+      letter-spacing: -0.01em;
+    }
+
+    .welcome-lede {
+      margin: 0 0 26px;
+      font-size: 1.05rem;
+      line-height: 1.65;
+      color: #4a5a68;
+      max-width: 62ch;
+    }
+
+    .welcome-lede em { color: var(--dark); font-style: normal; font-weight: 600; }
+
+    /* Counts come from the TOC the app already parsed -- real numbers for
+       this checkout, not copy that goes stale when a chapter is added. */
+    .welcome-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 28px;
+      padding: 16px 20px;
+      margin-bottom: 30px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .welcome-stat { display: flex; flex-direction: column; gap: 2px; }
+
+    .welcome-stat b {
+      font-size: 1.25rem;
+      color: var(--dark);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .welcome-stat span {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7b8794;
+    }
+
+    .welcome-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+
+    .welcome-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 20px;
+      text-decoration: none;
+      color: #4a5a68;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      transition: all 0.15s;
+    }
+
+    a.welcome-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 14px rgba(52,152,219,0.12);
+      transform: translateY(-2px);
+    }
+
+    .welcome-card strong { color: var(--dark); font-size: 0.95rem; }
+    .welcome-card b { color: var(--dark); }
+
+    .welcome-card-icon .icon {
+      width: 22px;
+      height: 22px;
+      fill: var(--primary);
+    }
+
+    .welcome-card.static .welcome-card-icon .icon { fill: #9aa7b4; }
+
+    .welcome-card-go {
+      margin-top: auto;
+      padding-top: 6px;
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--primary);
+    }
+
+    .welcome-card-go.muted { color: #9aa7b4; font-weight: 500; }
+
+    /* The landing CTA. Last thing on the page, after the lab has explained
+       itself and earned the ask -- not a banner across the top of it. */
+    .welcome-cta {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 22px 24px;
+      background: linear-gradient(160deg, #2c3e50, #1a252f);
+      border-radius: 6px;
+      text-decoration: none;
+      color: #cdd8e2;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .welcome-cta:hover { border-color: #e8b563; }
+
+    .welcome-cta-icon .icon {
+      width: 26px;
+      height: 26px;
+      fill: #e8b563;
+      margin-top: 2px;
+    }
+
+    .welcome-cta-text { flex: 1; }
+
+    .welcome-cta-text strong {
+      display: block;
+      color: white;
+      font-size: 1rem;
+      margin-bottom: 4px;
+    }
+
+    .welcome-cta-go {
+      align-self: center;
+      white-space: nowrap;
+      font-weight: 600;
+      color: #e8b563;
+    }
+
+    .welcome-cta:focus-visible,
+    a.welcome-card:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 640px) {
+      .welcome-cta { flex-direction: column; }
+      .welcome-cta-go { align-self: flex-start; }
+    }
+
+    /* ── Font Awesome inline icons ─────────────────────────────────────
+       Path data and helpers live in icons.js, shared with starter-kit.html.
+       Sized in em so an icon tracks whatever text it sits beside. */
+    .icon {
+      width: 1em;
+      height: 1em;
+      fill: currentColor;
+      vertical-align: -0.125em;
+      flex-shrink: 0;
+    }
+
+    .app-nav-item .icon,
+    .app-nav-cta .icon,
+    .btn .icon,
+    .mode-toggle .icon,
+    .sidebar-header h1 .icon {
+      margin-right: 6px;
+    }
+
+    .sidebar-toggle .icon {
+      width: 15px;
+      height: 15px;
+      vertical-align: middle;
+    }
+
+    /* ── CTAs ──────────────────────────────────────────────────────────
+       Two destinations, on purpose: the persistent nav slot carries the
+       commercial ask (the course), while the contextual chapter link next
+       to the breadcrumb answers "where is this query from?" and goes to the
+       book's table of contents. Mixing them would make the frequent,
+       low-pressure link feel like the sales one. */
+
+    /* Nav CTA: on screen for the entire session, so it stays a bordered
+       link rather than a filled button and never competes with Run. Amber
+       reads as "offer" against the slate bar and the blue active tab. */
+    .app-nav-cta {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      color: #e8b563;
+      text-decoration: none;
+      padding: 6px 14px;
+      border: 1px solid rgba(232,181,99,0.35);
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .app-nav-cta:hover {
+      color: #1a252f;
+      background: #e8b563;
+      border-color: #e8b563;
+    }
+
+    .app-nav-cta:focus-visible,
+    .chapter-cta:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* Chapter CTA: the app already knows which chapter the open query comes
+       from (toc.txt, parsed in toc.go), which makes this the most relevant
+       link in the UI -- and the quietest, since it fires on every query. */
+    .chapter-cta {
+      margin-left: auto;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      color: var(--primary);
+      text-decoration: none;
+      padding: 5px 10px;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .chapter-cta:hover {
+      background: rgba(52,152,219,0.08);
+      border-color: rgba(52,152,219,0.3);
+    }
+
+    .sidebar-header h1 a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .sidebar-header h1 a:hover { text-decoration: underline; }
+
+    .sidebar-header .subtitle a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: underline;
+    }
+
+    .sidebar-header .subtitle a:hover { color: white; }
+
+    @media (max-width: 720px) {
+      .chapter-cta span { display: none; }
+    }
   </style>
 </head>
 <body>
+  <!-- Shared with starter-kit.html: Font Awesome path data, faIcon/
+       hydrateIcons, and the UTM-tagged link helper. Must load before any
+       markup below that carries data-icon. -->
+  <script src="icons.js"></script>
   <div class="app-nav">
-    <a href="/starter-kit.html" class="app-nav-item">📓 Starter Kit</a>
-    <a href="/" class="app-nav-item active">📖 Book Queries</a>
+    <a href="/starter-kit.html" class="app-nav-item" data-icon="flask">Starter Kit</a>
+    <a href="/" class="app-nav-item active" data-icon="book-open">Book Queries</a>
+    <a class="app-nav-cta" id="nav-cta" data-icon="graduation-cap"
+       target="_blank" rel="noopener">Get the full course</a>
   </div>
+  <script>
+    document.getElementById('nav-cta').href = taopURL('/course/', 'nav-book-queries');
+    hydrateIcons();
+  </script>
   <div class="container">
     <!-- Sidebar: full drill-down tree, Part > Chapter > Section > Query -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <h1>📖 The Art of PostgreSQL</h1>
-        <div class="subtitle">Book Queries (Local)</div>
+        <h1><a id="sidebar-book-link" data-icon="book" target="_blank" rel="noopener">The Art of PostgreSQL</a></h1>
+        <div class="subtitle">
+          Book Queries (Local) ·
+          <a href="#" id="welcome-link">Start here</a>
+        </div>
       </div>
+      <script>
+        document.getElementById('sidebar-book-link').href = taopURL('', 'sidebar-title');
+        hydrateIcons();
+      </script>
 
       <div class="toc-container" id="toc-container">
         <!-- Populated by JavaScript -->
@@ -777,10 +1064,70 @@
     <!-- Main Content: header + full-width editor -->
     <main class="main">
       <div class="main-header">
-        <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle navigation">☰</button>
+        <button class="sidebar-toggle" id="sidebar-toggle" title="Toggle navigation" aria-label="Toggle navigation" data-icon="bars"></button>
         <div class="main-header-text">
           <h2 id="chapter-title">Welcome</h2>
           <div class="chapter-path" id="chapter-path">Select a query from the sidebar to get started</div>
+        </div>
+        <a class="chapter-cta" id="chapter-cta" target="_blank" rel="noopener" hidden></a>
+      </div>
+
+      <!-- Landing view. Shown instead of the editor until a query is opened,
+           and reachable again from "Start here" in the sidebar. The app used
+           to boot straight into one hard-coded query, which left first-time
+           users to reverse-engineer what the lab was from a SQL file. -->
+      <div class="welcome-panel" id="welcome-panel">
+        <div class="welcome-inner">
+          <h1>The PostgreSQL practice lab</h1>
+          <p class="welcome-lede">
+            Every SQL query from <em>The Art of PostgreSQL</em>, against the book's own
+            datasets, on a real PostgreSQL server. Run them, change them, break them,
+            read the query plans. Nothing here leaves your machine.
+          </p>
+
+          <div class="welcome-stats" id="welcome-stats"></div>
+
+          <div class="welcome-cards">
+            <a class="welcome-card" href="/starter-kit.html">
+              <span class="welcome-card-icon" data-icon="flask"></span>
+              <strong>New here? Start with the Starter Kit</strong>
+              <span>Six hand-picked queries showing PostgreSQL features that
+                    are genuinely useful and not widely known — a LATERAL join,
+                    GROUPING SETS, a k-nearest-neighbour search, a map drawn in
+                    text. Each one runs as you read it.</span>
+              <span class="welcome-card-go">Open the Starter Kit</span>
+            </a>
+
+            <div class="welcome-card static">
+              <span class="welcome-card-icon" data-icon="table-list"></span>
+              <strong>Or browse the book, chapter by chapter</strong>
+              <span>The sidebar is the book's real table of contents. Pick any
+                    chapter, pick a query, and it loads exactly as printed —
+                    then edit it freely before running.</span>
+              <span class="welcome-card-go muted">Use the sidebar on the left</span>
+            </div>
+
+            <div class="welcome-card static">
+              <span class="welcome-card-icon" data-icon="code"></span>
+              <strong>Or just write SQL</strong>
+              <span>The editor is yours. <b>Run</b> executes it,
+                    <b>EXPLAIN</b> shows the plan as text, a diagram or raw JSON,
+                    and <b>FORMAT</b> tidies it up with sqlfmt. Writes are
+                    blocked until you flip the read-write toggle.</span>
+              <span class="welcome-card-go muted">Ctrl+Enter runs · Ctrl+Shift+F formats</span>
+            </div>
+          </div>
+
+          <a class="welcome-cta" id="welcome-cta" target="_blank" rel="noopener">
+            <span class="welcome-cta-icon" data-icon="graduation-cap"></span>
+            <span class="welcome-cta-text">
+              <strong>This lab is the free half</strong>
+              The course goes deeper — window functions, aggregation, schema design,
+              advanced joins, query optimization and reading query plans, across 6
+              courses and 3 tiers. The book is included in every tier.
+            </span>
+            <span class="welcome-cta-go">See the course &rarr;</span>
+          </a>
         </div>
       </div>
 
@@ -788,12 +1135,11 @@
         <div class="editor-header">
           <h3>Query Editor</h3>
           <div class="editor-buttons">
-            <button class="mode-toggle" id="mode-toggle" title="Switch between read-only and read-write execution">
-              🔒 Read-only
-            </button>
-            <button class="btn btn-primary" id="run-btn">▶ Run</button>
-            <button class="btn btn-secondary" id="explain-btn">📊 EXPLAIN</button>
-            <button class="btn btn-secondary" id="clear-btn">✕ Clear</button>
+            <button class="mode-toggle" id="mode-toggle" title="Switch between read-only and read-write execution" data-icon="lock"> Read-only</button>
+            <button class="btn btn-primary" id="run-btn" data-icon="play"> Run</button>
+            <button class="btn btn-secondary" id="explain-btn" data-icon="diagram-project"> EXPLAIN</button>
+            <button class="btn btn-secondary" id="format-btn" title="Format this SQL with sqlfmt (Ctrl+Shift+F)" data-icon="wand-magic-sparkles"> FORMAT</button>
+            <button class="btn btn-secondary" id="clear-btn" data-icon="xmark"> Clear</button>
           </div>
         </div>
 
@@ -812,7 +1158,7 @@
           <div id="results-area" class="results-area">
             <div class="results-header">
               <h4 id="results-title">Results</h4>
-              <button class="btn btn-secondary" id="download-csv">↓ CSV</button>
+              <button class="btn btn-secondary" id="download-csv" data-icon="download"> CSV</button>
             </div>
             <div id="results-content" class="results-content">
               <!-- Populated by JavaScript -->
@@ -825,6 +1171,13 @@
     </main>
   </div>
 
+  <!-- TinyGo's wasm_exec.js glue for sqlfmt.wasm (the FORMAT button). This is
+       TinyGo's file, NOT the standard Go toolchain's copy of the same name --
+       they are not interchangeable. Both it and sqlfmt.wasm are vendored from
+       dimitri/sqlfmt's wasm-dev release and embedded in the query-ui binary;
+       see frontend/dist/SQLFMT-VERSION.txt and
+       tooling/query-ui/update-sqlfmt-wasm.sh. -->
+  <script src="wasm_exec.js"></script>
   <script>
     let toc = null;
     let lastResult = null;
@@ -857,11 +1210,7 @@
 
         renderTOC();
         setupEventListeners();
-
-        const loc = findQueryLocation(DEFAULT_QUERY_PATH);
-        if (loc) {
-          await loadQuery(loc.chapter, loc.section, DEFAULT_QUERY_PATH);
-        }
+        showWelcome();
 
         console.log('✓ Initialized');
       } catch (err) {
@@ -1059,9 +1408,11 @@
 
         document.getElementById('query-input').value = data.content;
         const { name: filename } = splitQueryFilename(queryPath.split('/').pop());
+        hideWelcome();
         document.getElementById('chapter-title').textContent = filename;
         document.getElementById('chapter-path').textContent =
           `${chapter.Num} ${chapter.Title} › ${section.Num} ${section.Title}`;
+        showChapterCTA(chapter);
 
         setEditorMode(data.language, data.content);
 
@@ -1079,25 +1430,116 @@
     }
 
     function setupEventListeners() {
+      // The two inline hydrateIcons() calls above cover the nav and sidebar
+      // header so those paint with icons already in place; this one picks up
+      // everything further down the document -- the sidebar toggle and the
+      // editor's button row.
+      hydrateIcons();
+
       document.getElementById('run-btn').addEventListener('click', executeQuery);
       document.getElementById('explain-btn').addEventListener('click', explainQuery);
+      document.getElementById('format-btn').addEventListener('click', formatQuery);
       document.getElementById('clear-btn').addEventListener('click', clearResults);
       document.getElementById('download-csv').addEventListener('click', downloadCSV);
       document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
       document.getElementById('mode-toggle').addEventListener('click', toggleReadWriteMode);
+      document.getElementById('welcome-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        showWelcome();
+      });
 
-      // Allow Ctrl+Enter to run query
+      // Allow Ctrl+Enter to run query, Ctrl+Shift+F to format it.
       document.getElementById('query-input').addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'Enter') {
           executeQuery();
+        } else if (e.ctrlKey && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+          e.preventDefault();
+          formatQuery();
         }
       });
+
+      // Warm the formatter in the background so the first FORMAT click does
+      // not pay for the fetch+instantiate. Failure here is not fatal and not
+      // reported: loadSqlfmt() caches the rejection and formatQuery() surfaces
+      // it if and when someone actually presses the button.
+      loadSqlfmt().catch(() => {});
 
       // Live syntax highlighting while typing, and keep the highlighted
       // <pre> scrolled to the same position as the invisible-text textarea
       // on top of it.
       document.getElementById('query-input').addEventListener('input', updateSQLHighlight);
       document.getElementById('query-input').addEventListener('scroll', syncHighlightScroll);
+    }
+
+    /* ── Welcome view ───────────────────────────────────────────────────
+       The lab used to open on DEFAULT_QUERY_PATH, so the first thing a new
+       user saw was a SQL file with no explanation of what they were looking
+       at. That constant is kept below: it is still the fastest way to get a
+       known-good query on screen when debugging. */
+    function showWelcome() {
+      document.getElementById('welcome-panel').classList.remove('hidden');
+      document.getElementById('editor-panel').classList.add('hidden');
+      document.getElementById('chapter-title').textContent = 'Welcome';
+      document.getElementById('chapter-path').textContent =
+        'The Art of PostgreSQL — practice lab';
+      document.getElementById('chapter-cta').hidden = true;
+      document.querySelectorAll('.query-item.active')
+              .forEach(el => el.classList.remove('active'));
+
+      document.getElementById('welcome-cta').href =
+        taopURL('/course/', 'welcome');
+      renderWelcomeStats();
+      hydrateIcons(document.getElementById('welcome-panel'));
+    }
+
+    function hideWelcome() {
+      document.getElementById('welcome-panel').classList.add('hidden');
+      document.getElementById('editor-panel').classList.remove('hidden');
+    }
+
+    // Counted from the parsed TOC rather than written into the copy, so the
+    // numbers stay true as the book's queries/ tree grows.
+    function renderWelcomeStats() {
+      let chapters = 0, queries = 0;
+      for (const part of (toc && toc.Parts) || []) {
+        for (const chapter of part.Chapters || []) {
+          chapters++;
+          queries += (chapter.Queries || []).length;
+          for (const section of chapter.Sections || []) {
+            queries += (section.Queries || []).length;
+          }
+        }
+      }
+      const stats = [
+        [queries, 'runnable queries'],
+        [chapters, 'chapters'],
+        [(toc && toc.Parts || []).length, 'parts of the book'],
+      ];
+      document.getElementById('welcome-stats').innerHTML = stats.map(
+        ([n, label]) => `<div class="welcome-stat"><b>${n}</b><span>${label}</span></div>`
+      ).join('');
+    }
+
+    /* CRO: the one link in this UI that knows what the reader is looking at.
+       toc.go has already resolved the open query to its chapter, so this can
+       name it -- "Chapter 16 in the book" beats any generic banner, and no
+       other lab can offer it because no other lab has the mapping.
+
+       It points at the book's table of contents: theartofpostgresql.com has
+       no per-chapter URLs, so a fabricated #chapter-16 anchor would 404. The
+       chapter still rides along in utm_content, which is what makes it
+       possible to see later which chapters actually drive clicks. */
+    function showChapterCTA(chapter) {
+      const cta = document.getElementById('chapter-cta');
+      if (!chapter || !chapter.Num) {
+        cta.hidden = true;
+        return;
+      }
+      cta.href = taopURL('/book/contents/', 'chapter-' + chapter.Num);
+      cta.innerHTML = `Chapter ${chapter.Num} <span>in the book</span>` +
+                      faIcon('up-right-from-square');
+      cta.title = `${chapter.Num} ${chapter.Title} — read it in The Art of PostgreSQL`;
+      cta.hidden = false;
     }
 
     function toggleSidebar() {
@@ -1107,7 +1549,9 @@
     function toggleReadWriteMode() {
       readWriteMode = !readWriteMode;
       const btn = document.getElementById('mode-toggle');
-      btn.textContent = readWriteMode ? '🔓 Read-Write' : '🔒 Read-only';
+      btn.innerHTML = readWriteMode
+        ? faIcon('lock-open') + ' Read-Write'
+        : faIcon('lock') + ' Read-only';
       btn.classList.toggle('armed', readWriteMode);
       document.getElementById('editor-panel').classList.toggle('readwrite-armed', readWriteMode);
     }
@@ -1781,6 +2225,124 @@
       const highlight = document.getElementById('query-input-highlight');
       highlight.scrollTop = input.scrollTop;
       highlight.scrollLeft = input.scrollLeft;
+    }
+
+    /* ── sqlfmt (WebAssembly) ────────────────────────────────────────────
+       Formatting runs in the browser, not on the server: sqlfmt.wasm is
+       embedded in this binary and exposes globalThis.sqlfmt.format(sql),
+       which returns {output} or {error}. That keeps the lab's no-network
+       promise intact and means FORMAT works on a query you never run --
+       including in read-only script mode's sibling files, and with no
+       database connection at all.
+
+       The module is ~600KB and served from memory over localhost, but it is
+       still loaded once and cached in this promise: go.run() starts a Go
+       runtime that blocks forever to keep the exported function alive, so
+       instantiating twice would leave a second one running for nothing. */
+    let sqlfmtReady = null;
+
+    function loadSqlfmt() {
+      if (sqlfmtReady) return sqlfmtReady;
+      sqlfmtReady = (async () => {
+        if (typeof Go !== 'function') {
+          throw new Error('wasm_exec.js did not load');
+        }
+        const go = new Go();
+        // instantiateStreaming needs the response served as application/wasm,
+        // which Go's http.FileServer does for .wasm out of the box.
+        const result = await WebAssembly.instantiateStreaming(
+          fetch('sqlfmt.wasm'), go.importObject);
+        // Deliberately not awaited: go.run() only settles when the Go program
+        // exits, and this one blocks forever on purpose.
+        go.run(result.instance);
+        if (!globalThis.sqlfmt || typeof globalThis.sqlfmt.format !== 'function') {
+          throw new Error('sqlfmt.wasm loaded but exported no format()');
+        }
+        return globalThis.sqlfmt;
+      })();
+      return sqlfmtReady;
+    }
+
+    async function formatQuery() {
+      const input = document.getElementById('query-input');
+      const sql = input.value;
+      if (!sql.trim()) {
+        clearError();
+        return;
+      }
+
+      const btn = document.getElementById('format-btn');
+      // innerHTML, not textContent: the button carries an inline <svg> icon
+      // that a textContent round-trip would silently drop.
+      const label = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = faIcon('wand-magic-sparkles') + ' Formatting…';
+
+      try {
+        let sqlfmt;
+        try {
+          sqlfmt = await loadSqlfmt();
+        } catch (err) {
+          showError('Could not load the SQL formatter: ' + err.message);
+          return;
+        }
+        btn.title = 'Format this SQL with sqlfmt ' + sqlfmt.version + ' (Ctrl+Shift+F)';
+
+        let result;
+        try {
+          result = sqlfmt.format(sql);
+        } catch (err) {
+          // A trap inside the module -- sqlfmt panicking on input it cannot
+          // parse -- arrives here as a bare WebAssembly RuntimeError, message
+          // "unreachable", with none of Go's panic text. Every trap observed
+          // so far has left the instance usable, but a TinyGo panic is not
+          // guaranteed to, so drop the cached module: re-instantiating on the
+          // next click costs a few milliseconds from memory, against a FORMAT
+          // button that would otherwise stay broken until a page reload.
+          sqlfmtReady = null;
+          showError('sqlfmt could not format this query (' + err.message +
+                    '). Your SQL is unchanged.');
+          return;
+        }
+
+        if (result.error) {
+          showError('sqlfmt: ' + result.error);
+          return;
+        }
+
+        clearError();
+        // Nothing to do, and nothing worth spending an undo step on.
+        if (result.output === sql) return;
+
+        replaceEditorText(input, result.output);
+        updateSQLHighlight();
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = label;
+      }
+    }
+
+    // Replace the whole textarea through execCommand so the change lands on
+    // the browser's native undo stack and Ctrl+Z takes the formatting back.
+    // Assigning .value directly wipes that history, which is a bad trade for
+    // a button whose whole job is rewriting what someone just typed.
+    // execCommand is deprecated but is still the only way to do this; fall
+    // back to a plain assignment where it is gone or refused.
+    function replaceEditorText(input, text) {
+      input.focus();
+      input.setSelectionRange(0, input.value.length);
+      let ok = false;
+      try {
+        ok = document.execCommand('insertText', false, text);
+      } catch (e) {
+        ok = false;
+      }
+      if (!ok || input.value !== text) {
+        input.value = text;
+      }
+      input.setSelectionRange(text.length, text.length);
+      input.scrollTop = 0;
+      syncHighlightScroll();
     }
 
     // Start

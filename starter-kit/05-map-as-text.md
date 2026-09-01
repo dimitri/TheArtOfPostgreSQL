@@ -89,5 +89,5 @@ safer default for sharing.)
 The point stands either way: a "map" is just a grid of counts, and SQL is very
 good at grids of counts.
 
-> This example accompanies Chapter 50 of *The Art of PostgreSQL*, **Counting
+> This example accompanies Chapter 51 of [*The Art of PostgreSQL*](https://theartofpostgresql.com/book/contents/?utm_source=lab&utm_medium=app&utm_content=starterkit-05-map-as-text), **Counting
 > Distinct Users with HyperLogLog**, which is built on this tweet dataset.

@@ -205,3 +205,6 @@ select tops.season,
  order by tops.season;
 ```
 
+
+> This example is drawn from Chapter 16 of [*The Art of PostgreSQL*](https://theartofpostgresql.com/book/contents/?utm_source=lab&utm_medium=app&utm_content=starterkit-02-grouping-sets), **Group
+> By, Having, With, Union All**, section 16.4, **Grouping Sets**.
