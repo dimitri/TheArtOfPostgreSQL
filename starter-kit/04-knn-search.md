@@ -137,5 +137,5 @@ pages. `EXPLAIN (analyze)` shows the `Index Scan using pubnames_pos_idx` with an
 This is *k-nearest-neighbour* search, built into the database: no extra service,
 no precomputed distances, just an operator and an index.
 
-> This example is drawn from Chapters of *The Art of PostgreSQL* on the
+> This example is drawn from Chapters of [*The Art of PostgreSQL*](https://theartofpostgresql.com/book/contents/?utm_source=lab&utm_medium=app&utm_content=starterkit-04-knn-search) on the
 > `earthdistance` extension and geolocation.

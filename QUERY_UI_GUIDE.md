@@ -9,6 +9,11 @@ under a minute.
 
 ### Book Queries (`/`)
 
+- **Welcome view**: the landing screen, with live counts read from the parsed
+  TOC and three ways in (Starter Kit, browse by chapter, write your own SQL).
+  The app used to boot straight into one hard-coded query, so the first thing
+  a new user saw was a SQL file and no explanation. Reachable again via
+  "Start here" under the sidebar title.
 - **Sidebar**: the full book table of contents, parsed from `toc.txt` —
   Parts → Chapters → Sections → individual query files.
 - **Editor**: pick a query, it loads verbatim; edit freely before running.
@@ -29,6 +34,26 @@ under a minute.
   keyword blocklist) — flip the toggle for the handful of queries that need
   `CREATE`/`INSERT`/`UPDATE`/`DELETE`.
 - **CSV export** of the current result set.
+- **Chapter link**: the header's breadcrumb is paired with a link to the
+  book's table of contents for whichever chapter the open query belongs to.
+
+### Icons
+
+Both pages draw their icons from `frontend/dist/icons.js` — Font Awesome Free
+6 solid path data inlined as raw SVG, shared so the two pages cannot drift.
+It is deliberately not the Font Awesome CDN webfont: the lab ships as a single
+Go binary that has to work with no network, and a `<link>` to a CDN would put
+an offline failure in front of every icon. Static markup opts in with
+`data-icon="<name>"` and is filled by `hydrateIcons()`; JS-built markup calls
+`faIcon(name)` directly.
+
+### Outbound links
+
+`icons.js` also carries `taopURL(path, content)`, which every outbound link in
+the lab uses. The lab runs locally, reports nothing and has no analytics, so a
+UTM query string is the only way to tell that a visit started here rather than
+on GitHub; `utm_content` names the surface (`nav-book-queries`, `welcome`,
+`chapter-16`, `lab-04-knn-search`, …) so surfaces can be compared.
 
 ### Starter Kit (`/starter-kit.html`)
 

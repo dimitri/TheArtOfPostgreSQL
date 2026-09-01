@@ -138,3 +138,7 @@ select project,
 - `percentile_cont()` - Inverse distribution function
 - `WITHIN GROUP` - Apply aggregate to sorted rows
 - Array input - Compute multiple values in one call
+
+> Ordered-set aggregates like this one sit alongside the material in
+> Chapters 16 and 18 of [*The Art of PostgreSQL*](https://theartofpostgresql.com/book/contents/?utm_source=lab&utm_medium=app&utm_content=starterkit-03-percentiles) — **Group By, Having, With,
+> Union All** and **Understanding Window Functions**.

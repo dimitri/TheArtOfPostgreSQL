@@ -201,3 +201,7 @@ comments │ [                                                    ↵
          │     }                                                ↵
          │ ]
 ```
+
+> Chapter 19 of [*The Art of PostgreSQL*](https://theartofpostgresql.com/book/contents/?utm_source=lab&utm_medium=app&utm_content=starterkit-01-nested-lateral), **Understanding Relations and
+> Joins**, is where this one comes from — and the `sandbox` schema it runs
+> against is built in Chapter 28, **Tooling for Database Modeling**.
