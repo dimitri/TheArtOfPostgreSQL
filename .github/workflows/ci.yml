@@ -28,14 +28,27 @@ jobs:
   test:
     name: PG ${{ matrix.pg }}
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.pg == '18' }}
+    # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
+    continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:
       matrix:
-        pg: ["14", "15", "16", "17", "18"]
+        # pg_major is the bare major version PGDG's apt packages use
+        # (postgresql-$pg_major) -- equal to pg once a version is GA, but
+        # distinct while pg is still a pre-release tag like "19beta3" (whose
+        # image tag is postgres:19beta3-bookworm, not postgres:19-bookworm).
+        # See docker/postgres.Dockerfile for the full explanation.
+        include:
+          - { pg: "14",      pg_major: "14" }
+          - { pg: "15",      pg_major: "15" }
+          - { pg: "16",      pg_major: "16" }
+          - { pg: "17",      pg_major: "17" }
+          - { pg: "18",      pg_major: "18" }
+          - { pg: "19beta3", pg_major: "19" }
       fail-fast: false
 
     env:
       POSTGRES_VERSION: ${{ matrix.pg }}
+      PG_MAJOR: ${{ matrix.pg_major }}
       # constant project name → docker compose looks for image taop-taop:latest
       COMPOSE_PROJECT_NAME: taop
       # docker-compose.yml defaults to the pre-seeded image (bakes in a full

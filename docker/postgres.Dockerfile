@@ -26,6 +26,14 @@ FROM debian:bookworm-slim
 ARG POSTGRES_VERSION=16
 ARG POSTGIS_VERSION=3.4
 ARG HLL_VERSION=v2.18
+# PGDG's apt package names always use the bare major number, e.g.
+# postgresql-19 -- but the official postgres image (and this Dockerfile's
+# POSTGRES_VERSION/pg-entrypoint stage above) tags pre-release builds as
+# "19beta3-bookworm", not "19-bookworm". PG_MAJOR defaults to POSTGRES_VERSION
+# (the common case once a version is GA) but must be overridden to the bare
+# major, e.g. `--build-arg PG_MAJOR=19`, while POSTGRES_VERSION is still a
+# betaN/rcN tag.
+ARG PG_MAJOR=${POSTGRES_VERSION}
 
 # explicitly set user/group IDs, matching the official postgres image
 # (see https://github.com/docker-library/postgres/issues/274)
@@ -52,14 +60,20 @@ ENV LANG=en_US.utf8
 
 # PGDG apt repo: this is where postgresql-$PG_MAJOR and its postgis package
 # for that specific major version come from -- Debian bookworm's own repo
-# only carries PostgreSQL 15.
+# only carries PostgreSQL 15. The trailing "${PG_MAJOR}" component (in
+# addition to "main") matters during a beta cycle: PGDG publishes
+# pre-release packages for the in-development major to a separate
+# per-version component before they graduate to "main" at GA (confirmed by
+# inspecting the official postgres:19beta3-bookworm image's own
+# sources.list, which enables "main 19" for exactly this reason) --
+# harmless to always include, since it's simply empty for a GA major.
 RUN install -d /usr/share/postgresql-common/pgdg && \
     curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail \
         https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
-    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" \
+    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main ${PG_MAJOR}" \
         > /etc/apt/sources.list.d/pgdg.list
 
-ENV PG_MAJOR=${POSTGRES_VERSION}
+ENV PG_MAJOR=${PG_MAJOR}
 ENV PATH=$PATH:/usr/lib/postgresql/${PG_MAJOR}/bin
 
 # postgresql-$PG_MAJOR alone already bundles the stock cube / earthdistance /
@@ -76,16 +90,26 @@ RUN apt-get update && \
         "postgresql-${PG_MAJOR}-postgis-${POSTGIS_VERSION%%.*}-scripts" \
     && rm -rf /var/lib/apt/lists/*
 
+# citusdata/postgresql-hll's source hasn't been updated for PG 19's
+# internal API changes yet (FuncnameGetCandidates() gained a parameter,
+# and its -Werror build treats PG19's stricter C headers as fatal) --
+# best-effort like plxslt above: build it if it compiles for this major,
+# otherwise skip and leave `hll` uncreated (ch. 51's HyperLogLog queries
+# will fail with "extension \"hll\" is not available" on this PG_MAJOR
+# until upstream catches up).
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         git build-essential "postgresql-server-dev-${PG_MAJOR}"; \
     git clone --depth 1 --branch "${HLL_VERSION}" \
         https://github.com/citusdata/postgresql-hll.git /tmp/hll; \
-    make -C /tmp/hll with_llvm=no \
-        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config"; \
-    make -C /tmp/hll with_llvm=no \
-        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config" install; \
+    if make -C /tmp/hll with_llvm=no \
+        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config"; then \
+        make -C /tmp/hll with_llvm=no \
+            PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config" install; \
+    else \
+        echo "postgresql-hll does not build against PG ${PG_MAJOR} -- skipping (see comment above)"; \
+    fi; \
     rm -rf /tmp/hll; \
     apt-get purge -y --auto-remove git build-essential "postgresql-server-dev-${PG_MAJOR}"; \
     rm -rf /var/lib/apt/lists/*

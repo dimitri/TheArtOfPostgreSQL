@@ -20,6 +20,11 @@ services:
       dockerfile: ${POSTGRES_DOCKERFILE:-docker/seeded-postgres.Dockerfile}
       args:
         POSTGRES_VERSION: ${POSTGRES_VERSION:-16}
+        # Only needed while POSTGRES_VERSION is a pre-release tag (e.g.
+        # "19beta3", whose PGDG apt packages are still named postgresql-19)
+        # -- see docker/postgres.Dockerfile. Once a version is GA this
+        # defaults to POSTGRES_VERSION and needs no override.
+        PG_MAJOR: ${PG_MAJOR:-${POSTGRES_VERSION:-16}}
         POSTGIS_VERSION: ${POSTGIS_VERSION:-3.4}
         HASHTAG_URL: "${HASHTAG_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv}"
         HYDRORIVERS_URL: "${HYDRORIVERS_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip}"
