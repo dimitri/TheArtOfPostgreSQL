@@ -18,6 +18,12 @@ under a minute.
 - **EXPLAIN**: three tabs — Text (Postgres's own `EXPLAIN ANALYZE` output),
   Diagram (a hand-rolled SVG tree view built from `EXPLAIN (FORMAT JSON,
   ANALYZE)`), and JSON (the raw plan).
+- **FORMAT**: reformats the editor's SQL with
+  [sqlfmt](https://github.com/dimitri/sqlfmt) (Ctrl+Shift+F). The formatter
+  is compiled to WebAssembly and embedded in the binary, so it runs entirely
+  in the browser — no endpoint, no round trip, no network, and it works with
+  no database connection at all. The rewrite goes onto the browser's native
+  undo stack, so Ctrl+Z takes it back.
 - **Read-only / Read-write toggle**: queries run inside a `READ ONLY`
   transaction by default (real Postgres transaction-level enforcement, not a
   keyword blocklist) — flip the toggle for the handful of queries that need
@@ -64,6 +70,7 @@ Book Queries:
   pick a query  → GET /api/query/{part}/{chapter}/{section}/{queryID}
   Run           → POST /api/query/execute   → table / inline map / error
   EXPLAIN       → POST /api/query/explain   → Text + Diagram + JSON tabs
+  FORMAT        → sqlfmt.wasm, in-browser     → rewrites the editor in place
 
 Starter Kit:
   load page     → GET /api/starter-kit/{slug} → markdown + sql cells
@@ -88,7 +95,16 @@ GET  /api/starter-kit/{slug}
 | Path                          | How it reaches the container      | Reload needed after an edit |
 |--------------------------------|-----------------------------------|------------------------------|
 | `queries/`, `starter-kit/`, `toc.txt` | bind-mounted read-only, indexed once at startup | `docker compose restart query-ui` |
-| `src/query-ui/**` (Go source + `frontend/dist/*.html`) | compiled into the binary via `go:embed` | `docker compose build query-ui && docker compose up -d query-ui` |
+| `src/query-ui/**` (Go source + `frontend/dist/*.html`, plus `sqlfmt.wasm` and `wasm_exec.js`) | compiled into the binary via `go:embed` | `docker compose build query-ui && docker compose up -d query-ui` |
+
+`sqlfmt.wasm` and its TinyGo `wasm_exec.js` glue are vendored, not built
+here — refresh them from
+[dimitri/sqlfmt](https://github.com/dimitri/sqlfmt)'s `wasm-dev` release with
+`tooling/query-ui/update-sqlfmt-wasm.sh`, which also rewrites
+`frontend/dist/SQLFMT-VERSION.txt` with the source commit and a checksum.
+They are committed deliberately: the lab is meant to work from
+`docker compose up -d` onwards with nothing but the pulled images, and
+fetching the formatter from GitHub at page load would break that.
 
 Sanity-check what a running container is actually serving:
 

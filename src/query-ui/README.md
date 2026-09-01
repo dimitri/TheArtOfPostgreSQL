@@ -27,6 +27,22 @@ DATABASE_URL=postgresql://taop:taop@localhost:5433/taop ./query-ui
               HEALTHCHECK; the scratch image has no shell/wget)
 ```
 
+## Vendored assets
+
+`frontend/dist/sqlfmt.wasm` and `frontend/dist/wasm_exec.js` back the
+editor's FORMAT button and are embedded into the binary along with the HTML.
+They come from [dimitri/sqlfmt](https://github.com/dimitri/sqlfmt)'s
+`wasm-dev` release rather than being built here:
+
+```bash
+../../tooling/query-ui/update-sqlfmt-wasm.sh
+```
+
+That refreshes both files and stamps `frontend/dist/SQLFMT-VERSION.txt` with
+the sqlfmt commit and a sha256. Rebuild the binary afterwards to pick them
+up. `wasm_exec.js` must stay TinyGo's copy — the standard Go toolchain ships
+a different file under the same name and the two are not interchangeable.
+
 ## Test
 
 ```bash

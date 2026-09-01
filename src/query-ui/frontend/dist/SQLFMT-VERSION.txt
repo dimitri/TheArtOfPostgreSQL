@@ -1,0 +1,9 @@
+sqlfmt WebAssembly build vendored into this directory.
+
+source:   https://github.com/dimitri/sqlfmt
+commit:   5a9ac76
+release:  wasm-dev
+vendored: 2026-09-01T20:46:04Z
+sha256:   a636d947dbb928e74c6fc58adcd08a2889337cdffce88e1049e26a07b5ad6b07
+
+Refresh with tooling/query-ui/update-sqlfmt-wasm.sh, then rebuild query-ui.

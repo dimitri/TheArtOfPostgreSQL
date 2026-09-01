@@ -475,6 +475,7 @@
        have used, since a full script or patch benefits from the room. */
     .editor-panel.readonly-script #run-btn,
     .editor-panel.readonly-script #explain-btn,
+    .editor-panel.readonly-script #format-btn,
     .editor-panel.readonly-script #clear-btn,
     .editor-panel.readonly-script #results-area,
     .editor-panel.readonly-script #error-container,
@@ -793,6 +794,7 @@
             </button>
             <button class="btn btn-primary" id="run-btn">▶ Run</button>
             <button class="btn btn-secondary" id="explain-btn">📊 EXPLAIN</button>
+            <button class="btn btn-secondary" id="format-btn" title="Format this SQL with sqlfmt (Ctrl+Shift+F)">✨ FORMAT</button>
             <button class="btn btn-secondary" id="clear-btn">✕ Clear</button>
           </div>
         </div>
@@ -825,6 +827,13 @@
     </main>
   </div>
 
+  <!-- TinyGo's wasm_exec.js glue for sqlfmt.wasm (the FORMAT button). This is
+       TinyGo's file, NOT the standard Go toolchain's copy of the same name --
+       they are not interchangeable. Both it and sqlfmt.wasm are vendored from
+       dimitri/sqlfmt's wasm-dev release and embedded in the query-ui binary;
+       see frontend/dist/SQLFMT-VERSION.txt and
+       tooling/query-ui/update-sqlfmt-wasm.sh. -->
+  <script src="wasm_exec.js"></script>
   <script>
     let toc = null;
     let lastResult = null;
@@ -1081,17 +1090,27 @@
     function setupEventListeners() {
       document.getElementById('run-btn').addEventListener('click', executeQuery);
       document.getElementById('explain-btn').addEventListener('click', explainQuery);
+      document.getElementById('format-btn').addEventListener('click', formatQuery);
       document.getElementById('clear-btn').addEventListener('click', clearResults);
       document.getElementById('download-csv').addEventListener('click', downloadCSV);
       document.getElementById('sidebar-toggle').addEventListener('click', toggleSidebar);
       document.getElementById('mode-toggle').addEventListener('click', toggleReadWriteMode);
 
-      // Allow Ctrl+Enter to run query
+      // Allow Ctrl+Enter to run query, Ctrl+Shift+F to format it.
       document.getElementById('query-input').addEventListener('keydown', (e) => {
         if (e.ctrlKey && e.key === 'Enter') {
           executeQuery();
+        } else if (e.ctrlKey && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+          e.preventDefault();
+          formatQuery();
         }
       });
+
+      // Warm the formatter in the background so the first FORMAT click does
+      // not pay for the fetch+instantiate. Failure here is not fatal and not
+      // reported: loadSqlfmt() caches the rejection and formatQuery() surfaces
+      // it if and when someone actually presses the button.
+      loadSqlfmt().catch(() => {});
 
       // Live syntax highlighting while typing, and keep the highlighted
       // <pre> scrolled to the same position as the invisible-text textarea
@@ -1781,6 +1800,122 @@
       const highlight = document.getElementById('query-input-highlight');
       highlight.scrollTop = input.scrollTop;
       highlight.scrollLeft = input.scrollLeft;
+    }
+
+    /* ── sqlfmt (WebAssembly) ────────────────────────────────────────────
+       Formatting runs in the browser, not on the server: sqlfmt.wasm is
+       embedded in this binary and exposes globalThis.sqlfmt.format(sql),
+       which returns {output} or {error}. That keeps the lab's no-network
+       promise intact and means FORMAT works on a query you never run --
+       including in read-only script mode's sibling files, and with no
+       database connection at all.
+
+       The module is ~600KB and served from memory over localhost, but it is
+       still loaded once and cached in this promise: go.run() starts a Go
+       runtime that blocks forever to keep the exported function alive, so
+       instantiating twice would leave a second one running for nothing. */
+    let sqlfmtReady = null;
+
+    function loadSqlfmt() {
+      if (sqlfmtReady) return sqlfmtReady;
+      sqlfmtReady = (async () => {
+        if (typeof Go !== 'function') {
+          throw new Error('wasm_exec.js did not load');
+        }
+        const go = new Go();
+        // instantiateStreaming needs the response served as application/wasm,
+        // which Go's http.FileServer does for .wasm out of the box.
+        const result = await WebAssembly.instantiateStreaming(
+          fetch('sqlfmt.wasm'), go.importObject);
+        // Deliberately not awaited: go.run() only settles when the Go program
+        // exits, and this one blocks forever on purpose.
+        go.run(result.instance);
+        if (!globalThis.sqlfmt || typeof globalThis.sqlfmt.format !== 'function') {
+          throw new Error('sqlfmt.wasm loaded but exported no format()');
+        }
+        return globalThis.sqlfmt;
+      })();
+      return sqlfmtReady;
+    }
+
+    async function formatQuery() {
+      const input = document.getElementById('query-input');
+      const sql = input.value;
+      if (!sql.trim()) {
+        clearError();
+        return;
+      }
+
+      const btn = document.getElementById('format-btn');
+      const label = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '✨ Formatting…';
+
+      try {
+        let sqlfmt;
+        try {
+          sqlfmt = await loadSqlfmt();
+        } catch (err) {
+          showError('Could not load the SQL formatter: ' + err.message);
+          return;
+        }
+        btn.title = 'Format this SQL with sqlfmt ' + sqlfmt.version + ' (Ctrl+Shift+F)';
+
+        let result;
+        try {
+          result = sqlfmt.format(sql);
+        } catch (err) {
+          // A trap inside the module -- sqlfmt panicking on input it cannot
+          // parse -- arrives here as a bare WebAssembly RuntimeError, message
+          // "unreachable", with none of Go's panic text. Every trap observed
+          // so far has left the instance usable, but a TinyGo panic is not
+          // guaranteed to, so drop the cached module: re-instantiating on the
+          // next click costs a few milliseconds from memory, against a FORMAT
+          // button that would otherwise stay broken until a page reload.
+          sqlfmtReady = null;
+          showError('sqlfmt could not format this query (' + err.message +
+                    '). Your SQL is unchanged.');
+          return;
+        }
+
+        if (result.error) {
+          showError('sqlfmt: ' + result.error);
+          return;
+        }
+
+        clearError();
+        // Nothing to do, and nothing worth spending an undo step on.
+        if (result.output === sql) return;
+
+        replaceEditorText(input, result.output);
+        updateSQLHighlight();
+      } finally {
+        btn.disabled = false;
+        btn.textContent = label;
+      }
+    }
+
+    // Replace the whole textarea through execCommand so the change lands on
+    // the browser's native undo stack and Ctrl+Z takes the formatting back.
+    // Assigning .value directly wipes that history, which is a bad trade for
+    // a button whose whole job is rewriting what someone just typed.
+    // execCommand is deprecated but is still the only way to do this; fall
+    // back to a plain assignment where it is gone or refused.
+    function replaceEditorText(input, text) {
+      input.focus();
+      input.setSelectionRange(0, input.value.length);
+      let ok = false;
+      try {
+        ok = document.execCommand('insertText', false, text);
+      } catch (e) {
+        ok = false;
+      }
+      if (!ok || input.value !== text) {
+        input.value = text;
+      }
+      input.setSelectionRange(text.length, text.length);
+      input.scrollTop = 0;
+      syncHighlightScroll();
     }
 
     // Start
