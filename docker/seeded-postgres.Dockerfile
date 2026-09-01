@@ -189,6 +189,11 @@ FROM debian:bookworm-slim AS postgres-base
 ARG POSTGRES_VERSION=16
 ARG POSTGIS_VERSION=3.4
 ARG HLL_VERSION=v2.18
+# See docker/postgres.Dockerfile for why PG_MAJOR is a separate arg from
+# POSTGRES_VERSION (PGDG apt packages use the bare major, e.g. postgresql-19,
+# even while POSTGRES_VERSION/the pg-entrypoint image tag above is a
+# pre-release tag like "19beta3").
+ARG PG_MAJOR=${POSTGRES_VERSION}
 
 RUN groupadd -r postgres --gid=999 && \
     useradd -r -g postgres --uid=999 --home-dir=/var/lib/postgresql --shell=/bin/bash postgres && \
@@ -214,13 +219,16 @@ ENV LANG=en_US.utf8
 # PGDG apt repo: this is where postgresql-$PG_MAJOR and its postgis package
 # for that specific major version come from -- Debian bookworm's own repo
 # only carries PostgreSQL 15.
+# See docker/postgres.Dockerfile for why the trailing "${PG_MAJOR}"
+# component matters during a beta cycle (PGDG publishes pre-release
+# packages there before they graduate to "main" at GA).
 RUN install -d /usr/share/postgresql-common/pgdg && \
     curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail \
         https://www.postgresql.org/media/keys/ACCC4CF8.asc && \
-    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" \
+    echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt bookworm-pgdg main ${PG_MAJOR}" \
         > /etc/apt/sources.list.d/pgdg.list
 
-ENV PG_MAJOR=${POSTGRES_VERSION}
+ENV PG_MAJOR=${PG_MAJOR}
 ENV PATH=$PATH:/usr/lib/postgresql/${PG_MAJOR}/bin
 
 # postgresql-$PG_MAJOR alone already bundles the stock cube / earthdistance /
@@ -237,16 +245,22 @@ RUN apt-get update && \
         "postgresql-${PG_MAJOR}-postgis-${POSTGIS_VERSION%%.*}-scripts" \
     && rm -rf /var/lib/apt/lists/*
 
+# See docker/postgres.Dockerfile: citusdata/postgresql-hll doesn't build
+# against every PG_MAJOR (e.g. PG 19's FuncnameGetCandidates() API change) --
+# best-effort, same as plxslt.
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
         git build-essential "postgresql-server-dev-${PG_MAJOR}"; \
     git clone --depth 1 --branch "${HLL_VERSION}" \
         https://github.com/citusdata/postgresql-hll.git /tmp/hll; \
-    make -C /tmp/hll with_llvm=no \
-        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config"; \
-    make -C /tmp/hll with_llvm=no \
-        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config" install; \
+    if make -C /tmp/hll with_llvm=no \
+        PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config"; then \
+        make -C /tmp/hll with_llvm=no \
+            PG_CONFIG="/usr/lib/postgresql/${PG_MAJOR}/bin/pg_config" install; \
+    else \
+        echo "postgresql-hll does not build against PG ${PG_MAJOR} -- skipping (see comment above)"; \
+    fi; \
     rm -rf /tmp/hll; \
     apt-get purge -y --auto-remove git build-essential "postgresql-server-dev-${PG_MAJOR}"; \
     rm -rf /var/lib/apt/lists/*

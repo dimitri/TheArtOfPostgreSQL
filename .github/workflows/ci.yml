@@ -28,14 +28,27 @@ jobs:
   test:
     name: PG ${{ matrix.pg }}
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.pg == '18' }}
+    # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
+    continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:
       matrix:
-        pg: ["14", "15", "16", "17", "18"]
+        # pg_major is the bare major version PGDG's apt packages use
+        # (postgresql-$pg_major) -- equal to pg once a version is GA, but
+        # distinct while pg is still a pre-release tag like "19beta3" (whose
+        # image tag is postgres:19beta3-bookworm, not postgres:19-bookworm).
+        # See docker/postgres.Dockerfile for the full explanation.
+        include:
+          - { pg: "14",      pg_major: "14" }
+          - { pg: "15",      pg_major: "15" }
+          - { pg: "16",      pg_major: "16" }
+          - { pg: "17",      pg_major: "17" }
+          - { pg: "18",      pg_major: "18" }
+          - { pg: "19beta3", pg_major: "19" }
       fail-fast: false
 
     env:
       POSTGRES_VERSION: ${{ matrix.pg }}
+      PG_MAJOR: ${{ matrix.pg_major }}
       # constant project name → docker compose looks for image taop-taop:latest
       COMPOSE_PROJECT_NAME: taop
       # docker-compose.yml defaults to the pre-seeded image (bakes in a full
@@ -105,11 +118,16 @@ jobs:
         working-directory: apps/cdstore
         run: regresql test
 
-      # The server_version query (02-intro/04-postgresql/01.sql) outputs the
-      # exact PostgreSQL version string which differs per matrix leg.  We
-      # generate a version-specific expected file on the fly (01.pg14.out,
-      # 01.pg16.out …) so regresql test uses it instead of the committed
-      # generic 01.out.  All other expected files are committed and stable.
+      # A few book queries have output that is genuinely tied to the server's
+      # major version -- 05-data-types/23-pg-data-types-101/01.sql lists the
+      # pg_catalog types, and every major adds some (PG 19 adds oid8).  regresql
+      # only ever compares against one expected/<path>.out, so for those queries
+      # we commit a .pgNN.out variant next to the baseline and swap it in here.
+      # Queries that are non-deterministic by nature are excluded outright in
+      # queries/regresql/regress.yaml instead.
+      - name: Select version-specific expected files
+        run: ./tooling/regresql/use-version-expected.sh
+
       - name: Run book query regression tests
         working-directory: queries
         run: regresql test

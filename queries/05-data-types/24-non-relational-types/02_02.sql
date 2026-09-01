@@ -1,1 +1,1 @@
-table rate limit 10;
+table rate order by validity, currency limit 10;

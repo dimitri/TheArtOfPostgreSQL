@@ -36,10 +36,18 @@ jobs:
   prebuild:
     name: Build and push PG ${{ matrix.pg }}
     runs-on: ubuntu-latest
-    continue-on-error: ${{ matrix.pg == '18' }}
+    # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
+    continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:
       matrix:
-        pg: ["14", "15", "16", "17", "18"]
+        # pg_major: see .github/workflows/ci.yml and docker/postgres.Dockerfile.
+        include:
+          - { pg: "14",      pg_major: "14" }
+          - { pg: "15",      pg_major: "15" }
+          - { pg: "16",      pg_major: "16" }
+          - { pg: "17",      pg_major: "17" }
+          - { pg: "18",      pg_major: "18" }
+          - { pg: "19beta3", pg_major: "19" }
       fail-fast: false
 
     steps:
@@ -81,6 +89,7 @@ jobs:
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
             POSTGRES_VERSION=${{ matrix.pg }}
+            PG_MAJOR=${{ matrix.pg_major }}
             HASHTAG_URL=https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv
             HYDRORIVERS_URL=https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip
           cache-from: |
