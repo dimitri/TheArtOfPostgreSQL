@@ -11,4 +11,4 @@ with counts as
    select driverid, forename, surname, races
      from counts
     where never_finished
- order by races desc;
+ order by races desc, driverid;

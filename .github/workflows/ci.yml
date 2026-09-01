@@ -118,11 +118,16 @@ jobs:
         working-directory: apps/cdstore
         run: regresql test
 
-      # The server_version query (02-intro/04-postgresql/01.sql) outputs the
-      # exact PostgreSQL version string which differs per matrix leg.  We
-      # generate a version-specific expected file on the fly (01.pg14.out,
-      # 01.pg16.out …) so regresql test uses it instead of the committed
-      # generic 01.out.  All other expected files are committed and stable.
+      # A few book queries have output that is genuinely tied to the server's
+      # major version -- 05-data-types/23-pg-data-types-101/01.sql lists the
+      # pg_catalog types, and every major adds some (PG 19 adds oid8).  regresql
+      # only ever compares against one expected/<path>.out, so for those queries
+      # we commit a .pgNN.out variant next to the baseline and swap it in here.
+      # Queries that are non-deterministic by nature are excluded outright in
+      # queries/regresql/regress.yaml instead.
+      - name: Select version-specific expected files
+        run: ./tooling/regresql/use-version-expected.sh
+
       - name: Run book query regression tests
         working-directory: queries
         run: regresql test
