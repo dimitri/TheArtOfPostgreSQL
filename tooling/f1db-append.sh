@@ -57,7 +57,13 @@ emit_table circuits "circuitid,circuitref,name,location,country,lat,lng,alt,url,
   "d where not exists (select 1 from f1db.circuits o where o.circuitid=d.circuitid)"
 emit_table constructors "*" "d where not exists (select 1 from f1db.constructors o where o.constructorid=d.constructorid)"
 emit_table drivers "*" "d where not exists (select 1 from f1db.drivers o where o.driverid=d.driverid)"
-emit_table seasons "*" "d where not exists (select 1 from f1db.seasons o where o.year=d.year)"
+# Bounded by the same cutoff as everything else: upstream ships a
+# seasons row for the season in progress (2025 at the time of writing),
+# with a Wikipedia URL and no races behind it. Loading that made "the
+# three most recent seasons" answer 2025 for a database whose races stop
+# at 2024 -- a season that exists only as a row.
+emit_table seasons "*" "d where d.year <= (select max(year) from f1db24.races)
+     and not exists (select 1 from f1db.seasons o where o.year=d.year)"
 emit_table status "*" "d where not exists (select 1 from f1db.status o where o.statusid=d.statusid)"
 # Only the eight Ergast columns: the upstream schema's extra session-time
 # columns are not part of the schema the book was written against.

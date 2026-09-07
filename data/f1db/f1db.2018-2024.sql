@@ -94,7 +94,6 @@ copy load_seasons from stdin;
 2022	http://en.wikipedia.org/wiki/2022_Formula_One_World_Championship
 2023	http://en.wikipedia.org/wiki/2023_Formula_One_World_Championship
 2024	https://en.wikipedia.org/wiki/2024_Formula_One_World_Championship
-2025	https://en.wikipedia.org/wiki/2025_Formula_One_World_Championship
 \.
 insert into f1db.seasons select * from load_seasons on conflict do nothing;
 
@@ -179909,9 +179908,17 @@ insert into f1db.laptimes select * from load_laptimes on conflict do nothing;
 
 commit;
 
--- Fresh statistics for the eight new seasons' worth of rows.
-analyze f1db.races; analyze f1db.results; analyze f1db.qualifying;
-analyze f1db.driverstandings; analyze f1db.constructorstandings;
-analyze f1db.constructorresults; analyze f1db.pitstops; analyze f1db.laptimes;
-analyze f1db.drivers; analyze f1db.constructors; analyze f1db.circuits;
-analyze f1db.seasons; analyze f1db.status;
+-- Fresh statistics for the newly appended rows.
+analyze f1db.races;
+analyze f1db.results;
+analyze f1db.qualifying;
+analyze f1db.driverstandings;
+analyze f1db.constructorstandings;
+analyze f1db.constructorresults;
+analyze f1db.pitstops;
+analyze f1db.laptimes;
+analyze f1db.drivers;
+analyze f1db.constructors;
+analyze f1db.circuits;
+analyze f1db.seasons;
+analyze f1db.status;
