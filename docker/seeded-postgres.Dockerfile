@@ -351,7 +351,7 @@ RUN if [ -n "$HASHTAG_URL" ]; then \
     else echo "HASHTAG_URL unset — skipping hashtag CSV fetch"; fi
 
 ENV PGDATA=/tmp/pgdata \
-    PGHOST=localhost \
+    PGHOST=/var/run/postgresql \
     PGPORT=5432 \
     PGUSER=taop \
     PGPASSWORD=taop \
@@ -391,17 +391,16 @@ RUN set -eux; \
         --encoding=UTF8; \
     \
     # Trust all local connections so taop can connect without extra config.
-    # Plain `psql -U postgres` (no -h) resolves "localhost" via getaddrinfo,
-    # which returns ::1 (IPv6) before 127.0.0.1 in this build environment —
-    # need both entries or the IPv6 attempt gets rejected before falling
-    # back to IPv4.
-    { echo "local all all trust"; \
-      echo "host  all all 127.0.0.1/32 trust"; \
-      echo "host  all all ::1/128 trust"; } > "$PGDATA/pg_hba.conf"; \
+    # Everything below talks to this cluster over the Unix socket only
+    # (PGHOST=/var/run/postgresql, no TCP) -- this build container is never
+    # reached from outside itself, and staying off TCP avoids racing the
+    # sibling linux/amd64 or linux/arm64 platform build over port 5432 when
+    # buildx builds both platforms concurrently.
+    echo "local all all trust" > "$PGDATA/pg_hba.conf"; \
     \
     # Start postgres (pg_stat_statements must be preloaded at server start)
     gosu postgres pg_ctl -D "$PGDATA" \
-        -o "-c listen_addresses=localhost -c shared_preload_libraries=pg_stat_statements" \
+        -o "-c listen_addresses='' -c shared_preload_libraries=pg_stat_statements" \
         -w start; \
     \
     # Bootstrap: role + database + extensions.  -d postgres is required here
