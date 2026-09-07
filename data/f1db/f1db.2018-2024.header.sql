@@ -1,0 +1,32 @@
+--
+-- f1db: seasons 2018-2024, appended to the Ergast-era dump.
+--
+-- data/f1db/f1db.dump is the last Ergast release, which stops at the 2017
+-- season: the Ergast Motor Racing Data API was retired at the end of 2024
+-- and its final dumps were never regenerated past 2017 for this schema.
+-- This file carries the eight seasons after it, so the lab has data
+-- through 2024 without replacing the dump every course and chapter was
+-- written against.
+--
+-- Source: https://github.com/raceoptidata/Ergast_like-dumps (CC BY-SA
+-- 4.0), which rebuilds the original Ergast schema from a current
+-- pipeline. Verified against the dump before extraction: 11 of the 13
+-- tables match column for column, and the primary keys are STABLE --
+-- every raceid, driverid and driverstandingsid that exists in both
+-- carries the same row. That is what makes this an append rather than a
+-- reload: nothing here rewrites history, so every query, plan and row
+-- count the book and courses captured against 1950-2017 still holds.
+--
+-- Two known upstream corrections to pre-2018 rows are NOT applied here,
+-- deliberately -- they would change captured output for no teaching
+-- gain: results 10487 (driverid 190 -> 170) and 18883 (points 5 -> 4).
+--
+-- Idempotent: every INSERT is ON CONFLICT DO NOTHING, so loading twice,
+-- or loading onto a database that already has some of these rows, is
+-- safe. Run after restoring f1db.dump -- `taop f1db` does both.
+--
+-- Regenerate with tooling/f1db-append.sh (see that script's header).
+--
+
+\set ON_ERROR_STOP on
+

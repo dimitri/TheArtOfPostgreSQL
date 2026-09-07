@@ -1,5 +1,5 @@
-code  | forename |  surname   | wins
-------+----------+------------+-----
-MSC   | Michael  | Schumacher | 91
-HAM   | Lewis    | Hamilton   | 57
-<nil> | Alain    | Prost      | 51
+code | forename |  surname   | wins
+-----+----------+------------+-----
+HAM  | Lewis    | Hamilton   | 100
+MSC  | Michael  | Schumacher | 91
+VER  | Max      | Verstappen | 61
