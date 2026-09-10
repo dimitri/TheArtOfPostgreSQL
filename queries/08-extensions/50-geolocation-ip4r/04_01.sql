@@ -1,4 +1,3 @@
 select *
-  from      geolite.location l
-       join geolite.blocks using(locid)
+  from dbipcity
  where iprange >>= '129.67.242.154';

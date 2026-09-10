@@ -594,7 +594,7 @@
           08-extensions/49-earthdistance/03_02.sql
     50 Geolocation with PostgreSQL
       50.1 Geolocation Data Loading
-          08-extensions/50-geolocation-ip4r/01_01_geolite.sql
+          08-extensions/50-geolocation-ip4r/01_01_dbipcity.sql
       50.2 Finding an IP Address in the Ranges
           08-extensions/50-geolocation-ip4r/02_01.sql
           08-extensions/50-geolocation-ip4r/02_02.sql

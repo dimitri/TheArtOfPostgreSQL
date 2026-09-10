@@ -58,9 +58,24 @@ taop gitlog fetch pgloader
 ```
 Then use `taop gitlog <csv> <project-directory>` to parse logs.
 
-## GeoLite
+## dbipcity (IP Geolocation)
 
-MaxMind GeoLite2 geographic IP location data for geolocation queries.
+IP-to-city geolocation data from [DB-IP City Lite](https://db-ip.com/db/download/ip-to-city-lite)
+(CC BY 4.0 — attribution required, see `data/dbipcity/dbipcity.sql`),
+replacing the old MaxMind GeoLite2 dataset (MaxMind's license changed and
+this repo no longer redistributes it).
+
+**Schema:** `public.dbipcity(country, region, city, iprange ip4r, location point)`
+with a GiST index on `iprange` — one row per IP block, no separate
+location table to join (unlike the old MaxMind schema).
+
+Filtered to Great Britain, France, and the whole US — GB/FR cover the
+book's ip4r worked examples, the whole US also covers the hashtag/tweet
+chapter's US-wide geolocated data — IPv4 only. 1,308,590 rows, 9.1 MB
+compressed (`xz -9e`; 79 MB decompressed), committed to git
+(`data/dbipcity/dbipcity.csv.xz`).
+
+**Load:** `docker compose run --rm taop dbipcity`
 
 ## EAV (Entity-Attribute-Value)
 

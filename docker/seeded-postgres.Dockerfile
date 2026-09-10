@@ -309,11 +309,12 @@ FROM postgres-base AS seed
 # :executable t, which embeds the SBCL runtime) — no sbcl needed here. The
 # runtime dependencies across every load-data command are: magic.lisp
 # shelling out to `python3 magic.py` (needs psycopg2), gitlog.lisp shelling
-# out to `git log` against the commitlog-data clones copied in below, and
+# out to `git log` against the commitlog-data clones copied in below,
+# dbipcity.lisp shelling out to `xz` to decompress dbipcity.csv.xz, and
 # curl/ca-certificates for the HASHTAG_URL fetch further down this stage (not
 # for the taop binary itself, which never shells out to curl).
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-psycopg2 git curl ca-certificates \
+    python3 python3-psycopg2 git curl ca-certificates xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # taop binary and the quicklisp pubnames project it loads at runtime
@@ -366,6 +367,7 @@ ENV PGDATA=/tmp/pgdata \
     SANDBOX_DIR=/tmp/data/sandbox \
     HASHTAG_DIR=/tmp/data/hashtag \
     CASTLES_DIR=/tmp/data/castles \
+    DBIPCITY_DIR=/tmp/data/dbipcity \
     HYDRORIVERS_DIR=/tmp/data/hydrorivers \
     NATURALEARTH_DIR=/tmp/data/naturalearth \
     NATURAL_EARTH_DIR=/tmp/data/natural_earth \
