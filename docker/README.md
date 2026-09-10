@@ -8,7 +8,6 @@ Docker images for The Art of PostgreSQL.
 - **taop** - The Art of PostgreSQL tool with SQL queries and cdstore app
 - **commitlog** - taop with PostgreSQL and pgloader git repositories pre-fetched
 - **psql** - PostgreSQL interactive client
-- **geolite** - pgloader for loading GeoLite data
 
 ## Usage
 
@@ -53,9 +52,6 @@ dct run --rm commitlog commitlog
 dct run --rm commitlog gitlog init
 dct run --rm commitlog gitlog import postgres
 dct run --rm commitlog gitlog import pgloader
-
-# Load GeoLite data (requires manual download)
-dct run --rm geolite
 ```
 
 ## Images

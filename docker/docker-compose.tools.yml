@@ -41,6 +41,7 @@ services:
       COUNTER_DIR: /data/counter
       HASHTAG_DIR: /data/hashtag
       CASTLES_DIR: /data/castles
+      DBIPCITY_DIR: /data/dbipcity
       HYDRORIVERS_DIR: /data/hydrorivers
       OSM_LONDON_DIR: /data/osm-london
       NATURAL_EARTH_DIR: /data/natural_earth

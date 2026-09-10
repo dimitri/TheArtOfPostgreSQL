@@ -1,1 +1,1 @@
-table geolite.blocks limit 10;
+table dbipcity limit 10;

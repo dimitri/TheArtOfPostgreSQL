@@ -103,6 +103,9 @@
              ;; castles (European medieval castle ruins from OSM; CSV fetched at build time)
              (:file "castles")
 
+             ;; dbipcity (IP geolocation, DB-IP City Lite; CSV committed to git)
+             (:file "dbipcity")
+
              ;; load all datasets
              (:file "load-data")
 

@@ -179,7 +179,7 @@ Calculate distances between points on Earth's surface.
 
 IP geolocation enables finding user locations from IP addresses.
 
-- `queries/08-extensions/50-geolocation-ip4r/01_01_geolite.sql`
+- `queries/08-extensions/50-geolocation-ip4r/01_01_dbipcity.sql`
   Enable `ip4r` extension and load GeoLite data.
 
 - `queries/08-extensions/50-geolocation-ip4r/02_01.sql`
@@ -392,7 +392,7 @@ learning window functions, running totals, and delta calculations.
 
 ### GeoLite (IP Geolocation)
 
-**Load:** `docker compose run --rm taop geolite` 
+**Load:** `docker compose run --rm taop dbipcity` 
 
 Note: manual download required with a personal licence key obtained from the
 Maxmind provider.
