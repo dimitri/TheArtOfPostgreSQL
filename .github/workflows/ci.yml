@@ -12,7 +12,18 @@ concurrency:
 jobs:
   content-checks:
     name: Query content checks
-    runs-on: ubuntu-latest
+    # Self-hosted, off ubuntu-latest, to run CI without GitHub-hosted
+    # runner minutes/billing. Needs a runner registered against this repo
+    # specifically under these labels -- self-hosted runners on a personal
+    # GitHub account are scoped per-repository, not shared across repos.
+    runs-on: [self-hosted, scaleway-fr-par]
+    # This repo is public and triggers on pull_request -- without this
+    # gate, anyone could open a PR from a fork and have their workflow
+    # code execute on this runner (a real, well-documented risk of
+    # self-hosted runners on public repos, not a hypothetical one). true
+    # for push (no pull_request context to check) and for PRs whose head
+    # is a branch of this repo itself; false for a PR opened from a fork.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v7
 
@@ -27,7 +38,19 @@ jobs:
 
   test:
     name: PG ${{ matrix.pg }}
-    runs-on: ubuntu-latest
+    # Self-hosted (see content-checks above). A single self-hosted runner
+    # only ever picks up one job at a time -- unlike GitHub-hosted runners,
+    # which give each matrix leg its own VM automatically. Six runner
+    # instances are registered under these same labels specifically so
+    # this 6-leg matrix can still run fully in parallel. Also: the
+    # postgres/query-ui containers this job starts publish ports on the
+    # runner's own host network (not an
+    # isolated per-job network like GitHub-hosted runners provide) -- see
+    # docker-compose.yml's port bindings (127.0.0.1-only) for why that
+    # matters on a shared, persistent host.
+    runs-on: [self-hosted, scaleway-fr-par]
+    # Same fork-PR gate as content-checks above -- see its comment.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
     continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:
@@ -37,20 +60,30 @@ jobs:
         # distinct while pg is still a pre-release tag like "19beta3" (whose
         # image tag is postgres:19beta3-bookworm, not postgres:19-bookworm).
         # See docker/postgres.Dockerfile for the full explanation.
+        # port: all 6 legs run concurrently as separate processes on the
+        # same self-hosted host/daemon (unlike GitHub-hosted runners, which
+        # give each leg its own isolated VM) -- a shared host port would
+        # collide across legs, so each gets its own.
         include:
-          - { pg: "14",      pg_major: "14" }
-          - { pg: "15",      pg_major: "15" }
-          - { pg: "16",      pg_major: "16" }
-          - { pg: "17",      pg_major: "17" }
-          - { pg: "18",      pg_major: "18" }
-          - { pg: "19beta3", pg_major: "19" }
+          - { pg: "14",      pg_major: "14", port: "5433" }
+          - { pg: "15",      pg_major: "15", port: "5434" }
+          - { pg: "16",      pg_major: "16", port: "5435" }
+          - { pg: "17",      pg_major: "17", port: "5436" }
+          - { pg: "18",      pg_major: "18", port: "5437" }
+          - { pg: "19beta3", pg_major: "19", port: "5438" }
       fail-fast: false
 
     env:
       POSTGRES_VERSION: ${{ matrix.pg }}
       PG_MAJOR: ${{ matrix.pg_major }}
-      # constant project name → docker compose looks for image taop-taop:latest
-      COMPOSE_PROJECT_NAME: taop
+      # Per-leg project name and host port -- see the matrix's port comment
+      # above. docker-compose.tools.yml pins the taop service's image tag
+      # explicitly so this doesn't cause a redundant rebuild per leg (see
+      # its comment): Compose would otherwise derive the build-image tag
+      # from COMPOSE_PROJECT_NAME and miss the "Build taop image" step's
+      # taop-taop:latest below.
+      COMPOSE_PROJECT_NAME: taop-${{ matrix.pg }}
+      POSTGRES_HOST_PORT: ${{ matrix.port }}
       # docker-compose.yml defaults to the pre-seeded image (bakes in a full
       # load-data run at build time) — not worth paying that 5x across this
       # PG-version matrix when this job loads data itself via the taop
@@ -88,6 +121,14 @@ jobs:
       - name: Start PostgreSQL ${{ matrix.pg }}
         run: docker compose up -d --build postgres
 
+      # regress.yaml files hardcode localhost:5433 for local dev's default
+      # port -- point them at this leg's own POSTGRES_HOST_PORT instead so
+      # concurrent legs don't all try to query the same (wrong) port.
+      - name: Point regresql configs at this leg's postgres port
+        run: |
+          sed -i "s/localhost:5433/localhost:${POSTGRES_HOST_PORT}/" \
+            queries/regresql/regress.yaml apps/cdstore/regresql/regress.yaml
+
       # load-data iterates *commands* and chinook is not in *commands-to-skip*,
       # so it is included automatically — no separate chinook step needed.
       # taop lives in docker/docker-compose.tools.yml (on-demand services,
@@ -108,12 +149,17 @@ jobs:
             -c "ALTER ROLE cdstore SET search_path TO chinook;" \
             -c "GRANT SELECT ON ALL TABLES IN SCHEMA chinook TO cdstore;"
 
+      # No sudo here on purpose: GitHub-hosted runners have it passwordless,
+      # but this runner's ci-runner user deliberately doesn't (a shared,
+      # persistent box, not an ephemeral VM) -- put GOPATH/bin on PATH
+      # instead of installing system-wide.
       - name: Install regresql
         run: |
           go install github.com/dimitri/regresql@latest
-          sudo install -m 755 "$(go env GOPATH)/bin/regresql" /usr/local/bin/regresql
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
-      # postgres is exposed on localhost:5433 (see docker-compose.yml ports).
+      # postgres is exposed on localhost:$POSTGRES_HOST_PORT (see
+      # docker-compose.yml ports and the "Point regresql configs" step above).
       - name: Run cdstore regression tests
         working-directory: apps/cdstore
         run: regresql test
@@ -134,7 +180,7 @@ jobs:
 
       - name: Capture postgres logs on failure
         if: failure()
-        run: docker logs taop-postgres-1 2>&1 || true
+        run: docker logs "${COMPOSE_PROJECT_NAME}-postgres-1" 2>&1 || true
 
       - name: Tear down
         if: always()
