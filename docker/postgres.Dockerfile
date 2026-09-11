@@ -121,9 +121,32 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends "postgresql-${PG_MAJOR}-ip4r" && \
     rm -rf /var/lib/apt/lists/*
 
+# pg_stat_plans (pganalyze/pg_stat_plans) tracks per-plan-shape call counts
+# and timings -- complements pg_stat_statements (per-query-text) for the
+# Query Optimization course. It relies on Postgres's pluggable cumulative
+# statistics infrastructure, added in PG 18 -- PGDG does publish a package
+# for 16/17 too, but it's a trap: confirmed by testing that preloading it on
+# PG 16 segfaults the server during initdb ("registered custom cumulative
+# statistics... " then crash), because that infrastructure doesn't exist yet
+# on those majors. >= 18 here is load-bearing, not cosmetic -- best-effort
+# like postgresql-hll above: install, preload, and CREATE EXTENSION when
+# available, otherwise leave this PG_MAJOR without it.
+RUN set -eux; \
+    if [ "${PG_MAJOR}" -ge 18 ]; then \
+        apt-get update; \
+        apt-get install -y --no-install-recommends "postgresql-${PG_MAJOR}-pg-stat-plans"; \
+        rm -rf /var/lib/apt/lists/*; \
+        mkdir -p /docker-entrypoint-initdb.d; \
+        echo "create extension if not exists pg_stat_plans;" \
+            > /docker-entrypoint-initdb.d/02-pg-stat-plans.sql; \
+    else \
+        echo "pg_stat_plans needs PG 18+ (pluggable cumulative stats) -- skipping for PG ${PG_MAJOR}"; \
+    fi
+
 # Runs once, only against a freshly-initialized (empty) data directory — see
 # docker/initdb/01-extensions.sql for why these are needed and which one
-# (plxslt) is intentionally left out.
+# (plxslt) is intentionally left out. 02-pg-stat-plans.sql, when present
+# (see above), runs after this one.
 COPY docker/initdb/01-extensions.sql /docker-entrypoint-initdb.d/01-extensions.sql
 
 # initdb's default sample config has listen_addresses='localhost' — fine for
@@ -136,6 +159,22 @@ RUN dpkg-divert --add --rename --divert "/usr/share/postgresql/postgresql.conf.s
     ln -sv ../postgresql.conf.sample "/usr/share/postgresql/${PG_MAJOR}/" && \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample && \
     grep -F "listen_addresses = '*'" /usr/share/postgresql/postgresql.conf.sample
+
+# pg_stat_statements (Query Optimization course) must be preloaded at server
+# start; pg_stat_plans too, when this PG_MAJOR has it (see above). Baked
+# into the sample config here -- like listen_addresses above -- rather than
+# via a docker-compose `command: postgres -c ...` override, so it stays
+# correct per PG_MAJOR without the compose file needing to know which
+# versions have pg_stat_plans.
+RUN set -eux; \
+    if [ "${PG_MAJOR}" -ge 18 ]; then \
+        preload='pg_stat_statements,pg_stat_plans'; \
+    else \
+        preload='pg_stat_statements'; \
+    fi; \
+    sed -ri "s!^#?(shared_preload_libraries)\s*=\s*\S*.*!\1 = '${preload}'!" \
+        /usr/share/postgresql/postgresql.conf.sample; \
+    grep -F "shared_preload_libraries = '${preload}'" /usr/share/postgresql/postgresql.conf.sample
 
 # Same PGDATA/socket layout and entrypoint tooling as the official image.
 RUN install --verbose --directory --owner postgres --group postgres --mode 3777 /var/run/postgresql

@@ -28,9 +28,10 @@ services:
         POSTGIS_VERSION: ${POSTGIS_VERSION:-3.4}
         HASHTAG_URL: "${HASHTAG_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/dashboard_x_usa_x_filter_nativeretweets.csv}"
         HYDRORIVERS_URL: "${HYDRORIVERS_URL:-https://storage.sbg.cloud.ovh.net/v1/AUTH_e5524010dbdf45ccb5cdac68b254c4f7/TAOP/hydro_eu.zip}"
-    # pg_stat_statements must be preloaded at server start; the Query
-    # Optimization course relies on it for workload observation labs.
-    command: postgres -c shared_preload_libraries=pg_stat_statements
+    # shared_preload_libraries (pg_stat_statements always, plus pg_stat_plans
+    # on PG18+) is baked into postgresql.conf.sample at build time -- see
+    # docker/postgres.Dockerfile -- rather than overridden here, since the
+    # right value depends on PG_MAJOR and this file has no per-version logic.
     environment:
       POSTGRES_DB: taop
       POSTGRES_USER: taop

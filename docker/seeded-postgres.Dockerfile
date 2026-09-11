@@ -272,6 +272,29 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends "postgresql-${PG_MAJOR}-ip4r" && \
     rm -rf /var/lib/apt/lists/*
 
+# pg_stat_plans (pganalyze/pg_stat_plans) tracks per-plan-shape call counts
+# and timings -- complements pg_stat_statements (per-query-text) for the
+# Query Optimization course. It relies on Postgres's pluggable cumulative
+# statistics infrastructure, added in PG 18 -- PGDG does publish a package
+# for 16/17 too, but it's a trap: confirmed by testing that preloading it on
+# PG 16 segfaults the server during initdb ("registered custom cumulative
+# statistics... " then crash), because that infrastructure doesn't exist yet
+# on those majors. >= 18 here is load-bearing, not cosmetic -- best-effort
+# like postgresql-hll above: install, preload, and CREATE EXTENSION when
+# available, otherwise leave this PG_MAJOR without it.
+RUN set -eux; \
+    if [ "${PG_MAJOR}" -ge 18 ]; then \
+        apt-get update; \
+        apt-get install -y --no-install-recommends "postgresql-${PG_MAJOR}-pg-stat-plans"; \
+        rm -rf /var/lib/apt/lists/*; \
+        mkdir -p /docker-entrypoint-initdb.d; \
+        echo "create extension if not exists pg_stat_plans;" \
+            > /docker-entrypoint-initdb.d/02-pg-stat-plans.sql; \
+    else \
+        echo "pg_stat_plans needs PG 18+ (pluggable cumulative stats) -- skipping for PG ${PG_MAJOR}"; \
+    fi
+
+# 02-pg-stat-plans.sql, when present (see above), runs after this one.
 COPY docker/initdb/01-extensions.sql /docker-entrypoint-initdb.d/01-extensions.sql
 
 # initdb's default sample config has listen_addresses='localhost' — fine for
@@ -284,6 +307,22 @@ RUN dpkg-divert --add --rename --divert "/usr/share/postgresql/postgresql.conf.s
     ln -sv ../postgresql.conf.sample "/usr/share/postgresql/${PG_MAJOR}/" && \
     sed -ri "s!^#?(listen_addresses)\s*=\s*\S+.*!\1 = '*'!" /usr/share/postgresql/postgresql.conf.sample && \
     grep -F "listen_addresses = '*'" /usr/share/postgresql/postgresql.conf.sample
+
+# pg_stat_statements (Query Optimization course) must be preloaded at server
+# start; pg_stat_plans too, when this PG_MAJOR has it (see above). Baked
+# into the sample config here -- like listen_addresses above -- so both the
+# real container's first initdb and the seed stage's build-time initdb below
+# pick up the right value with no explicit -c override needed at either
+# pg_ctl start site.
+RUN set -eux; \
+    if [ "${PG_MAJOR}" -ge 18 ]; then \
+        preload='pg_stat_statements,pg_stat_plans'; \
+    else \
+        preload='pg_stat_statements'; \
+    fi; \
+    sed -ri "s!^#?(shared_preload_libraries)\s*=\s*\S*.*!\1 = '${preload}'!" \
+        /usr/share/postgresql/postgresql.conf.sample; \
+    grep -F "shared_preload_libraries = '${preload}'" /usr/share/postgresql/postgresql.conf.sample
 
 # Same PGDATA/socket layout and entrypoint tooling as the official image.
 RUN install --verbose --directory --owner postgres --group postgres --mode 3777 /var/run/postgresql
@@ -400,9 +439,12 @@ RUN set -eux; \
     # buildx builds both platforms concurrently.
     echo "local all all trust" > "$PGDATA/pg_hba.conf"; \
     \
-    # Start postgres (pg_stat_statements must be preloaded at server start)
+    # Start postgres. shared_preload_libraries comes from postgresql.conf.sample
+    # (baked in postgres-base above, pg_stat_statements/pg_stat_plans per
+    # PG_MAJOR) via initdb -- no -c override here, since a command-line -c
+    # would win over that file and silently drop pg_stat_plans again.
     gosu postgres pg_ctl -D "$PGDATA" \
-        -o "-c listen_addresses='' -c shared_preload_libraries=pg_stat_statements" \
+        -o "-c listen_addresses=''" \
         -w start; \
     \
     # Bootstrap: role + database + extensions.  -d postgres is required here
@@ -422,6 +464,9 @@ RUN set -eux; \
     psql -U postgres -d postgres -c "CREATE ROLE taop WITH LOGIN SUPERUSER PASSWORD 'taop'"; \
     psql -U postgres -d postgres -c "CREATE DATABASE taop OWNER taop"; \
     psql -U postgres -d taop -f /docker-entrypoint-initdb.d/01-extensions.sql; \
+    if [ -f /docker-entrypoint-initdb.d/02-pg-stat-plans.sql ]; then \
+        psql -U postgres -d taop -f /docker-entrypoint-initdb.d/02-pg-stat-plans.sql; \
+    fi; \
     \
     # Load all book datasets
     /usr/local/bin/taop load-data; \
