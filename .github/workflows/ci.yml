@@ -17,6 +17,13 @@ jobs:
     # specifically under these labels -- self-hosted runners on a personal
     # GitHub account are scoped per-repository, not shared across repos.
     runs-on: [self-hosted, scaleway-fr-par]
+    # This repo is public and triggers on pull_request -- without this
+    # gate, anyone could open a PR from a fork and have their workflow
+    # code execute on this runner (a real, well-documented risk of
+    # self-hosted runners on public repos, not a hypothetical one). true
+    # for push (no pull_request context to check) and for PRs whose head
+    # is a branch of this repo itself; false for a PR opened from a fork.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@v7
 
@@ -41,6 +48,8 @@ jobs:
     # docker-compose.yml's port bindings (127.0.0.1-only) for why that
     # matters on a shared, persistent host.
     runs-on: [self-hosted, scaleway-fr-par]
+    # Same fork-PR gate as content-checks above -- see its comment.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
     continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:
