@@ -274,16 +274,24 @@ RUN apt-get update && \
 
 # pg_stat_plans (pganalyze/pg_stat_plans) tracks per-plan-shape call counts
 # and timings -- complements pg_stat_statements (per-query-text) for the
-# Query Optimization course. It relies on Postgres's pluggable cumulative
-# statistics infrastructure, added in PG 18 -- PGDG does publish a package
-# for 16/17 too, but it's a trap: confirmed by testing that preloading it on
-# PG 16 segfaults the server during initdb ("registered custom cumulative
-# statistics... " then crash), because that infrastructure doesn't exist yet
-# on those majors. >= 18 here is load-bearing, not cosmetic -- best-effort
-# like postgresql-hll above: install, preload, and CREATE EXTENSION when
-# available, otherwise leave this PG_MAJOR without it.
+# Query Optimization course. PGDG publishes a package from PG 16 on
+# (nothing for 14/15). It's compatible enough on 16/17 to be worth having:
+# CREATE EXTENSION and the main pg_stat_plans view both work fine -- the
+# one gap is pg_stat_plans_activity, which errors with "Not implemented,
+# use of pg_stat_plans_get_activity requires Postgres 18+" if queried
+# (confirmed: a clean runtime error from the extension itself, not a
+# crash -- it just doesn't do anything on those majors).
+#
+# Preloading it does need care, though: confirmed by testing that baking
+# it into postgresql.conf.sample (the file initdb itself reads) segfaults
+# initdb's own bootstrap phase on PG 16/17 -- see
+# docker/entrypoint-wrapper.sh for why and how this is avoided for the
+# final image's own initdb. The seed stage below runs its own separate
+# initdb directly (not through that wrapper) and needs the same care.
+# Best-effort like postgresql-hll above either way: install and CREATE
+# EXTENSION when available, otherwise leave this PG_MAJOR without it.
 RUN set -eux; \
-    if [ "${PG_MAJOR}" -ge 18 ]; then \
+    if [ "${PG_MAJOR}" -ge 16 ]; then \
         apt-get update; \
         apt-get install -y --no-install-recommends "postgresql-${PG_MAJOR}-pg-stat-plans"; \
         rm -rf /var/lib/apt/lists/*; \
@@ -291,7 +299,7 @@ RUN set -eux; \
         echo "create extension if not exists pg_stat_plans;" \
             > /docker-entrypoint-initdb.d/02-pg-stat-plans.sql; \
     else \
-        echo "pg_stat_plans needs PG 18+ (pluggable cumulative stats) -- skipping for PG ${PG_MAJOR}"; \
+        echo "pg_stat_plans has no PGDG package for PG ${PG_MAJOR} -- skipping"; \
     fi
 
 # 02-pg-stat-plans.sql, when present (see above), runs after this one.
@@ -309,20 +317,20 @@ RUN dpkg-divert --add --rename --divert "/usr/share/postgresql/postgresql.conf.s
     grep -F "listen_addresses = '*'" /usr/share/postgresql/postgresql.conf.sample
 
 # pg_stat_statements (Query Optimization course) must be preloaded at server
-# start; pg_stat_plans too, when this PG_MAJOR has it (see above). Baked
-# into the sample config here -- like listen_addresses above -- so both the
-# real container's first initdb and the seed stage's build-time initdb below
-# pick up the right value with no explicit -c override needed at either
-# pg_ctl start site.
+# start; pg_stat_plans too, when this PG_MAJOR has it (see above). Written
+# to a plain file, read at container start by docker/entrypoint-wrapper.sh,
+# which passes it to postgres as a -c flag -- NOT baked into
+# postgresql.conf.sample the way listen_addresses is above: see
+# entrypoint-wrapper.sh for why that specifically breaks pg_stat_plans. The
+# seed stage below reads this same file directly for its own pg_ctl start.
 RUN set -eux; \
-    if [ "${PG_MAJOR}" -ge 18 ]; then \
+    if [ "${PG_MAJOR}" -ge 16 ]; then \
         preload='pg_stat_statements,pg_stat_plans'; \
     else \
         preload='pg_stat_statements'; \
     fi; \
-    sed -ri "s!^#?(shared_preload_libraries)\s*=\s*\S*.*!\1 = '${preload}'!" \
-        /usr/share/postgresql/postgresql.conf.sample; \
-    grep -F "shared_preload_libraries = '${preload}'" /usr/share/postgresql/postgresql.conf.sample
+    mkdir -p /usr/local/share; \
+    echo -n "${preload}" > /usr/local/share/preload-libraries
 
 # Same PGDATA/socket layout and entrypoint tooling as the official image.
 RUN install --verbose --directory --owner postgres --group postgres --mode 3777 /var/run/postgresql
@@ -334,7 +342,11 @@ COPY --from=pg-entrypoint /usr/local/bin/docker-entrypoint.sh /usr/local/bin/doc
 COPY --from=pg-entrypoint /usr/local/bin/gosu /usr/local/bin/gosu
 RUN ln -sT docker-ensure-initdb.sh /usr/local/bin/docker-enforce-initdb.sh
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+# entrypoint-wrapper.sh injects shared_preload_libraries (see above), then
+# delegates to the real, unmodified docker-entrypoint.sh.
+COPY docker/entrypoint-wrapper.sh /usr/local/bin/entrypoint-wrapper.sh
+
+ENTRYPOINT ["entrypoint-wrapper.sh"]
 STOPSIGNAL SIGINT
 EXPOSE 5432
 CMD ["postgres"]
@@ -439,12 +451,13 @@ RUN set -eux; \
     # buildx builds both platforms concurrently.
     echo "local all all trust" > "$PGDATA/pg_hba.conf"; \
     \
-    # Start postgres. shared_preload_libraries comes from postgresql.conf.sample
-    # (baked in postgres-base above, pg_stat_statements/pg_stat_plans per
-    # PG_MAJOR) via initdb -- no -c override here, since a command-line -c
-    # would win over that file and silently drop pg_stat_plans again.
+    # Start postgres, with shared_preload_libraries read from the same file
+    # entrypoint-wrapper.sh uses for the final image (postgres-base above) --
+    # NOT via postgresql.conf.sample: this initdb (just above) already ran
+    # without it, on purpose, since that's what avoids the initdb-time
+    # segfault on PG 16/17 (see the pg_stat_plans comment above).
     gosu postgres pg_ctl -D "$PGDATA" \
-        -o "-c listen_addresses=''" \
+        -o "-c listen_addresses='' -c shared_preload_libraries=$(cat /usr/local/share/preload-libraries)" \
         -w start; \
     \
     # Bootstrap: role + database + extensions.  -d postgres is required here
