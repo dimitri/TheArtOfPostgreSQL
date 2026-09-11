@@ -35,7 +35,13 @@ permissions:
 jobs:
   prebuild:
     name: Build and push PG ${{ matrix.pg }}
-    runs-on: ubuntu-latest
+    # Self-hosted (see ci.yml) -- worth watching the first few runs here
+    # specifically: this is the heaviest workflow in the repo (compiles
+    # taop, loads 19 datasets, clones ~2GB of commitlog history, builds two
+    # architectures via QEMU) times 6 PG-version legs, serialized on
+    # whatever single runner is registered -- may need more headroom
+    # (CPU/RAM/disk) than a GitHub-hosted runner provided.
+    runs-on: [self-hosted, scaleway-fr-par]
     # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
     continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:

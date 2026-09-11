@@ -27,7 +27,11 @@ permissions:
 
 jobs:
   prebuild:
-    runs-on: ubuntu-latest
+    # Self-hosted -- see ci.yml. No platforms: pin on the build-push-action
+    # step below, so this publishes for whatever architecture the runner
+    # itself is -- fine for a devcontainer image, but worth checking if
+    # this ever runs on an arm64 box (ubuntu-latest was always amd64).
+    runs-on: [self-hosted, scaleway-fr-par]
 
     steps:
       - uses: actions/checkout@v7

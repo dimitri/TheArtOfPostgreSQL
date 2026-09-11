@@ -37,7 +37,12 @@ services:
       POSTGRES_USER: taop
       POSTGRES_PASSWORD: taop
     ports:
-      - "5433:5432"
+      # 127.0.0.1-only: this is a trust-authenticated, known-password
+      # (POSTGRES_PASSWORD: taop) database meant for the same machine's own
+      # use (localhost:5433) -- binding to 0.0.0.0 would needlessly expose
+      # it to the rest of the network/internet on any host with a public
+      # or LAN-reachable IP (a self-hosted CI runner, for instance).
+      - "127.0.0.1:5433:5432"
     volumes:
       # Mount one level above /data so that both PG≤17 (which use
       # /var/lib/postgresql/data) and PG18+ (which use a versioned
@@ -64,7 +69,9 @@ services:
       context: .
       dockerfile: src/query-ui/Dockerfile
     ports:
-      - "8042:8042"
+      # 127.0.0.1-only -- same reasoning as postgres's port above. Reachable
+      # at localhost:8042 from the same machine either way.
+      - "127.0.0.1:8042:8042"
     environment:
       DATABASE_URL: postgresql://taop:taop@postgres:5432/taop
     volumes:

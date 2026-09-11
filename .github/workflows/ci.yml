@@ -12,7 +12,11 @@ concurrency:
 jobs:
   content-checks:
     name: Query content checks
-    runs-on: ubuntu-latest
+    # Self-hosted, off ubuntu-latest, to run CI without GitHub-hosted
+    # runner minutes/billing. Needs a runner registered against this repo
+    # specifically under these labels -- self-hosted runners on a personal
+    # GitHub account are scoped per-repository, not shared across repos.
+    runs-on: [self-hosted, scaleway-fr-par]
     steps:
       - uses: actions/checkout@v7
 
@@ -27,7 +31,16 @@ jobs:
 
   test:
     name: PG ${{ matrix.pg }}
-    runs-on: ubuntu-latest
+    # Self-hosted (see content-checks above). Unlike GitHub-hosted runners,
+    # a single self-hosted runner only picks up one job at a time -- unless
+    # a second runner is registered under the same labels, this 6-leg
+    # matrix will run serially instead of in parallel, extending wall-clock
+    # CI time noticeably. Also: the postgres/query-ui containers this job
+    # starts publish ports on the runner's own host network (not an
+    # isolated per-job network like GitHub-hosted runners provide) -- see
+    # docker-compose.yml's port bindings (127.0.0.1-only) for why that
+    # matters on a shared, persistent host.
+    runs-on: [self-hosted, scaleway-fr-par]
     # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
     continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:
