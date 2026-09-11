@@ -149,10 +149,14 @@ jobs:
             -c "ALTER ROLE cdstore SET search_path TO chinook;" \
             -c "GRANT SELECT ON ALL TABLES IN SCHEMA chinook TO cdstore;"
 
+      # No sudo here on purpose: GitHub-hosted runners have it passwordless,
+      # but this runner's ci-runner user deliberately doesn't (a shared,
+      # persistent box, not an ephemeral VM) -- put GOPATH/bin on PATH
+      # instead of installing system-wide.
       - name: Install regresql
         run: |
           go install github.com/dimitri/regresql@latest
-          sudo install -m 755 "$(go env GOPATH)/bin/regresql" /usr/local/bin/regresql
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
       # postgres is exposed on localhost:$POSTGRES_HOST_PORT (see
       # docker-compose.yml ports and the "Point regresql configs" step above).
