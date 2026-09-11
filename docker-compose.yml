@@ -39,10 +39,13 @@ services:
     ports:
       # 127.0.0.1-only: this is a trust-authenticated, known-password
       # (POSTGRES_PASSWORD: taop) database meant for the same machine's own
-      # use (localhost:5433) -- binding to 0.0.0.0 would needlessly expose
-      # it to the rest of the network/internet on any host with a public
-      # or LAN-reachable IP (a self-hosted CI runner, for instance).
-      - "127.0.0.1:5433:5432"
+      # use (localhost:5433 by default) -- binding to 0.0.0.0 would
+      # needlessly expose it to the rest of the network/internet on any host
+      # with a public or LAN-reachable IP (a self-hosted CI runner, for
+      # instance). POSTGRES_HOST_PORT is overridable so ci.yml's matrix legs,
+      # which all run concurrently against the same host, don't collide on
+      # this port -- see ci.yml's per-leg port/COMPOSE_PROJECT_NAME comment.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       # Mount one level above /data so that both PG≤17 (which use
       # /var/lib/postgresql/data) and PG18+ (which use a versioned

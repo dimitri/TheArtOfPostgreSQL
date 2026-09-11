@@ -60,20 +60,30 @@ jobs:
         # distinct while pg is still a pre-release tag like "19beta3" (whose
         # image tag is postgres:19beta3-bookworm, not postgres:19-bookworm).
         # See docker/postgres.Dockerfile for the full explanation.
+        # port: all 6 legs run concurrently as separate processes on the
+        # same self-hosted host/daemon (unlike GitHub-hosted runners, which
+        # give each leg its own isolated VM) -- a shared host port would
+        # collide across legs, so each gets its own.
         include:
-          - { pg: "14",      pg_major: "14" }
-          - { pg: "15",      pg_major: "15" }
-          - { pg: "16",      pg_major: "16" }
-          - { pg: "17",      pg_major: "17" }
-          - { pg: "18",      pg_major: "18" }
-          - { pg: "19beta3", pg_major: "19" }
+          - { pg: "14",      pg_major: "14", port: "5433" }
+          - { pg: "15",      pg_major: "15", port: "5434" }
+          - { pg: "16",      pg_major: "16", port: "5435" }
+          - { pg: "17",      pg_major: "17", port: "5436" }
+          - { pg: "18",      pg_major: "18", port: "5437" }
+          - { pg: "19beta3", pg_major: "19", port: "5438" }
       fail-fast: false
 
     env:
       POSTGRES_VERSION: ${{ matrix.pg }}
       PG_MAJOR: ${{ matrix.pg_major }}
-      # constant project name → docker compose looks for image taop-taop:latest
-      COMPOSE_PROJECT_NAME: taop
+      # Per-leg project name and host port -- see the matrix's port comment
+      # above. docker-compose.tools.yml pins the taop service's image tag
+      # explicitly so this doesn't cause a redundant rebuild per leg (see
+      # its comment): Compose would otherwise derive the build-image tag
+      # from COMPOSE_PROJECT_NAME and miss the "Build taop image" step's
+      # taop-taop:latest below.
+      COMPOSE_PROJECT_NAME: taop-${{ matrix.pg }}
+      POSTGRES_HOST_PORT: ${{ matrix.port }}
       # docker-compose.yml defaults to the pre-seeded image (bakes in a full
       # load-data run at build time) — not worth paying that 5x across this
       # PG-version matrix when this job loads data itself via the taop
@@ -111,6 +121,14 @@ jobs:
       - name: Start PostgreSQL ${{ matrix.pg }}
         run: docker compose up -d --build postgres
 
+      # regress.yaml files hardcode localhost:5433 for local dev's default
+      # port -- point them at this leg's own POSTGRES_HOST_PORT instead so
+      # concurrent legs don't all try to query the same (wrong) port.
+      - name: Point regresql configs at this leg's postgres port
+        run: |
+          sed -i "s/localhost:5433/localhost:${POSTGRES_HOST_PORT}/" \
+            queries/regresql/regress.yaml apps/cdstore/regresql/regress.yaml
+
       # load-data iterates *commands* and chinook is not in *commands-to-skip*,
       # so it is included automatically — no separate chinook step needed.
       # taop lives in docker/docker-compose.tools.yml (on-demand services,
@@ -136,7 +154,8 @@ jobs:
           go install github.com/dimitri/regresql@latest
           sudo install -m 755 "$(go env GOPATH)/bin/regresql" /usr/local/bin/regresql
 
-      # postgres is exposed on localhost:5433 (see docker-compose.yml ports).
+      # postgres is exposed on localhost:$POSTGRES_HOST_PORT (see
+      # docker-compose.yml ports and the "Point regresql configs" step above).
       - name: Run cdstore regression tests
         working-directory: apps/cdstore
         run: regresql test
@@ -157,7 +176,7 @@ jobs:
 
       - name: Capture postgres logs on failure
         if: failure()
-        run: docker logs taop-postgres-1 2>&1 || true
+        run: docker logs "${COMPOSE_PROJECT_NAME}-postgres-1" 2>&1 || true
 
       - name: Tear down
         if: always()

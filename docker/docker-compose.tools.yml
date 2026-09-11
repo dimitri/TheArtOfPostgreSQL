@@ -12,6 +12,12 @@ services:
   #   POSTGRES_DOCKERFILE=docker/postgres.Dockerfile docker compose build postgres
   #   docker compose -f docker-compose.yml -f docker/docker-compose.tools.yml run --rm taop load-data
   taop:
+    # Pinned so `docker compose run taop` reuses the image ci.yml's "Build
+    # taop image" step already built/loaded under this exact tag, regardless
+    # of COMPOSE_PROJECT_NAME -- without this, Compose's default build-image
+    # tag is derived from the project name (${COMPOSE_PROJECT_NAME}-taop),
+    # which would silently trigger a redundant rebuild per project name.
+    image: taop-taop:latest
     build:
       context: .
       dockerfile: docker/taop.Dockerfile
