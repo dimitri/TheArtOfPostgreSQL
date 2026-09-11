@@ -477,11 +477,14 @@ RUN set -eux; \
     # it explicitly here so its rows end up in the seed dump too.
     /usr/local/bin/taop commitlog; \
     \
-    # Dump the seeded database as gzipped SQL.
-    # The postgres entrypoint auto-decompresses .sql.gz files in initdb.d
-    # and pipes them through psql on first start of a fresh volume.
-    pg_dump -U taop --no-owner --no-acl taop \
-        | gzip -9 > /docker-entrypoint-initdb.d/02-taop-seed.sql.gz; \
+    # Dump the seeded database in custom format (-Fc), not plain SQL: custom
+    # format is what unlocks a parallel pg_restore --jobs on the other end
+    # (docker/initdb/03-restore-seed.sh) -- plain SQL can only be replayed
+    # serially through psql. Compresses to roughly the same size as the old
+    # gzipped-plain-SQL dump (custom format has its own built-in
+    # compression), so no size regression for switching.
+    pg_dump -U taop --no-owner --no-acl -Fc \
+        -f /docker-entrypoint-initdb.d/02-taop-seed.dump taop; \
     \
     # Stop postgres and clean up everything that doesn't belong in the image
     gosu postgres pg_ctl -D "$PGDATA" -w stop; \
@@ -494,5 +497,12 @@ RUN set -eux; \
 # ─────────────────────────────────────────────────────────────────────────────
 FROM postgres-base
 
-COPY --from=seed /docker-entrypoint-initdb.d/02-taop-seed.sql.gz \
-                 /docker-entrypoint-initdb.d/02-taop-seed.sql.gz
+COPY --from=seed /docker-entrypoint-initdb.d/02-taop-seed.dump \
+                 /docker-entrypoint-initdb.d/02-taop-seed.dump
+
+# docker-entrypoint.sh's init-file dispatcher only knows .sh/.sql/.sql.gz/
+# .sql.xz/.sql.zst -- it has no built-in pg_restore handling, so a plain
+# custom-format .dump file sitting in initdb.d is just data the dispatcher
+# ignores. 03-restore-seed.sh (an executable script, which the dispatcher
+# does run) is what actually calls pg_restore --jobs against it.
+COPY docker/initdb/03-restore-seed.sh /docker-entrypoint-initdb.d/03-restore-seed.sh
