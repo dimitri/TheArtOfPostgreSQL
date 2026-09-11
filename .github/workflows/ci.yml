@@ -38,12 +38,13 @@ jobs:
 
   test:
     name: PG ${{ matrix.pg }}
-    # Self-hosted (see content-checks above). Unlike GitHub-hosted runners,
-    # a single self-hosted runner only picks up one job at a time -- unless
-    # a second runner is registered under the same labels, this 6-leg
-    # matrix will run serially instead of in parallel, extending wall-clock
-    # CI time noticeably. Also: the postgres/query-ui containers this job
-    # starts publish ports on the runner's own host network (not an
+    # Self-hosted (see content-checks above). A single self-hosted runner
+    # only ever picks up one job at a time -- unlike GitHub-hosted runners,
+    # which give each matrix leg its own VM automatically. Six runner
+    # instances are registered under these same labels specifically so
+    # this 6-leg matrix can still run fully in parallel. Also: the
+    # postgres/query-ui containers this job starts publish ports on the
+    # runner's own host network (not an
     # isolated per-job network like GitHub-hosted runners provide) -- see
     # docker-compose.yml's port bindings (127.0.0.1-only) for why that
     # matters on a shared, persistent host.
