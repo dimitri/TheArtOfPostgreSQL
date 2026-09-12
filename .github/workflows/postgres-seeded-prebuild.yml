@@ -35,14 +35,18 @@ permissions:
 jobs:
   prebuild:
     name: Build and push PG ${{ matrix.pg }}
-    # Self-hosted (see ci.yml, including its note on multiple runner
-    # instances -- the same ones serve every workflow in this repo) --
-    # worth watching the first few runs here specifically regardless: this
-    # is the heaviest workflow in the repo (compiles taop, loads 19
-    # datasets, clones ~2GB of commitlog history, builds two architectures
-    # via QEMU) times 6 PG-version legs, all running at once may need more
-    # headroom (CPU/RAM/disk) than a single GitHub-hosted runner provided.
-    runs-on: [self-hosted, scaleway-fr-par]
+    # GitHub-hosted, unlike ci.yml/devcontainer-prebuild.yml: this is the
+    # heaviest workflow in the repo (compiles taop, loads 19 datasets,
+    # clones ~2GB of commitlog history, builds two architectures via QEMU)
+    # x 6 PG-version legs. QEMU's arm64 emulation is CPU-bound, and 6 of
+    # them running concurrently on one self-hosted box (24 cores, shared
+    # with production workloads) means real CPU contention that
+    # GitHub-hosted's 6 separate per-leg VMs don't have -- measured ~1h25m
+    # per leg self-hosted vs ~30 min hosted. This workflow only runs on
+    # push to main for paths that rarely change (see `on:` above), so it
+    # doesn't meaningfully add to GitHub Actions usage, and public repos
+    # get unlimited free minutes on hosted runners regardless.
+    runs-on: ubuntu-latest
     # 19beta3 is pre-release: PGDG/upstream churn is expected until GA.
     continue-on-error: ${{ matrix.pg == '19beta3' }}
     strategy:
