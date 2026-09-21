@@ -290,8 +290,14 @@ RUN apt-get update && \
 # initdb directly (not through that wrapper) and needs the same care.
 # Best-effort like postgresql-hll above either way: install and CREATE
 # EXTENSION when available, otherwise leave this PG_MAJOR without it.
+# PG 19 (pre-release) is deliberately excluded: pg_stat_plans walks plan-node
+# structs with code compiled against the server headers of one specific
+# beta, and node layouts change between betas. The PGDG build did not match
+# 19beta3 and segfaulted on UPDATE ... FOR PORTION OF (and would break every
+# statement on a later branch). Revisit once 19 is GA and the layouts freeze.
+
 RUN set -eux; \
-    if [ "${PG_MAJOR}" -ge 16 ]; then \
+    if [ "${PG_MAJOR}" -ge 16 ] && [ "${PG_MAJOR}" -lt 19 ]; then \
         apt-get update; \
         apt-get install -y --no-install-recommends "postgresql-${PG_MAJOR}-pg-stat-plans"; \
         rm -rf /var/lib/apt/lists/*; \
@@ -299,7 +305,7 @@ RUN set -eux; \
         echo "create extension if not exists pg_stat_plans;" \
             > /docker-entrypoint-initdb.d/02-pg-stat-plans.sql; \
     else \
-        echo "pg_stat_plans has no PGDG package for PG ${PG_MAJOR} -- skipping"; \
+        echo "pg_stat_plans: not installed for PG ${PG_MAJOR} (no PGDG package below 16; PG 19 pre-releases are skipped, see comment above) -- skipping"; \
     fi
 
 # 02-pg-stat-plans.sql, when present (see above), runs after this one.
@@ -324,7 +330,7 @@ RUN dpkg-divert --add --rename --divert "/usr/share/postgresql/postgresql.conf.s
 # entrypoint-wrapper.sh for why that specifically breaks pg_stat_plans. The
 # seed stage below reads this same file directly for its own pg_ctl start.
 RUN set -eux; \
-    if [ "${PG_MAJOR}" -ge 16 ]; then \
+    if [ "${PG_MAJOR}" -ge 16 ] && [ "${PG_MAJOR}" -lt 19 ]; then \
         preload='pg_stat_statements,pg_stat_plans'; \
     else \
         preload='pg_stat_statements'; \

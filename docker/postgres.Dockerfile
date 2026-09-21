@@ -138,7 +138,7 @@ RUN apt-get update && \
 # like postgresql-hll above either way: install and CREATE EXTENSION when
 # available, otherwise leave this PG_MAJOR without it.
 RUN set -eux; \
-    if [ "${PG_MAJOR}" -ge 16 ]; then \
+    if [ "${PG_MAJOR}" -ge 16 ] && [ "${PG_MAJOR}" -lt 19 ]; then \
         apt-get update; \
         apt-get install -y --no-install-recommends "postgresql-${PG_MAJOR}-pg-stat-plans"; \
         rm -rf /var/lib/apt/lists/*; \
@@ -146,7 +146,7 @@ RUN set -eux; \
         echo "create extension if not exists pg_stat_plans;" \
             > /docker-entrypoint-initdb.d/02-pg-stat-plans.sql; \
     else \
-        echo "pg_stat_plans has no PGDG package for PG ${PG_MAJOR} -- skipping"; \
+        echo "pg_stat_plans: not installed for PG ${PG_MAJOR} (no PGDG package below 16; PG 19 pre-releases are skipped, see comment above) -- skipping"; \
     fi
 
 # Runs once, only against a freshly-initialized (empty) data directory — see
@@ -173,7 +173,7 @@ RUN dpkg-divert --add --rename --divert "/usr/share/postgresql/postgresql.conf.s
 # postgresql.conf.sample the way listen_addresses is above: see
 # entrypoint-wrapper.sh for why that specifically breaks pg_stat_plans.
 RUN set -eux; \
-    if [ "${PG_MAJOR}" -ge 16 ]; then \
+    if [ "${PG_MAJOR}" -ge 16 ] && [ "${PG_MAJOR}" -lt 19 ]; then \
         preload='pg_stat_statements,pg_stat_plans'; \
     else \
         preload='pg_stat_statements'; \
