@@ -182,8 +182,17 @@ func (s *Server) setupRoutes() {
 	}
 	s.router.Handle("/", noCache(fileServer))
 
-	// API: Health check
-	s.router.Get("/health", s.handleHealth)
+	// API: Health check. CORS-open (unlike every other /api/* route below)
+	// so an outside page's own JS -- app.taop.xyz's "Open in Local Lab"
+	// button -- can feature-detect a running lab before it links to it,
+	// telling this instance apart from some unrelated service that happens
+	// to answer on :8042. Deliberately not corsMiddleware'd onto the whole
+	// router: this tool has no auth (a local dev convenience), so opening
+	// /api/query/execute the same way would let any website a reader
+	// happens to have open silently run SQL against their own Postgres
+	// through their browser. /health has nothing to protect -- it returns
+	// a fixed, non-secret status string.
+	s.router.With(corsMiddleware).Get("/health", s.handleHealth)
 
 	// API: TOC structure
 	s.router.Get("/api/toc", s.handleTOC)
