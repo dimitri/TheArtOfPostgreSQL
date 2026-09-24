@@ -1210,13 +1210,54 @@
 
         renderTOC();
         setupEventListeners();
-        showWelcome();
+
+        const sharedSQL = readSharedQueryParam();
+        if (sharedSQL !== null) {
+          loadSharedQuery(sharedSQL);
+        } else {
+          showWelcome();
+        }
 
         console.log('✓ Initialized');
       } catch (err) {
         console.error('Initialization error:', err);
         showError('Failed to load TOC: ' + err.message);
       }
+    }
+
+    /* ── Deep link: ?sql=<query> ────────────────────────────────────────
+       Lets an external page (theartofpostgresql.com's app, a README, a
+       chat message) hand this lab a specific query without the reader
+       hunting for it in the sidebar -- app.taop.xyz's own runnable code
+       blocks link here this way. Populates the editor only; it never
+       auto-runs, since the query lands in a real read-write-capable
+       Postgres and a reader should see what they're about to execute
+       before it does anything. history.replaceState strips the param
+       right after reading it: the SQL (arbitrarily long, and not
+       meaningful as a URL) belongs in the editor and the undo stack from
+       here on, not sitting in the address bar or browser history. */
+    function readSharedQueryParam() {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('sql')) return null;
+      const sql = params.get('sql');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('sql');
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      return sql;
+    }
+
+    function loadSharedQuery(sql) {
+      hideWelcome();
+      document.getElementById('query-input').value = sql;
+      document.getElementById('chapter-title').textContent = 'Shared query';
+      document.getElementById('chapter-path').textContent =
+        'Opened from a link — not part of the book\'s own table of contents';
+      showChapterCTA(null);
+      document.querySelectorAll('.query-item.active')
+              .forEach(el => el.classList.remove('active'));
+      setEditorMode('sql', sql);
+      clearResults();
+      clearError();
     }
 
     function renderTOC() {
