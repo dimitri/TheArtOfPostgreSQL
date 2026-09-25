@@ -111,16 +111,21 @@ jobs:
       # down: if: always()" step never got to run) can leave a full
       # dataset's worth of volumes sitting on disk indefinitely otherwise.
       # Every one of these only ever touches resources not referenced by
-      # any container (running or stopped), so this is safe to run
-      # concurrently with up to 2 sibling legs also doing it (see
-      # max-parallel above) without risk of pulling a layer out from under
-      # a build in progress.
+      # any container (running or stopped), so it's safe for two sibling
+      # legs' prunes to overlap in *what* they'd remove (see max-parallel
+      # above) -- but the daemon itself only ever allows one prune
+      # operation in flight at a time and rejects a second with "a prune
+      # operation is already running" (exit 1, seen for real once this
+      # step first shipped: run 36079524514's PG 14/16 legs). `|| true`
+      # on each: losing that race is fine, since whichever sibling's
+      # prune wins reclaims the same shared disk regardless of which leg
+      # asked for it.
       - name: Reclaim disk space from earlier runs
         run: |
-          docker container prune -f
-          docker volume prune -f
-          docker image prune -af --filter "until=48h"
-          docker builder prune -f --filter "unused-for=48h"
+          docker container prune -f || true
+          docker volume prune -f || true
+          docker image prune -af --filter "until=48h" || true
+          docker builder prune -f --filter "unused-for=48h" || true
 
       - uses: docker/setup-buildx-action@v4
 
