@@ -200,6 +200,11 @@ func (s *Server) setupRoutes() {
 
 	// API: Queries
 	s.router.Get("/api/query/{part}/{chapter}/{section}/{queryID}", s.handleQueryFile)
+	// Resolved same-origin by this page's own JS (readSharedQueryParam),
+	// not fetched cross-origin from app.taop.xyz -- the app only ever
+	// builds the ?name= link, never calls this itself, so this doesn't
+	// need CORS the way /health does.
+	s.router.Get("/api/query-by-name/{name}", s.handleQueryByName)
 	s.router.Post("/api/query/execute", s.handleQueryExecute)
 	s.router.Post("/api/query/explain", s.handleQueryExplain)
 

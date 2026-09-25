@@ -1292,17 +1292,54 @@
         renderTOC();
         setupEventListeners();
 
-        const sharedSQL = readSharedQueryParam();
-        if (sharedSQL !== null) {
-          loadSharedQuery(sharedSQL);
-        } else {
-          showWelcome();
+        const loadedByName = await tryLoadQueryByName();
+        if (!loadedByName) {
+          const sharedSQL = readSharedQueryParam();
+          if (sharedSQL !== null) {
+            loadSharedQuery(sharedSQL);
+          } else {
+            showWelcome();
+          }
         }
 
         console.log('✓ Initialized');
       } catch (err) {
         console.error('Initialization error:', err);
         showError('Failed to load TOC: ' + err.message);
+      }
+    }
+
+    /* ── Deep link: ?name=<slug> ─────────────────────────────────────────
+       Preferred over ?sql= whenever a caller (app.taop.xyz's "Open in
+       Local Lab" button) knows a book query's own stable `-- name: <slug>`
+       identifier -- resolves through handleQueryByName to this file's own
+       toc.txt path, then loads it exactly as a sidebar click would
+       (breadcrumb, chapter link, and this file's own query-params.json
+       \set override all included), rather than trusting whatever raw SQL
+       text and :var default the calling page happened to have. Falls
+       through to ?sql= (checked next in init(), see tryLoadQueryByName's
+       own return value) when there's no ?name= at all, or the name
+       doesn't resolve to anything here -- content can drift between the
+       two repos even though both come from the same book source. */
+    async function tryLoadQueryByName() {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('name')) return false;
+      const name = params.get('name');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('name');
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+
+      try {
+        const res = await fetch('/api/query-by-name/' + encodeURIComponent(name));
+        if (!res.ok) throw new Error('query-by-name: ' + res.status);
+        const { path } = await res.json();
+        const loc = findQueryLocation(path);
+        if (!loc) throw new Error('query-by-name: path not in TOC: ' + path);
+        await loadQuery(loc.chapter, loc.section, path);
+        return true;
+      } catch (err) {
+        console.warn('Could not resolve ?name=' + name + ' — falling back.', err);
+        return false;
       }
     }
 
