@@ -72,6 +72,19 @@ jobs:
           - { pg: "18",      pg_major: "18", port: "5437" }
           - { pg: "19beta3", pg_major: "19", port: "5438" }
       fail-fast: false
+      # All 6 legs share one Docker data-root on one persistent box (see
+      # runs-on's own comment) -- each leg independently builds a Postgres
+      # image and loads the full dataset set (lastfm, hashtag, hydrorivers,
+      # chinook, f1db, ...), and 6 of those peaking at once has
+      # outstripped disk more than once (a leg's "Load all datasets" step
+      # failing with Postgres's own "No space left on device" /
+      # FileFallocate errors, e.g. runs 36077336233, 36069782339,
+      # 36059543001 -- every failure in "no space", none in this repo's
+      # own code). Capping at 3 concurrent legs roughly halves peak
+      # combined disk usage at the cost of the matrix taking longer
+      # end-to-end; a real fix (more disk on the box, or a cleanup cron
+      # outside CI) is out of reach from this workflow file alone.
+      max-parallel: 3
 
     env:
       POSTGRES_VERSION: ${{ matrix.pg }}
@@ -92,6 +105,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      # Reclaim whatever's reclaimable before this leg adds its own load --
+      # a crashed/force-cancelled past run's containers (its own "Tear
+      # down: if: always()" step never got to run) can leave a full
+      # dataset's worth of volumes sitting on disk indefinitely otherwise.
+      # Every one of these only ever touches resources not referenced by
+      # any container (running or stopped), so it's safe for two sibling
+      # legs' prunes to overlap in *what* they'd remove (see max-parallel
+      # above) -- but the daemon itself only ever allows one prune
+      # operation in flight at a time and rejects a second with "a prune
+      # operation is already running" (exit 1, seen for real once this
+      # step first shipped: run 36079524514's PG 14/16 legs). `|| true`
+      # on each: losing that race is fine, since whichever sibling's
+      # prune wins reclaims the same shared disk regardless of which leg
+      # asked for it.
+      - name: Reclaim disk space from earlier runs
+        run: |
+          docker container prune -f || true
+          docker volume prune -f || true
+          docker image prune -af --filter "until=48h" || true
+          docker builder prune -f --filter "unused-for=48h" || true
 
       - uses: docker/setup-buildx-action@v4
 

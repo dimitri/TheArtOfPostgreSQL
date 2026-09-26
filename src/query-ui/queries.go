@@ -9,6 +9,17 @@ import (
 type QueryIndex struct {
 	ByPath map[string]QueryFile
 	ByID   map[string]QueryFile
+	// ByName resolves a query's own `-- name: <slug>` header comment (the
+	// book's stable per-query identifier -- the same slug also appears as
+	// the first line of the matching entry in app.taop.xyz's own
+	// content/query-manifest.yaml, since both are generated from the same
+	// book source) to the file carrying it. This is what a book page's
+	// own "Open in Local Lab" link resolves by (see handleQueryByName):
+	// the book page may only have a partial or missing :var default of
+	// its own (hand-curated per occurrence, and not every occurrence gets
+	// curated), where this file's own query-params.json override is the
+	// curated, known-correct one.
+	ByName map[string]QueryFile
 }
 
 // queryFileExtensions lists every file type toc.txt references alongside
@@ -47,6 +58,7 @@ func IndexQueries(queriesDir string) (*QueryIndex, error) {
 	idx := &QueryIndex{
 		ByPath: make(map[string]QueryFile),
 		ByID:   make(map[string]QueryFile),
+		ByName: make(map[string]QueryFile),
 	}
 
 	// Walk all files
@@ -91,10 +103,38 @@ func IndexQueries(queriesDir string) (*QueryIndex, error) {
 		id := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 		idx.ByID[id] = qf
 
+		if name, ok := leadingNameComment(qf.Content); ok {
+			idx.ByName[name] = qf
+		}
+
 		return nil
 	})
 
 	return idx, err
+}
+
+// leadingNameComment extracts a query file's own `-- name: <slug>` header
+// (the book's convention for a query's stable identifier, checked by this
+// repo's own tooling that keeps a query's leading `-- name:`/`-- name:`
+// pair in sync across the book source, this directory, and
+// app.taop.xyz's content/query-manifest.yaml) — the first non-blank line
+// only, not scanned further into the file, since a `-- name:`-shaped
+// comment appearing later would be part of the query's own prose, not its
+// identifier.
+func leadingNameComment(content string) (name string, ok bool) {
+	for _, line := range strings.Split(content, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		rest, found := strings.CutPrefix(trimmed, "-- name:")
+		if !found {
+			return "", false
+		}
+		name = strings.TrimSpace(rest)
+		return name, name != ""
+	}
+	return "", false
 }
 
 func (q *QueryFile) FirstLines(n int) string {

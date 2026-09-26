@@ -103,6 +103,36 @@ func (s *Server) handleQueryFile(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// handleQueryByName resolves a query's own `-- name: <slug>` header (see
+// queries.go's ByName/leadingNameComment) to its toc.txt-style path.
+// Called from this page's own frontend (readSharedQueryParam, same
+// origin) when app.taop.xyz's "Open in Local Lab" button links here with
+// ?name=<slug> instead of ?sql=<...>: a book page only shows the
+// *reader-facing* query text, which may carry a bare :name/:n parameter
+// with no curated default of its own for that particular occurrence
+// (query-manifest.yaml's vars are hand-curated per occurrence, not
+// guaranteed complete) -- this slug is the one thing guaranteed present
+// and identical on both sides (the same book source generates both this
+// directory and that manifest), so resolving through it reaches *this*
+// file's own query-params.json override, known correct, instead of
+// whatever partial value the calling page happened to have.
+//
+// Returns only the path, not the content directly: the frontend already
+// has findQueryLocation+loadQuery for turning a path into a fully loaded
+// query (breadcrumb, chapter link, query-params.json substitution and
+// all) exactly as a sidebar click would -- this endpoint's only job is
+// the name -> path half of that.
+func (s *Server) handleQueryByName(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+	query, found := s.queries.ByName[name]
+	if !found {
+		writeJSONError(w, 404, "No query with name: "+name)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"path": query.RelPath})
+}
+
 type QueryExecuteRequest struct {
 	SQL       string `json:"sql"`
 	ReadWrite bool   `json:"read_write"`

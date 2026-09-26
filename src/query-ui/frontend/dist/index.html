@@ -576,6 +576,87 @@
       font-size: 0.85rem;
     }
 
+    /* Diagram zoom overlay — ported from app.taop.xyz's own
+       figure-zoom.js/.css (its click-to-zoom lightbox for EXPLAIN
+       diagrams embedded in the book). Opens automatically the moment the
+       Diagram tab is selected (see explainTabClicked below): a plan tree
+       at inline width is rarely legible past a handful of nodes, so
+       showing the cramped version first and making a reader ask for the
+       bigger one is backwards here — this *is* the diagram view. Esc,
+       the close button, or clicking the backdrop all dismiss it back to
+       the normal (small) inline diagram underneath, still there for
+       reference or to copy from. */
+    .diagram-zoom-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(20, 20, 24, 0.92);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .diagram-zoom-overlay.diagram-zoom-open { display: flex; }
+    .diagram-zoom-stage {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: grab;
+    }
+    .diagram-zoom-stage img {
+      max-width: 94vw;
+      max-height: 84vh;
+      transition: transform .04s linear;
+      user-select: none;
+      -webkit-user-drag: none;
+      background: #fff;
+      border-radius: 4px;
+    }
+    .diagram-zoom-close {
+      position: absolute;
+      top: 18px;
+      right: 24px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .diagram-zoom-close:hover { background: rgba(255,255,255,0.25); }
+    .diagram-zoom-hint {
+      color: rgba(255,255,255,0.6);
+      font-size: 12.5px;
+      padding: 14px 0 20px 0;
+      margin: 0;
+    }
+    /* A small "expand" affordance on the inline diagram itself, for
+       reopening the overlay after closing it without switching tabs away
+       and back. */
+    .explain-diagram { position: relative; }
+    .explain-diagram-reopen {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.06);
+      color: #abb2bf;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .explain-diagram-reopen:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
     .results-table td.td-json {
       white-space: normal;
       max-width: 400px;
@@ -1210,13 +1291,91 @@
 
         renderTOC();
         setupEventListeners();
-        showWelcome();
+
+        const loadedByName = await tryLoadQueryByName();
+        if (!loadedByName) {
+          const sharedSQL = readSharedQueryParam();
+          if (sharedSQL !== null) {
+            loadSharedQuery(sharedSQL);
+          } else {
+            showWelcome();
+          }
+        }
 
         console.log('✓ Initialized');
       } catch (err) {
         console.error('Initialization error:', err);
         showError('Failed to load TOC: ' + err.message);
       }
+    }
+
+    /* ── Deep link: ?name=<slug> ─────────────────────────────────────────
+       Preferred over ?sql= whenever a caller (app.taop.xyz's "Open in
+       Local Lab" button) knows a book query's own stable `-- name: <slug>`
+       identifier -- resolves through handleQueryByName to this file's own
+       toc.txt path, then loads it exactly as a sidebar click would
+       (breadcrumb, chapter link, and this file's own query-params.json
+       \set override all included), rather than trusting whatever raw SQL
+       text and :var default the calling page happened to have. Falls
+       through to ?sql= (checked next in init(), see tryLoadQueryByName's
+       own return value) when there's no ?name= at all, or the name
+       doesn't resolve to anything here -- content can drift between the
+       two repos even though both come from the same book source. */
+    async function tryLoadQueryByName() {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('name')) return false;
+      const name = params.get('name');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('name');
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+
+      try {
+        const res = await fetch('/api/query-by-name/' + encodeURIComponent(name));
+        if (!res.ok) throw new Error('query-by-name: ' + res.status);
+        const { path } = await res.json();
+        const loc = findQueryLocation(path);
+        if (!loc) throw new Error('query-by-name: path not in TOC: ' + path);
+        await loadQuery(loc.chapter, loc.section, path);
+        return true;
+      } catch (err) {
+        console.warn('Could not resolve ?name=' + name + ' — falling back.', err);
+        return false;
+      }
+    }
+
+    /* ── Deep link: ?sql=<query> ────────────────────────────────────────
+       Lets an external page (theartofpostgresql.com's app, a README, a
+       chat message) hand this lab a specific query without the reader
+       hunting for it in the sidebar -- app.taop.xyz's own runnable code
+       blocks link here this way. Populates the editor only; it never
+       auto-runs, since the query lands in a real read-write-capable
+       Postgres and a reader should see what they're about to execute
+       before it does anything. history.replaceState strips the param
+       right after reading it: the SQL (arbitrarily long, and not
+       meaningful as a URL) belongs in the editor and the undo stack from
+       here on, not sitting in the address bar or browser history. */
+    function readSharedQueryParam() {
+      const params = new URLSearchParams(window.location.search);
+      if (!params.has('sql')) return null;
+      const sql = params.get('sql');
+      const url = new URL(window.location.href);
+      url.searchParams.delete('sql');
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+      return sql;
+    }
+
+    function loadSharedQuery(sql) {
+      hideWelcome();
+      document.getElementById('query-input').value = sql;
+      document.getElementById('chapter-title').textContent = 'Shared query';
+      document.getElementById('chapter-path').textContent =
+        'Opened from a link — not part of the book\'s own table of contents';
+      showChapterCTA(null);
+      document.querySelectorAll('.query-item.active')
+              .forEach(el => el.classList.remove('active'));
+      setEditorMode('sql', sql);
+      clearResults();
+      clearError();
     }
 
     function renderTOC() {
@@ -1902,10 +2061,17 @@
         `<div class="explain-tabs">${tabButtons}</div>` +
         `<div class="explain-tab-content">${active.render(lastExplainResult)}</div>`;
 
+      // Selecting Diagram opens the near-fullscreen zoom overlay right
+      // away (window.diagramZoomOpenFromTab, wired at the bottom of the
+      // page) -- a plan tree past a handful of nodes is rarely legible at
+      // inline width, so making a reader ask for the bigger view with a
+      // second click on the diagram itself is backwards. Only on an
+      // actual click, not the reset to 'text' after a fresh EXPLAIN.
       document.querySelectorAll('.explain-tab').forEach(btn => {
         btn.addEventListener('click', () => {
           explainTab = btn.dataset.tab;
           renderExplainTabs();
+          if (explainTab === 'diagram') window.diagramZoomOpenFromTab();
         });
       });
     }
@@ -2004,7 +2170,13 @@
       const vbWidth = maxX - minX + 40;
       const vbHeight = maxY + 40;
 
-      let svg = `<svg viewBox="${minX - 20} -20 ${vbWidth} ${vbHeight}" ` +
+      // class="explain-diagram-plot" is what tells this apart from the
+      // reopen button's own icon <svg>, also a child of .explain-diagram
+      // -- a bare ".explain-diagram svg" selector matched whichever came
+      // first in the DOM (the button, since it's rendered before this),
+      // opening the zoom overlay on a tiny arrow icon blown up huge
+      // instead of the plan.
+      let svg = `<svg class="explain-diagram-plot" viewBox="${minX - 20} -20 ${vbWidth} ${vbHeight}" ` +
         `width="100%" height="${vbHeight}" xmlns="http://www.w3.org/2000/svg" ` +
         `font-family="Monaco, Courier New, monospace" font-size="11">`;
 
@@ -2063,7 +2235,14 @@
         `Planning: ${(planningTime || 0).toFixed(2)}ms &middot; Execution: ${(executionTime || 0).toFixed(2)}ms ` +
         `&middot; hover a node for full details</div>`;
 
-      return `<div style="background:${EXPLAIN_COLORS.control.fill};border-radius:6px;padding:10px;overflow:auto;">${header}${svg}</div>`;
+      // .explain-diagram is what both diagramZoomOpenFromTab (auto-open on
+      // tab select) and the click-delegated overlay listener below key
+      // off of. The reopen button is only needed once a reader has closed
+      // the overlay without switching tabs -- selecting the tab again
+      // re-runs this whole render and reopens it automatically anyway.
+      return `<div class="explain-diagram" style="background:${EXPLAIN_COLORS.control.fill};border-radius:6px;padding:10px;overflow:auto;">` +
+        `<button type="button" class="explain-diagram-reopen" title="Open full-size">${faIcon('up-right-from-square')} Expand</button>` +
+        `${header}${svg}</div>`;
     }
 
     function clearResults() {
@@ -2347,6 +2526,96 @@
 
     // Start
     init();
+  </script>
+
+  <!-- Diagram zoom overlay -- ported from app.taop.xyz's own
+       figure-zoom.js (see .diagram-zoom-* above for the why). One overlay
+       shared by every EXPLAIN diagram on the page, src swapped on open
+       (the inline SVG is serialized to a data URL, same technique the
+       app version uses for its own .explain-diagram svg). Self-contained
+       IIFE, wired once at load: the diagram itself is (re-)rendered long
+       after this runs, so a one-time querySelector for it would miss it
+       -- the click listener below is delegated for the same reason
+       figure-zoom.js's is. -->
+  <div class="diagram-zoom-overlay" id="diagram-zoom-overlay">
+    <button type="button" class="diagram-zoom-close" aria-label="Close">&times;</button>
+    <div class="diagram-zoom-stage" id="diagram-zoom-stage"><img id="diagram-zoom-img" alt="EXPLAIN plan diagram"></div>
+    <p class="diagram-zoom-hint">Scroll to zoom &middot; drag to pan &middot; Esc to close</p>
+  </div>
+  <script>
+    (function () {
+      const overlay = document.getElementById('diagram-zoom-overlay');
+      const stage = document.getElementById('diagram-zoom-stage');
+      const img = document.getElementById('diagram-zoom-img');
+      let scale = 1, originX = 0, originY = 0, dragging = false, dragStartX = 0, dragStartY = 0;
+
+      function applyTransform() {
+        img.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+      }
+
+      function svgToDataURL(svg) {
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
+      }
+
+      function openOverlay(svg) {
+        img.src = svgToDataURL(svg);
+        scale = 1; originX = 0; originY = 0;
+        applyTransform();
+        overlay.classList.add('diagram-zoom-open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeOverlay() {
+        overlay.classList.remove('diagram-zoom-open');
+        document.body.style.overflow = '';
+        img.src = '';
+      }
+
+      // Opens automatically the moment a reader lands on the Diagram tab
+      // (renderExplainTabs' own click handler calls this after building
+      // the tab content) -- see .diagram-zoom-overlay's own comment for
+      // why that's the point of this whole thing, not an afterthought.
+      window.diagramZoomOpenFromTab = function () {
+        const svg = document.querySelector('.explain-diagram-plot');
+        if (svg) openOverlay(svg);
+      };
+
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.explain-diagram-reopen')) {
+          const svg = document.querySelector('.explain-diagram-plot');
+          if (svg) openOverlay(svg);
+        }
+      });
+
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay || e.target.classList.contains('diagram-zoom-close')) closeOverlay();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.classList.contains('diagram-zoom-open')) closeOverlay();
+      });
+
+      stage.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = -e.deltaY * 0.0015;
+        scale = Math.min(6, Math.max(1, scale + delta * scale));
+        if (scale === 1) { originX = 0; originY = 0; }
+        applyTransform();
+      }, { passive: false });
+
+      stage.addEventListener('mousedown', (e) => {
+        if (scale === 1) return;
+        dragging = true;
+        dragStartX = e.clientX - originX;
+        dragStartY = e.clientY - originY;
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        originX = e.clientX - dragStartX;
+        originY = e.clientY - dragStartY;
+        applyTransform();
+      });
+      window.addEventListener('mouseup', () => { dragging = false; });
+    })();
   </script>
 </body>
 </html>
